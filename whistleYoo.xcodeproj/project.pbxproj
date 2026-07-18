@@ -1,0 +1,299 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1101 /* AutoLaunchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0101 /* AutoLaunchManager.swift */; };
+		1102 /* CertificateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0102 /* CertificateManager.swift */; };
+		1103 /* EngineHealthChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0103 /* EngineHealthChecker.swift */; };
+		1104 /* EnvironmentDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0104 /* EnvironmentDetector.swift */; };
+		1105 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105 /* Models.swift */; };
+		1106 /* NetworkInterfaceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0106 /* NetworkInterfaceManager.swift */; };
+		1107 /* PortChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0107 /* PortChecker.swift */; };
+		1108 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0108 /* ProcessRunner.swift */; };
+		1109 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0109 /* SettingsStore.swift */; };
+		1110 /* SystemProxyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0110 /* SystemProxyManager.swift */; };
+		1111 /* WhistleEngineController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111 /* WhistleEngineController.swift */; };
+		1112 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0112 /* AppDelegate.swift */; };
+		1113 /* WhistleWebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0113 /* WhistleWebViewController.swift */; };
+		1114 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0114 /* main.swift */; };
+		1115 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0117 /* Assets.xcassets */; };
+		1116 /* ManagedProcessCleaner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0118 /* ManagedProcessCleaner.swift */; };
+		1117 /* AppStateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0119 /* AppStateController.swift */; };
+		1118 /* AppViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0120 /* AppViews.swift */; };
+		1119 /* AppWindowControllers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0121 /* AppWindowControllers.swift */; };
+		1120 /* MobileSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0122 /* MobileSetup.swift */; };
+		1121 /* SoftwareDomainWhitelistManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0123 /* SoftwareDomainWhitelistManager.swift */; };
+		1122 /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0124 /* Localization.swift */; };
+		1123 /* CoreLocalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0125 /* CoreLocalization.swift */; };
+		1124 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0128 /* Localizable.strings */; };
+		1125 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0131 /* InfoPlist.strings */; };
+		1126 /* UpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0132 /* UpdateController.swift */; };
+		1127 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 6002 /* Sparkle */; };
+		1128 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0133 /* AboutView.swift */; };
+		1129 /* RuleConfigurationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0134 /* RuleConfigurationView.swift */; };
+		1130 /* WhistleRulesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0135 /* WhistleRulesManager.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0010 /* WhistleYoo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "WhistleYoo.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0101 /* AutoLaunchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoLaunchManager.swift; sourceTree = "<group>"; };
+		0102 /* CertificateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateManager.swift; sourceTree = "<group>"; };
+		0103 /* EngineHealthChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineHealthChecker.swift; sourceTree = "<group>"; };
+		0104 /* EnvironmentDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentDetector.swift; sourceTree = "<group>"; };
+		0105 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		0106 /* NetworkInterfaceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterfaceManager.swift; sourceTree = "<group>"; };
+		0107 /* PortChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortChecker.swift; sourceTree = "<group>"; };
+		0108 /* ProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessRunner.swift; sourceTree = "<group>"; };
+		0109 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		0110 /* SystemProxyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemProxyManager.swift; sourceTree = "<group>"; };
+		0111 /* WhistleEngineController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhistleEngineController.swift; sourceTree = "<group>"; };
+		0112 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		0113 /* WhistleWebViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhistleWebViewController.swift; sourceTree = "<group>"; };
+		0114 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		0115 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0116 /* whistleYoo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = whistleYoo.entitlements; sourceTree = "<group>"; };
+		0117 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		0118 /* ManagedProcessCleaner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedProcessCleaner.swift; sourceTree = "<group>"; };
+		0119 /* AppStateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateController.swift; sourceTree = "<group>"; };
+		0120 /* AppViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViews.swift; sourceTree = "<group>"; };
+		0121 /* AppWindowControllers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppWindowControllers.swift; sourceTree = "<group>"; };
+		0122 /* MobileSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileSetup.swift; sourceTree = "<group>"; };
+		0123 /* SoftwareDomainWhitelistManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftwareDomainWhitelistManager.swift; sourceTree = "<group>"; };
+		0124 /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
+		0125 /* CoreLocalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreLocalization.swift; sourceTree = "<group>"; };
+		0126 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		0127 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		0129 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		0130 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		0132 /* UpdateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateController.swift; sourceTree = "<group>"; };
+		0133 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
+		0134 /* RuleConfigurationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleConfigurationView.swift; sourceTree = "<group>"; };
+		0135 /* WhistleRulesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhistleRulesManager.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (1127 /* Sparkle in Frameworks */);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0002 = {
+			isa = PBXGroup;
+			children = (
+				0004 /* Sources */,
+				0003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0003 /* Products */ = {
+			isa = PBXGroup;
+			children = (0010 /* WhistleYoo.app */,);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0004 /* Sources */ = {
+			isa = PBXGroup;
+			children = (0005 /* whistleYooCore */, 0006 /* whistleYooApp */);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		0005 /* whistleYooCore */ = {
+			isa = PBXGroup;
+			children = (0101, 0102, 0103, 0104, 0105, 0106, 0107, 0108, 0109, 0110, 0111, 0123, 0125, 0135, 0118);
+			path = whistleYooCore;
+			sourceTree = "<group>";
+		};
+		0006 /* whistleYooApp */ = {
+			isa = PBXGroup;
+			children = (0112, 0119, 0120, 0121, 0122, 0113, 0132, 0133, 0134, 0124, 0114, 0007 /* Resources */);
+			path = whistleYooApp;
+			sourceTree = "<group>";
+		};
+		0007 /* Resources */ = {
+			isa = PBXGroup;
+			children = (0115, 0116, 0117, 0128 /* Localizable.strings */, 0131 /* InfoPlist.strings */);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3001 /* whistleYoo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5002 /* Build configuration list for PBXNativeTarget "whistleYoo" */;
+			buildPhases = (2001 /* Sources */, 2002 /* Frameworks */, 2003 /* Resources */);
+			buildRules = ();
+			dependencies = ();
+			name = whistleYoo;
+			packageProductDependencies = (6002 /* Sparkle */);
+			productName = WhistleYoo;
+			productReference = 0010 /* WhistleYoo.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = { 3001 = { CreatedOnToolsVersion = 16.4; }; };
+			};
+			buildConfigurationList = 5001 /* Build configuration list for PBXProject "whistleYoo" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = (en, "zh-Hans", Base);
+			mainGroup = 0002;
+			productRefGroup = 0003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			packageReferences = (6001 /* XCRemoteSwiftPackageReference "Sparkle" */);
+			targets = (3001 /* whistleYoo */);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		2003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (1115 /* Assets.xcassets in Resources */, 1124 /* Localizable.strings in Resources */, 1125 /* InfoPlist.strings in Resources */);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (1101, 1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1121, 1123, 1130, 1112, 1117, 1118, 1119, 1120, 1113, 1126, 1128, 1129, 1122, 1114, 1116);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		0128 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (0126 /* en */, 0127 /* zh-Hans */);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		0131 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (0129 /* en */, 0130 /* zh-Hans */);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		4001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		4002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		4003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Sources/whistleYooApp/Resources/whistleYoo.entitlements;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sources/whistleYooApp/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MARKETING_VERSION = 0.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.devework.whistleyoo;
+				PRODUCT_NAME = WhistleYoo;
+				SUPPORTED_PLATFORMS = macosx;
+			};
+			name = Debug;
+		};
+		4004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Sources/whistleYooApp/Resources/whistleYoo.entitlements;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sources/whistleYooApp/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MARKETING_VERSION = 0.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.devework.whistleyoo;
+				PRODUCT_NAME = WhistleYoo;
+				SUPPORTED_PLATFORMS = macosx;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5001 /* Build configuration list for PBXProject "whistleYoo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (4001 /* Debug */, 4002 /* Release */);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5002 /* Build configuration list for PBXNativeTarget "whistleYoo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (4003 /* Debug */, 4004 /* Release */);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		6001 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = exactVersion;
+				version = 2.9.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6002 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6001 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 0001 /* Project object */;
+}

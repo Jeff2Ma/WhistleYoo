@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>WhistleYoo Updates</title>
+        <link>https://github.com/Jeff2Ma/WhistleYoo</link>
+        <description>WhistleYoo release updates</description>
+        <language>zh-CN</language>
+        <item>
+            <title>0.0.1</title>
+            <pubDate>Sun, 12 Jul 2026 00:38:41 +0800</pubDate>
+            <link>https://github.com/Jeff2Ma/WhistleYoo</link>
+            <sparkle:version>1</sparkle:version>
+            <sparkle:shortVersionString>0.0.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/Jeff2Ma/WhistleYoo/releases/download/v0.0.1/WhistleYoo-0.0.1.dmg" length="5200351" type="application/octet-stream" sparkle:edSignature="J7T32Q63mb6DdhwN60D8nUxtJhFn+v8O5CJ2l9wqbaGDq5sHKLmqJh2i6MzW7m+dSejDtdEcBzHPhEUP4JiTDA=="/>
+        </item>
+    </channel>
+</rss>

@@ -1,0 +1,7 @@
+/* Simplified Chinese is the source language; untranslated values fall back to their keys. */
+"关闭并退出" = "关闭并退出";
+"WhistleYoo 初始化引导" = "WhistleYoo 初始化引导";
+"本机端口 127.0.0.1:%@" = "本机端口 127.0.0.1:%@";
+"开启全局系统代理" = "开启全局系统代理";
+"重新执行初始化引导" = "重新执行初始化引导";
+"端口 %@ 已被占用" = "端口 %@ 已被占用";
