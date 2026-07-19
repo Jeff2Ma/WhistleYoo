@@ -208,7 +208,17 @@ final class ModelAndSettingsTests: XCTestCase {
     }
 
     func testPortInUseDescriptionNeverGroupsDigits() {
-        XCTAssertEqual(WhistleYooError.portInUse(8_899).errorDescription, "端口 8899 已被占用")
+        let description = WhistleYooError.portInUse(8_899).errorDescription
+        let supportedDescriptions = ["en", "zh-Hans"].map {
+            Localization.format(
+                .corePortValueIsAlreadyInUse,
+                localeIdentifier: $0,
+                String(8_899)
+            )
+        }
+
+        XCTAssertTrue(supportedDescriptions.contains(description ?? ""))
+        XCTAssertTrue(supportedDescriptions.allSatisfy { $0.contains("8899") })
     }
 
     func testVersionOneSettingsMigrateToCurrentVersion() throws {

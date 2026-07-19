@@ -50,7 +50,13 @@ final class EnvironmentDetectorTests: XCTestCase {
             guard case .unsupportedVersion(let message) = error as? WhistleYooError else {
                 return XCTFail("Unexpected error: \(error)")
             }
-            XCTAssertTrue(message.contains("Node.js 版本过低"))
+            let supportedMessages = ["en", "zh-Hans"].map {
+                Localization.string(
+                    .coreNodeJsIsTooOldVersion18OrLaterIsRequired,
+                    localeIdentifier: $0
+                )
+            }
+            XCTAssertTrue(supportedMessages.contains(message))
         }
     }
 }
