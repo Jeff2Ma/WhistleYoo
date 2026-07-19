@@ -27,7 +27,7 @@ final class WhistleRulesManagerTests: XCTestCase {
               "backRulesFirst": true,
               "list": [
                 {"name": "API mocks", "data": "api.example.com file://mock.json", "selected": true},
-                {"name": "Disabled", "data": "x.test host://192.0.2.10", "selected": false}
+                {"name": "Disabled", "data": "x.test host://1.1.1.1", "selected": false}
               ]
             }
             """.data(using: .utf8)!
@@ -251,8 +251,8 @@ final class WhistleRulesManagerTests: XCTestCase {
               "allowMultipleChoice": false,
               "backRulesFirst": false,
               "list": [
-                {"name": "One", "data": "one.test host://192.0.2.10", "selected": true},
-                {"name": "Two", "data": "two.test host://198.51.100.20", "selected": false}
+                {"name": "One", "data": "one.test host://1.1.1.1", "selected": true},
+                {"name": "Two", "data": "two.test host://2.2.2.2", "selected": false}
               ]
             }
             """.data(using: .utf8)!)

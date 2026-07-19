@@ -295,6 +295,15 @@ final class ModelAndSettingsTests: XCTestCase {
         XCTAssertEqual(statuses[5].statusBarIcon.badgeSymbolName, "xmark.circle.fill")
     }
 
+    func testApplicationStatusAnimationBehaviorOnlyRepeatsDuringTransitions() {
+        XCTAssertEqual(ApplicationStatus.listeningOnly.statusBarAnimationBehavior, .entryPulse)
+        XCTAssertEqual(ApplicationStatus.systemProxyEnabled.statusBarAnimationBehavior, .entryPulse)
+        XCTAssertEqual(ApplicationStatus.transitioning.statusBarAnimationBehavior, .continuousPulse)
+        XCTAssertEqual(ApplicationStatus.stopped.statusBarAnimationBehavior, .none)
+        XCTAssertEqual(ApplicationStatus.attention.statusBarAnimationBehavior, .none)
+        XCTAssertEqual(ApplicationStatus.unavailable.statusBarAnimationBehavior, .none)
+    }
+
     func testMissingMigrationIsReported() throws {
         let object: [String: Any] = ["schemaVersion": 0]
         let data = try JSONSerialization.data(withJSONObject: object)

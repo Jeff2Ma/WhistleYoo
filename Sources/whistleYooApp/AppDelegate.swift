@@ -1,21 +1,31 @@
 import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
+#if canImport(whistleYooCore)
+import whistleYooCore
+#endif
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let state = AppStateController()
     private let consoleSession = WhistleConsoleSession()
     private var statusItem: NSStatusItem!
+    private let statusMenu = NSMenu()
     private let popover = NSPopover()
     private var mainWindowController: MainWindowController?
     private var onboardingWindowController: OnboardingWindowController?
     private var terminationInProgress = false
+    private var animationTimer: Timer?
+    private var animationFrameIndex = 0
+    private var currentAnimationKind: StatusBarAnimationKind?
+    private var animationFrameCache: [StatusBarAnimationKind: [NSImage]] = [:]
+    private var lastRenderedStatus: ApplicationStatus?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         UpdateController.shared.start()
         configureMainMenu()
         configureStateCallbacks()
+        configureAccessibilityNotifications()
         configureStatusItem()
         configurePopover()
         if !applyDockVisibility(state.showDockIcon), !state.showDockIcon {
@@ -67,6 +77,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return .terminateLater
     }
 
+    func applicationWillTerminate(_ notification: Notification) {
+        stopAnimation()
+        NSWorkspace.shared.notificationCenter.removeObserver(
+            self,
+            name: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification,
+            object: nil
+        )
+    }
+
     func applicationShouldHandleReopen(
         _ sender: NSApplication,
         hasVisibleWindows flag: Bool
@@ -113,6 +132,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         state.onDockVisibilityChange = { [weak self] isVisible in
             self?.applyDockVisibility(isVisible) == true
         }
+    }
+
+    private func configureAccessibilityNotifications() {
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(accessibilityDisplayOptionsDidChange(_:)),
+            name: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification,
+            object: nil
+        )
+    }
+
+    @objc private func accessibilityDisplayOptionsDidChange(_ notification: Notification) {
+        updateStatusIcon(force: true)
     }
 
     private func applyDockVisibility(_ isVisible: Bool) -> Bool {
@@ -216,8 +248,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         guard let button = statusItem.button else { return }
         button.target = self
-        button.action = #selector(togglePopover)
-        button.sendAction(on: [.leftMouseUp])
+        button.action = #selector(handleStatusItemClick(_:))
+        button.sendAction(on: [.leftMouseUp, .rightMouseDown])
         updateStatusIcon()
     }
 
@@ -235,7 +267,167 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popover.contentViewController = NSHostingController(rootView: rootView)
     }
 
-    @objc private func togglePopover() {
+    @objc private func handleStatusItemClick(_ button: NSStatusBarButton) {
+        if NSApp.currentEvent?.type == .rightMouseDown {
+            showStatusMenu(from: button)
+        } else {
+            togglePopover()
+        }
+    }
+
+    private func showStatusMenu(from button: NSStatusBarButton) {
+        guard let event = NSApp.currentEvent else { return }
+        popover.performClose(nil)
+        rebuildStatusMenu()
+        button.highlight(true)
+        defer { button.highlight(false) }
+        NSMenu.popUpContextMenu(statusMenu, with: event, for: button)
+    }
+
+    private func rebuildStatusMenu() {
+        statusMenu.removeAllItems()
+        statusMenu.autoenablesItems = false
+
+        let statusItem = NSMenuItem(
+            title: "WhistleYoo · \(state.statusTitle)",
+            action: nil,
+            keyEquivalent: ""
+        )
+        statusItem.isEnabled = false
+        statusMenu.addItem(statusItem)
+
+        let descriptionItem = NSMenuItem(
+            title: state.engineDescription,
+            action: nil,
+            keyEquivalent: ""
+        )
+        descriptionItem.isEnabled = false
+        statusMenu.addItem(descriptionItem)
+        statusMenu.addItem(.separator())
+
+        if state.needsOnboarding || isEnvironmentUnavailable {
+            addStatusMenuItem(
+                title: appLocalized("运行设置引导"),
+                action: #selector(openOnboardingFromStatusMenu(_:)),
+                isEnabled: !state.isTransitioning
+            )
+        } else {
+            let isRunningOrStopping: Bool
+            switch state.engineState {
+            case .running, .stopping:
+                isRunningOrStopping = true
+            case .starting, .stopped, .failed:
+                isRunningOrStopping = false
+            }
+            addStatusMenuItem(
+                title: appLocalized(isRunningOrStopping ? "停止代理引擎" : "启动代理引擎"),
+                action: #selector(toggleEngineFromStatusMenu(_:)),
+                isEnabled: !state.isTransitioning
+            )
+        }
+
+        let proxyItem = addStatusMenuItem(
+            title: appLocalized("全局系统代理"),
+            action: #selector(toggleSystemProxyFromStatusMenu(_:)),
+            isEnabled: state.isEngineRunning && !state.isTransitioning
+        )
+        switch state.systemProxyStatus {
+        case .enabledByThisApp:
+            proxyItem.state = .on
+        case .partiallyEnabled:
+            proxyItem.state = .mixed
+        case .disabled, .configuredByOther, .unavailable:
+            proxyItem.state = .off
+        }
+
+        statusMenu.addItem(.separator())
+        addStatusMenuItem(
+            title: appLocalized("Whistle 面板"),
+            action: #selector(openConsoleFromStatusMenu(_:)),
+            isEnabled: !state.isTransitioning
+        )
+        addStatusMenuItem(
+            title: appLocalized("手机代理"),
+            action: #selector(openMobileSetupFromStatusMenu(_:)),
+            isEnabled: !state.isTransitioning
+        )
+        addStatusMenuItem(
+            title: appLocalized("更多设置"),
+            action: #selector(openSettingsFromStatusMenu(_:))
+        )
+
+        statusMenu.addItem(.separator())
+        addStatusMenuItem(
+            title: appLocalized("检查更新…"),
+            action: #selector(checkForUpdatesFromStatusMenu(_:)),
+            isEnabled: UpdateController.shared.canCheckForUpdates
+        )
+
+        statusMenu.addItem(.separator())
+        addStatusMenuItem(
+            title: appLocalized("退出 WhistleYoo"),
+            action: #selector(quitFromStatusMenu(_:))
+        )
+    }
+
+    @discardableResult
+    private func addStatusMenuItem(
+        title: String,
+        action: Selector,
+        isEnabled: Bool = true
+    ) -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
+        item.target = self
+        item.isEnabled = isEnabled
+        statusMenu.addItem(item)
+        return item
+    }
+
+    private var isEnvironmentUnavailable: Bool {
+        if case .unavailable = state.environmentStatus { return true }
+        return false
+    }
+
+    @objc private func toggleEngineFromStatusMenu(_ sender: NSMenuItem) {
+        switch state.engineState {
+        case .running:
+            Task { await state.stopEngine() }
+        case .starting, .stopping:
+            break
+        case .stopped, .failed:
+            Task { await state.startEngine() }
+        }
+    }
+
+    @objc private func toggleSystemProxyFromStatusMenu(_ sender: NSMenuItem) {
+        Task { await state.toggleSystemProxy() }
+    }
+
+    @objc private func openConsoleFromStatusMenu(_ sender: NSMenuItem) {
+        openMainWindow(tab: .console)
+    }
+
+    @objc private func openMobileSetupFromStatusMenu(_ sender: NSMenuItem) {
+        openMainWindow(tab: .mobile)
+    }
+
+    @objc private func openSettingsFromStatusMenu(_ sender: NSMenuItem) {
+        openMainWindow(tab: .settings)
+    }
+
+    @objc private func openOnboardingFromStatusMenu(_ sender: NSMenuItem) {
+        showOnboarding(reset: false)
+    }
+
+    @objc private func checkForUpdatesFromStatusMenu(_ sender: NSMenuItem) {
+        UpdateController.shared.checkForUpdates()
+    }
+
+    @objc private func quitFromStatusMenu(_ sender: NSMenuItem) {
+        NSApp.terminate(nil)
+    }
+
+    private func togglePopover() {
         if popover.isShown {
             popover.performClose(nil)
             return
@@ -317,15 +509,140 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func updateStatusIcon() {
+    private func updateStatusIcon(force: Bool = false) {
         guard let button = statusItem?.button else { return }
-        let descriptor = state.applicationStatus.statusBarIcon
-        button.image = StatusBarIconRenderer.image(
+
+        let status = state.applicationStatus
+        let previousStatus = lastRenderedStatus
+        let statusChanged = previousStatus != status
+        let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        let shouldCrossfade = previousStatus != nil && statusChanged && !reduceMotion
+
+        updateStatusItemMetadata(button)
+        guard statusChanged || force else { return }
+        lastRenderedStatus = status
+
+        guard !reduceMotion, let animation = StatusBarAnimationKind(status: status) else {
+            stopAnimation()
+            renderStaticStatusIcon(for: status, crossfade: shouldCrossfade)
+            return
+        }
+
+        startAnimation(animation, crossfade: shouldCrossfade)
+    }
+
+    private func updateStatusItemMetadata(_ button: NSStatusBarButton) {
+        button.toolTip = "WhistleYoo · \(state.statusTitle)\n\(state.engineDescription)"
+        button.setAccessibilityLabel("WhistleYoo · \(state.statusTitle)")
+        button.setAccessibilityHelp(state.engineDescription)
+    }
+
+    private func renderStaticStatusIcon(for status: ApplicationStatus, crossfade: Bool) {
+        let descriptor = status.statusBarIcon
+        let animationStyle = StatusBarAnimationKind(status: status)
+        guard let image = StatusBarIconRenderer.image(
             baseSymbolName: descriptor.baseSymbolName,
             badgeSymbolName: descriptor.badgeSymbolName,
-            accessibilityDescription: state.statusTitle
+            accessibilityDescription: nil,
+            badgeBoundsOverride: animationStyle?.badgeBounds,
+            badgePointSizeOverride: animationStyle?.badgePointSize
+        ) else { return }
+
+        setStatusIcon(image, crossfade: crossfade)
+    }
+
+    private func setStatusIcon(_ image: NSImage, crossfade: Bool) {
+        guard let button = statusItem?.button else { return }
+        if crossfade {
+            button.wantsLayer = true
+            let transition = CATransition()
+            transition.type = .fade
+            transition.duration = 0.2
+            button.layer?.add(transition, forKey: "iconTransition")
+        } else {
+            button.layer?.removeAnimation(forKey: "iconTransition")
+        }
+        button.image = image
+    }
+
+    private func startAnimation(_ kind: StatusBarAnimationKind, crossfade: Bool) {
+        stopAnimation()
+        currentAnimationKind = kind
+        animationFrameIndex = 0
+
+        guard renderAnimationFrame(crossfade: crossfade) else {
+            stopAnimation()
+            renderStaticStatusIcon(for: state.applicationStatus, crossfade: crossfade)
+            return
+        }
+
+        animationTimer = Timer.scheduledTimer(
+            timeInterval: kind.interval,
+            target: self,
+            selector: #selector(advanceStatusIconAnimation),
+            userInfo: nil,
+            repeats: true
         )
-        button.toolTip = "WhistleYoo · \(state.statusTitle)"
+    }
+
+    @objc private func advanceStatusIconAnimation() {
+        guard let kind = currentAnimationKind else {
+            stopAnimation()
+            return
+        }
+
+        let nextFrameIndex = animationFrameIndex + 1
+        if let totalFrameCount = kind.totalFrameCount,
+           nextFrameIndex >= totalFrameCount {
+            // Entry animations finish on their fully opaque frame. Keep that
+            // cached image in place instead of starting a permanent timer.
+            stopAnimation()
+            return
+        }
+
+        animationFrameIndex = nextFrameIndex
+        if !renderAnimationFrame(crossfade: false) {
+            stopAnimation()
+            renderStaticStatusIcon(for: state.applicationStatus, crossfade: false)
+        }
+    }
+
+    private func stopAnimation() {
+        animationTimer?.invalidate()
+        animationTimer = nil
+        currentAnimationKind = nil
+        animationFrameIndex = 0
+    }
+
+    @discardableResult
+    private func renderAnimationFrame(crossfade: Bool) -> Bool {
+        guard let kind = currentAnimationKind else { return false }
+        let frames = cachedAnimationFrames(for: kind)
+        guard !frames.isEmpty else { return false }
+
+        setStatusIcon(frames[animationFrameIndex % frames.count], crossfade: crossfade)
+        return true
+    }
+
+    private func cachedAnimationFrames(for kind: StatusBarAnimationKind) -> [NSImage] {
+        if let cachedFrames = animationFrameCache[kind] {
+            return cachedFrames
+        }
+
+        let renderedFrames = kind.frames.compactMap { frame in
+            StatusBarIconRenderer.image(
+                baseSymbolName: "globe",
+                badgeSymbolName: kind.badgeSymbolName,
+                accessibilityDescription: nil,
+                badgeBoundsOverride: kind.badgeBounds,
+                badgePointSizeOverride: kind.badgePointSize,
+                badgeOpacityOverride: frame.opacity,
+                badgeScaleOverride: frame.scale
+            )
+        }
+        guard renderedFrames.count == kind.frames.count else { return [] }
+        animationFrameCache[kind] = renderedFrames
+        return renderedFrames
     }
 
     private func showError(_ error: Error) {
@@ -367,15 +684,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 private enum StatusBarIconRenderer {
     private static let canvasSize = NSSize(width: 24, height: 18)
     private static let baseBounds = NSRect(x: 0, y: 1, width: 17, height: 17)
-    private static let badgeBounds = NSRect(x: 13, y: 0, width: 11, height: 11)
+    private static let badgeBounds = NSRect(x: 13, y: 1, width: 10, height: 10)
 
     static func image(
         baseSymbolName: String,
         badgeSymbolName: String,
-        accessibilityDescription: String
+        accessibilityDescription: String?,
+        badgeBoundsOverride: NSRect? = nil,
+        badgePointSizeOverride: CGFloat? = nil,
+        badgeOpacityOverride: CGFloat? = nil,
+        badgeScaleOverride: CGFloat? = nil
     ) -> NSImage? {
         let baseConfiguration = NSImage.SymbolConfiguration(pointSize: 17, weight: .medium)
-        let badgeConfiguration = NSImage.SymbolConfiguration(pointSize: 10, weight: .bold)
+        let effectivePointSize = badgePointSizeOverride ?? 10
+        let badgeConfiguration = NSImage.SymbolConfiguration(pointSize: effectivePointSize, weight: .semibold)
         guard let baseImage = NSImage(
             systemSymbolName: baseSymbolName,
             accessibilityDescription: accessibilityDescription
@@ -387,6 +709,12 @@ private enum StatusBarIconRenderer {
             return nil
         }
 
+        let unscaledBadgeBounds = badgeBoundsOverride ?? badgeBounds
+        let effectiveBadgeBounds = scaledRect(
+            unscaledBadgeBounds,
+            by: badgeScaleOverride ?? 1
+        )
+        let effectiveBadgeOpacity = min(max(badgeOpacityOverride ?? 1, 0), 1)
         let image = NSImage(size: canvasSize, flipped: false) { _ in
             baseImage.draw(in: fittedRect(for: baseImage.size, inside: baseBounds))
 
@@ -394,15 +722,31 @@ private enum StatusBarIconRenderer {
             // merge into the smaller state glyph at menu-bar scale.
             let previousOperation = NSGraphicsContext.current?.compositingOperation
             NSGraphicsContext.current?.compositingOperation = .clear
-            NSBezierPath(ovalIn: badgeBounds.insetBy(dx: -0.75, dy: -0.75)).fill()
+            NSBezierPath(ovalIn: effectiveBadgeBounds.insetBy(dx: -1.0, dy: -1.0)).fill()
             NSGraphicsContext.current?.compositingOperation = previousOperation ?? .sourceOver
 
-            badgeImage.draw(in: fittedRect(for: badgeImage.size, inside: badgeBounds))
+            badgeImage.draw(
+                in: fittedRect(for: badgeImage.size, inside: effectiveBadgeBounds),
+                from: NSRect(origin: .zero, size: badgeImage.size),
+                operation: .sourceOver,
+                fraction: effectiveBadgeOpacity
+            )
             return true
         }
         image.isTemplate = true
         image.accessibilityDescription = accessibilityDescription
         return image
+    }
+
+    private static func scaledRect(_ rect: NSRect, by scale: CGFloat) -> NSRect {
+        let safeScale = max(scale, 0.1)
+        let size = NSSize(width: rect.width * safeScale, height: rect.height * safeScale)
+        return NSRect(
+            x: rect.midX - size.width / 2,
+            y: rect.midY - size.height / 2,
+            width: size.width,
+            height: size.height
+        )
     }
 
     private static func fittedRect(for imageSize: NSSize, inside bounds: NSRect) -> NSRect {
@@ -415,5 +759,94 @@ private enum StatusBarIconRenderer {
             width: size.width,
             height: size.height
         )
+    }
+}
+
+private struct StatusBarAnimationFrame: Hashable {
+    let opacity: CGFloat
+    let scale: CGFloat
+}
+
+/// Entry animations are finite; only a real engine transition repeats.
+private enum StatusBarAnimationKind: Hashable {
+    case listeningEntry
+    case proxyEnabledEntry
+    case transitioning
+
+    init?(status: ApplicationStatus) {
+        switch status.statusBarAnimationBehavior {
+        case .none:
+            return nil
+        case .entryPulse:
+            switch status {
+            case .listeningOnly: self = .listeningEntry
+            case .systemProxyEnabled: self = .proxyEnabledEntry
+            case .transitioning, .stopped, .attention, .unavailable: return nil
+            }
+        case .continuousPulse:
+            guard status == .transitioning else { return nil }
+            self = .transitioning
+        }
+    }
+
+    var badgeSymbolName: String {
+        switch self {
+        case .listeningEntry: return "waveform"
+        case .proxyEnabledEntry: return "bolt.fill"
+        case .transitioning: return "ellipsis.circle.fill"
+        }
+    }
+
+    var frames: [StatusBarAnimationFrame] {
+        switch self {
+        case .listeningEntry:
+            return [
+                StatusBarAnimationFrame(opacity: 0.68, scale: 0.94),
+                StatusBarAnimationFrame(opacity: 1.0, scale: 1.0)
+            ]
+        case .proxyEnabledEntry:
+            return [
+                StatusBarAnimationFrame(opacity: 0.70, scale: 0.94),
+                StatusBarAnimationFrame(opacity: 1.0, scale: 1.0)
+            ]
+        case .transitioning:
+            return [
+                StatusBarAnimationFrame(opacity: 0.55, scale: 0.94),
+                StatusBarAnimationFrame(opacity: 1.0, scale: 1.0)
+            ]
+        }
+    }
+
+    var interval: TimeInterval {
+        switch self {
+        case .listeningEntry: return 0.55
+        case .proxyEnabledEntry: return 0.35
+        case .transitioning: return 0.45
+        }
+    }
+
+    /// Finite entry animations pulse twice and end on the fully opaque frame.
+    /// A nil value means the transition animation repeats until state changes.
+    var totalFrameCount: Int? {
+        switch self {
+        case .listeningEntry, .proxyEnabledEntry: return frames.count * 2
+        case .transitioning: return nil
+        }
+    }
+
+    var badgeBounds: NSRect {
+        switch self {
+        case .listeningEntry: return NSRect(x: 12, y: 1.5, width: 11, height: 8.5)
+        case .proxyEnabledEntry: return NSRect(x: 13, y: 1.25, width: 9.5, height: 9.5)
+        case .transitioning: return NSRect(x: 13, y: 1, width: 10, height: 10)
+        }
+    }
+
+    var badgePointSize: CGFloat {
+        switch self {
+        case .listeningEntry: return 9.0
+        case .proxyEnabledEntry: return 10.0
+        case .transitioning: return 9.5
+        }
     }
 }

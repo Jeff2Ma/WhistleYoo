@@ -1,0 +1,276 @@
+name: 发布 macOS Universal DMG
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 选择要发布的语义化版本级别
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: 解析发布决策
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      should_release: ${{ steps.release.outputs.should_release }}
+      source: ${{ steps.release.outputs.source }}
+      pr_number: ${{ steps.release.outputs.pr_number }}
+      bump: ${{ steps.release.outputs.bump }}
+      tag: ${{ steps.release.outputs.tag }}
+      version: ${{ steps.release.outputs.version }}
+      build_number: ${{ steps.release.outputs.build_number }}
+      dmg_name: ${{ steps.release.outputs.dmg_name }}
+      source_sha: ${{ steps.release.outputs.source_sha }}
+
+    steps:
+      - name: 检出发布提交与历史标签
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: 根据 PR 标签或手动输入计算版本
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          MANUAL_BUMP: ${{ inputs.bump }}
+        run: ./scripts/resolve-release-version.sh
+
+  test:
+    name: 测试发布基线
+    needs: prepare
+    if: needs.prepare.outputs.should_release == 'true'
+    runs-on: macos-15-intel
+    timeout-minutes: 20
+
+    steps:
+      - name: 检出待发布提交
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ needs.prepare.outputs.source_sha }}
+          persist-credentials: false
+
+      - name: 配置 Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: "22"
+          package-manager-cache: false
+
+      - name: 运行单元测试
+        run: swift test -Xswiftc -warnings-as-errors
+
+      - name: 运行 Whistle 集成测试
+        run: |
+          npm install --global whistle@2.10.5
+          IPROXY_RUN_INTEGRATION=1 swift test --filter WhistleIntegrationTests
+
+  release:
+    name: 构建并发布 Universal DMG
+    needs:
+      - prepare
+      - test
+    if: needs.prepare.outputs.should_release == 'true'
+    runs-on: macos-15-intel
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      SPARKLE_PRIVATE_KEY_FILE: ${{ github.workspace }}/.sparkle/ed25519-private-key
+
+    steps:
+      - name: 检出待发布提交
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ needs.prepare.outputs.source_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: 显示构建工具版本
+        run: |
+          sw_vers
+          xcodebuild -version
+
+      - name: 解析 Swift 包依赖
+        run: swift package resolve
+
+      - name: 同步主分支上的历史 appcast
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        shell: zsh {0}
+        run: |
+          set -euo pipefail
+          API_PATH="repos/$GITHUB_REPOSITORY/contents/updates/appcast.xml"
+          ENCODED_CONTENT="$(gh api "$API_PATH?ref=$DEFAULT_BRANCH" --jq .content | tr -d '\n')"
+          printf '%s' "$ENCODED_CONTENT" | base64 -D > updates/appcast.xml
+
+      - name: 恢复并校验 Sparkle 私钥
+        env:
+          SPARKLE_ED25519_PRIVATE_KEY: ${{ secrets.SPARKLE_ED25519_PRIVATE_KEY }}
+        shell: zsh {0}
+        run: |
+          set -euo pipefail
+          if [[ -z "$SPARKLE_ED25519_PRIVATE_KEY" ]]; then
+            print -u2 "Repository secret SPARKLE_ED25519_PRIVATE_KEY is missing"
+            exit 1
+          fi
+
+          mkdir -p "${SPARKLE_PRIVATE_KEY_FILE:h}"
+          chmod 700 "${SPARKLE_PRIVATE_KEY_FILE:h}"
+          umask 077
+          printf '%s' "$SPARKLE_ED25519_PRIVATE_KEY" > "$SPARKLE_PRIVATE_KEY_FILE"
+          chmod 600 "$SPARKLE_PRIVATE_KEY_FILE"
+
+          EXPECTED_PUBLIC_KEY="$(/usr/libexec/PlistBuddy -c 'Print :SUPublicEDKey' Sources/whistleYooApp/Resources/Info.plist)"
+          ACTUAL_PUBLIC_KEY="$(./scripts/generate-sparkle-keys.sh | sed -n 's/^SUPublicEDKey: //p')"
+          if [[ -z "$ACTUAL_PUBLIC_KEY" || "$ACTUAL_PUBLIC_KEY" != "$EXPECTED_PUBLIC_KEY" ]]; then
+            print -u2 "Sparkle private key does not match SUPublicEDKey"
+            exit 1
+          fi
+
+      - name: 构建并签名 Universal DMG
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+        run: |
+          SPARKLE_DOWNLOAD_URL_PREFIX="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$TAG/" \
+            ./scripts/package-sparkle-update.sh dmg \
+              --version "$VERSION" \
+              --build-number "$BUILD_NUMBER"
+
+      - name: 验证 App、DMG 与 Sparkle 签名
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+          DMG_NAME: ${{ needs.prepare.outputs.dmg_name }}
+        shell: zsh {0}
+        run: |
+          set -euo pipefail
+          APP="dist/WhistleYoo.app"
+          DMG="updates/$DMG_NAME"
+
+          ./scripts/verify-universal-app.sh "$APP"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          hdiutil verify "$DMG"
+
+          ACTUAL_VERSION="$(defaults read "$PWD/$APP/Contents/Info" CFBundleShortVersionString)"
+          ACTUAL_BUILD_NUMBER="$(defaults read "$PWD/$APP/Contents/Info" CFBundleVersion)"
+          [[ "$ACTUAL_VERSION" == "$VERSION" ]]
+          [[ "$ACTUAL_BUILD_NUMBER" == "$BUILD_NUMBER" ]]
+
+          SIGNATURE="$(xmllint --xpath "string(//item[*[local-name()='shortVersionString' and text()='$VERSION']]/enclosure/@*[local-name()='edSignature'])" updates/appcast.xml)"
+          [[ -n "$SIGNATURE" ]]
+          SIGN_UPDATE="$(ROOT_DIR="$PWD"; source scripts/sparkle-common.sh; sparkle_tool sign_update)"
+          "$SIGN_UPDATE" --verify --ed-key-file "$SPARKLE_PRIVATE_KEY_FILE" "$DMG" "$SIGNATURE"
+
+          (cd updates && shasum -a 256 "$DMG_NAME" > "$DMG_NAME.sha256")
+
+      - name: 创建或复用发布标签
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+        shell: zsh {0}
+        run: |
+          set -euo pipefail
+          API_PATH="repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG"
+
+          if REF_TYPE="$(gh api "$API_PATH" --jq .object.type 2>/dev/null)"; then
+            REF_SHA="$(gh api "$API_PATH" --jq .object.sha)"
+            if [[ "$REF_TYPE" == "tag" ]]; then
+              TARGET_SHA="$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$REF_SHA" --jq .object.sha)"
+            else
+              TARGET_SHA="$REF_SHA"
+            fi
+
+            if [[ "$TARGET_SHA" != "$SOURCE_SHA" ]]; then
+              print -u2 "Tag $TAG already points to $TARGET_SHA instead of $SOURCE_SHA"
+              exit 1
+            fi
+            print "Reusing existing tag $TAG at $SOURCE_SHA"
+          else
+            TAG_OBJECT_SHA="$(
+              gh api "repos/$GITHUB_REPOSITORY/git/tags" \
+                --method POST \
+                -f tag="$TAG" \
+                -f message="发布 $TAG" \
+                -f object="$SOURCE_SHA" \
+                -f type="commit" \
+                --jq .sha
+            )"
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" \
+              --method POST \
+              -f ref="refs/tags/$TAG" \
+              -f sha="$TAG_OBJECT_SHA" \
+              >/dev/null
+            print "Created annotated tag $TAG at $SOURCE_SHA"
+          fi
+
+      - name: 创建或更新 GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          DMG_NAME: ${{ needs.prepare.outputs.dmg_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" \
+              "updates/$DMG_NAME" \
+              "updates/$DMG_NAME.sha256" \
+              --clobber
+          else
+            gh release create "$TAG" \
+              "updates/$DMG_NAME" \
+              "updates/$DMG_NAME.sha256" \
+              --verify-tag \
+              --title "WhistleYoo $VERSION" \
+              --generate-notes
+          fi
+
+      - name: 回写 Sparkle appcast 到主分支
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+        shell: zsh {0}
+        run: |
+          set -euo pipefail
+          API_PATH="repos/$GITHUB_REPOSITORY/contents/updates/appcast.xml"
+          CURRENT_SHA="$(gh api "$API_PATH?ref=$DEFAULT_BRANCH" --jq .sha)"
+          CONTENT="$(base64 < updates/appcast.xml | tr -d '\n')"
+
+          gh api "$API_PATH" \
+            --method PUT \
+            -f message="发布 $TAG：更新 Sparkle 更新源" \
+            -f content="$CONTENT" \
+            -f sha="$CURRENT_SHA" \
+            -f branch="$DEFAULT_BRANCH" \
+            >/dev/null
+
+      - name: 删除临时 Sparkle 私钥
+        if: always()
+        run: rm -f "$SPARKLE_PRIVATE_KEY_FILE"

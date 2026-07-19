@@ -4,8 +4,8 @@ import XCTest
 
 final class WhistleIntegrationTests: XCTestCase {
     func testRealWhistleLifecycleAndWebUI() async throws {
-        guard ProcessInfo.processInfo.environment["IPROXY_RUN_INTEGRATION"] == "1" else {
-            throw XCTSkip("Set IPROXY_RUN_INTEGRATION=1 to run the real Whistle test")
+        guard ProcessInfo.processInfo.environment["WHISTLEYOO_RUN_INTEGRATION"] == "1" else {
+            throw XCTSkip("Set WHISTLEYOO_RUN_INTEGRATION=1 to run the real Whistle test")
         }
         let environment = try EnvironmentDetector().detect()
         let checker = PortChecker()
@@ -18,7 +18,7 @@ final class WhistleIntegrationTests: XCTestCase {
             return
         }
         let root = FileManager.default.temporaryDirectory
-            .appendingPathComponent("iproxy-integration-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("whistleyoo-integration-\(UUID().uuidString)", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let configuration = EngineConfiguration(
             proxyPort: proxyPort,

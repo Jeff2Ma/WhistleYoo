@@ -33,7 +33,7 @@ public final class FoundationProcessRunner: ProcessRunning, @unchecked Sendable 
     ) throws -> CommandResult {
         let process = Process()
         let captureDirectory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("iproxy-process-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("whistleyoo-process-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: captureDirectory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: captureDirectory) }
         let stdoutURL = captureDirectory.appendingPathComponent("stdout")

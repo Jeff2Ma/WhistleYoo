@@ -251,6 +251,22 @@ public enum ApplicationStatus: Equatable, Sendable {
             badgeSymbolName: badgeSymbolName
         )
     }
+
+    /// Platform-neutral animation lifetime for the status-bar presentation.
+    /// Rendering details such as opacity, scale and timing stay in the app target.
+    public var statusBarAnimationBehavior: StatusBarAnimationBehavior {
+        switch self {
+        case .listeningOnly, .systemProxyEnabled: return .entryPulse
+        case .transitioning: return .continuousPulse
+        case .stopped, .attention, .unavailable: return .none
+        }
+    }
+}
+
+public enum StatusBarAnimationBehavior: Equatable, Sendable {
+    case none
+    case entryPulse
+    case continuousPulse
 }
 
 public struct StatusBarIconDescriptor: Equatable, Sendable {
