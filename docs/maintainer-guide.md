@@ -1,6 +1,6 @@
 # WhistleYoo 维护者指南
 
-本文面向参与开发和发布 WhistleYoo 的维护者。普通用户请阅读项目根目录的 [README](../README.md)。
+本文面向参与开发和发布 WhistleYoo 的维护者。普通用户请阅读项目根目录的 [English README](../README.md) 或 [中文 README](../README_zh.md)。
 
 ## 环境要求
 
