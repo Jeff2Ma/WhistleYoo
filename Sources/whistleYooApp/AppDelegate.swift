@@ -547,7 +547,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             badgeSymbolName: descriptor.badgeSymbolName,
             accessibilityDescription: nil,
             badgeBoundsOverride: animationStyle?.badgeBounds,
-            badgePointSizeOverride: animationStyle?.badgePointSize
+            badgePointSizeOverride: animationStyle?.badgePointSize,
+            badgeWeightOverride: animationStyle?.badgeWeight
         ) else { return }
 
         setStatusIcon(image, crossfade: crossfade)
@@ -633,11 +634,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let renderedFrames = kind.frames.compactMap { frame in
             StatusBarIconRenderer.image(
-                baseSymbolName: "globe",
+                baseSymbolName: "circle",
                 badgeSymbolName: kind.badgeSymbolName,
                 accessibilityDescription: nil,
                 badgeBoundsOverride: kind.badgeBounds,
                 badgePointSizeOverride: kind.badgePointSize,
+                badgeWeightOverride: kind.badgeWeight,
                 badgeOpacityOverride: frame.opacity,
                 badgeScaleOverride: frame.scale
             )
@@ -685,8 +687,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 private enum StatusBarIconRenderer {
     private static let canvasSize = NSSize(width: 24, height: 18)
-    private static let baseBounds = NSRect(x: 0, y: 1, width: 17, height: 17)
-    private static let badgeBounds = NSRect(x: 13, y: 1, width: 10, height: 10)
+    private static let baseBounds = NSRect(x: 1, y: 1, width: 16, height: 16)
+    private static let brandBounds = NSRect(x: 1, y: 1, width: 16, height: 16)
+    private static let badgeBounds = NSRect(x: 11, y: 0, width: 8, height: 8)
 
     static func image(
         baseSymbolName: String,
@@ -694,16 +697,16 @@ private enum StatusBarIconRenderer {
         accessibilityDescription: String?,
         badgeBoundsOverride: NSRect? = nil,
         badgePointSizeOverride: CGFloat? = nil,
+        badgeWeightOverride: NSFont.Weight? = nil,
         badgeOpacityOverride: CGFloat? = nil,
         badgeScaleOverride: CGFloat? = nil
     ) -> NSImage? {
-        let baseConfiguration = NSImage.SymbolConfiguration(pointSize: 17, weight: .medium)
         let effectivePointSize = badgePointSizeOverride ?? 10
-        let badgeConfiguration = NSImage.SymbolConfiguration(pointSize: effectivePointSize, weight: .semibold)
-        guard let baseImage = NSImage(
-            systemSymbolName: baseSymbolName,
-            accessibilityDescription: accessibilityDescription
-        )?.withSymbolConfiguration(baseConfiguration),
+        let badgeConfiguration = NSImage.SymbolConfiguration(
+            pointSize: effectivePointSize,
+            weight: badgeWeightOverride ?? .semibold
+        )
+        guard baseSymbolName == "circle",
         let badgeImage = NSImage(
             systemSymbolName: badgeSymbolName,
             accessibilityDescription: accessibilityDescription
@@ -718,13 +721,14 @@ private enum StatusBarIconRenderer {
         )
         let effectiveBadgeOpacity = min(max(badgeOpacityOverride ?? 1, 0), 1)
         let image = NSImage(size: canvasSize, flipped: false) { _ in
-            baseImage.draw(in: fittedRect(for: baseImage.size, inside: baseBounds))
+            drawBrandCircle(in: baseBounds)
+            drawBrandW(in: brandBounds)
 
-            // Keep a transparent halo around the badge so the globe lines never
-            // merge into the smaller state glyph at menu-bar scale.
+            // A narrow cutout keeps the badge legible while retaining the compact,
+            // overlapping geometry used by familiar menu-bar status icons.
             let previousOperation = NSGraphicsContext.current?.compositingOperation
             NSGraphicsContext.current?.compositingOperation = .clear
-            NSBezierPath(ovalIn: effectiveBadgeBounds.insetBy(dx: -1.0, dy: -1.0)).fill()
+            NSBezierPath(ovalIn: effectiveBadgeBounds.insetBy(dx: -0.45, dy: -0.45)).fill()
             NSGraphicsContext.current?.compositingOperation = previousOperation ?? .sourceOver
 
             badgeImage.draw(
@@ -738,6 +742,53 @@ private enum StatusBarIconRenderer {
         image.isTemplate = true
         image.accessibilityDescription = accessibilityDescription
         return image
+    }
+
+    private static func drawBrandCircle(in bounds: NSRect) {
+        let lineWidth: CGFloat = 1.35
+        let path = NSBezierPath(
+            ovalIn: bounds.insetBy(dx: lineWidth / 2, dy: lineWidth / 2)
+        )
+        path.lineWidth = lineWidth
+        NSColor.black.setStroke()
+        path.stroke()
+    }
+
+    private static func drawBrandW(in bounds: NSRect) {
+        let point: (CGFloat, CGFloat) -> NSPoint = { x, y in
+            NSPoint(
+                x: bounds.minX + bounds.width * x,
+                y: bounds.minY + bounds.height * y
+            )
+        }
+
+        let path = NSBezierPath()
+        path.move(to: point(0.25, 0.67))
+        path.curve(
+            to: point(0.37, 0.36),
+            controlPoint1: point(0.29, 0.67),
+            controlPoint2: point(0.30, 0.36)
+        )
+        path.curve(
+            to: point(0.49, 0.60),
+            controlPoint1: point(0.43, 0.36),
+            controlPoint2: point(0.44, 0.60)
+        )
+        path.curve(
+            to: point(0.63, 0.36),
+            controlPoint1: point(0.55, 0.60),
+            controlPoint2: point(0.56, 0.36)
+        )
+        path.curve(
+            to: point(0.74, 0.67),
+            controlPoint1: point(0.70, 0.36),
+            controlPoint2: point(0.70, 0.67)
+        )
+        path.lineWidth = 1.45
+        path.lineCapStyle = .round
+        path.lineJoinStyle = .round
+        NSColor.black.setStroke()
+        path.stroke()
     }
 
     private static func scaledRect(_ rect: NSRect, by scale: CGFloat) -> NSRect {
@@ -838,17 +889,24 @@ private enum StatusBarAnimationKind: Hashable {
 
     var badgeBounds: NSRect {
         switch self {
-        case .listeningEntry: return NSRect(x: 12, y: 1.5, width: 11, height: 8.5)
-        case .proxyEnabledEntry: return NSRect(x: 13, y: 1.25, width: 9.5, height: 9.5)
-        case .transitioning: return NSRect(x: 13, y: 1, width: 10, height: 10)
+        case .listeningEntry: return NSRect(x: 10, y: 0, width: 10, height: 8)
+        case .proxyEnabledEntry: return NSRect(x: 11, y: 0, width: 8, height: 8)
+        case .transitioning: return NSRect(x: 11, y: 0, width: 8, height: 8)
         }
     }
 
     var badgePointSize: CGFloat {
         switch self {
-        case .listeningEntry: return 9.0
-        case .proxyEnabledEntry: return 10.0
-        case .transitioning: return 9.5
+        case .listeningEntry: return 8.5
+        case .proxyEnabledEntry: return 8.5
+        case .transitioning: return 8.0
+        }
+    }
+
+    var badgeWeight: NSFont.Weight {
+        switch self {
+        case .proxyEnabledEntry: return .bold
+        case .listeningEntry, .transitioning: return .semibold
         }
     }
 }

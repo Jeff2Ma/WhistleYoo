@@ -299,7 +299,7 @@ final class ModelAndSettingsTests: XCTestCase {
         )
     }
 
-    func testAllApplicationStatusIconsShareGlobeAndUseDistinctBadges() {
+    func testAllApplicationStatusIconsShareBrandCircleAndUseDistinctBadges() {
         let statuses: [ApplicationStatus] = [
             .systemProxyEnabled,
             .listeningOnly,
@@ -310,7 +310,7 @@ final class ModelAndSettingsTests: XCTestCase {
         ]
         let icons = statuses.map(\.statusBarIcon)
 
-        XCTAssertTrue(icons.allSatisfy { $0.baseSymbolName == "globe" })
+        XCTAssertTrue(icons.allSatisfy { $0.baseSymbolName == "circle" })
         XCTAssertEqual(Set(icons.map(\.badgeSymbolName)).count, statuses.count)
         XCTAssertEqual(statuses[0].statusBarIcon.badgeSymbolName, "bolt.fill")
         XCTAssertEqual(statuses[1].statusBarIcon.badgeSymbolName, "waveform")
