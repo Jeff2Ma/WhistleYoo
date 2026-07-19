@@ -687,7 +687,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 private enum StatusBarIconRenderer {
     private static let canvasSize = NSSize(width: 24, height: 18)
-    private static let baseBounds = NSRect(x: 1, y: 1, width: 16, height: 16)
     private static let brandBounds = NSRect(x: 1, y: 1, width: 16, height: 16)
     private static let badgeBounds = NSRect(x: 11, y: 0, width: 8, height: 8)
 
@@ -711,6 +710,7 @@ private enum StatusBarIconRenderer {
             systemSymbolName: badgeSymbolName,
             accessibilityDescription: accessibilityDescription
         )?.withSymbolConfiguration(badgeConfiguration) else {
+            assertionFailure("Unexpected baseSymbolName '\(baseSymbolName)' or missing badge '\(badgeSymbolName)'")
             return nil
         }
 
@@ -721,14 +721,14 @@ private enum StatusBarIconRenderer {
         )
         let effectiveBadgeOpacity = min(max(badgeOpacityOverride ?? 1, 0), 1)
         let image = NSImage(size: canvasSize, flipped: false) { _ in
-            drawBrandCircle(in: baseBounds)
+            drawBrandCircle(in: brandBounds)
             drawBrandW(in: brandBounds)
 
             // A narrow cutout keeps the badge legible while retaining the compact,
             // overlapping geometry used by familiar menu-bar status icons.
             let previousOperation = NSGraphicsContext.current?.compositingOperation
             NSGraphicsContext.current?.compositingOperation = .clear
-            NSBezierPath(ovalIn: effectiveBadgeBounds.insetBy(dx: -0.45, dy: -0.45)).fill()
+            NSBezierPath(ovalIn: effectiveBadgeBounds.insetBy(dx: -0.75, dy: -0.75)).fill()
             NSGraphicsContext.current?.compositingOperation = previousOperation ?? .sourceOver
 
             badgeImage.draw(
@@ -750,10 +750,15 @@ private enum StatusBarIconRenderer {
             ovalIn: bounds.insetBy(dx: lineWidth / 2, dy: lineWidth / 2)
         )
         path.lineWidth = lineWidth
+        // Black stroke is correct – the final image is marked as template,
+        // so macOS automatically tints it for the active appearance.
         NSColor.black.setStroke()
         path.stroke()
     }
 
+    /// Draws the brand "W" letterform inside `bounds` using normalised
+    /// coordinates, symmetric around x = 0.5.  The shape was hand-tuned to
+    /// remain legible at menu-bar scale (~16 pt).
     private static func drawBrandW(in bounds: NSRect) {
         let point: (CGFloat, CGFloat) -> NSPoint = { x, y in
             NSPoint(
@@ -763,30 +768,31 @@ private enum StatusBarIconRenderer {
         }
 
         let path = NSBezierPath()
-        path.move(to: point(0.25, 0.67))
+        path.move(to: point(0.25, 0.70))
         path.curve(
-            to: point(0.37, 0.36),
-            controlPoint1: point(0.29, 0.67),
-            controlPoint2: point(0.30, 0.36)
+            to: point(0.37, 0.33),
+            controlPoint1: point(0.29, 0.70),
+            controlPoint2: point(0.30, 0.33)
         )
         path.curve(
-            to: point(0.49, 0.60),
-            controlPoint1: point(0.43, 0.36),
-            controlPoint2: point(0.44, 0.60)
+            to: point(0.50, 0.62),
+            controlPoint1: point(0.43, 0.33),
+            controlPoint2: point(0.44, 0.62)
         )
         path.curve(
-            to: point(0.63, 0.36),
-            controlPoint1: point(0.55, 0.60),
-            controlPoint2: point(0.56, 0.36)
+            to: point(0.63, 0.33),
+            controlPoint1: point(0.56, 0.62),
+            controlPoint2: point(0.57, 0.33)
         )
         path.curve(
-            to: point(0.74, 0.67),
-            controlPoint1: point(0.70, 0.36),
-            controlPoint2: point(0.70, 0.67)
+            to: point(0.75, 0.70),
+            controlPoint1: point(0.70, 0.33),
+            controlPoint2: point(0.71, 0.70)
         )
-        path.lineWidth = 1.45
+        path.lineWidth = 1.35
         path.lineCapStyle = .round
         path.lineJoinStyle = .round
+        // Template image – macOS handles tinting automatically.
         NSColor.black.setStroke()
         path.stroke()
     }
@@ -844,7 +850,7 @@ private enum StatusBarAnimationKind: Hashable {
 
     var badgeSymbolName: String {
         switch self {
-        case .listeningEntry: return "waveform"
+        case .listeningEntry: return "checkmark.circle.fill"
         case .proxyEnabledEntry: return "bolt.fill"
         case .transitioning: return "ellipsis.circle.fill"
         }
@@ -864,7 +870,7 @@ private enum StatusBarAnimationKind: Hashable {
             ]
         case .transitioning:
             return [
-                StatusBarAnimationFrame(opacity: 0.55, scale: 0.94),
+                StatusBarAnimationFrame(opacity: 0.45, scale: 0.88),
                 StatusBarAnimationFrame(opacity: 1.0, scale: 1.0)
             ]
         }
@@ -889,16 +895,14 @@ private enum StatusBarAnimationKind: Hashable {
 
     var badgeBounds: NSRect {
         switch self {
-        case .listeningEntry: return NSRect(x: 10, y: 0, width: 10, height: 8)
-        case .proxyEnabledEntry: return NSRect(x: 11, y: 0, width: 8, height: 8)
-        case .transitioning: return NSRect(x: 11, y: 0, width: 8, height: 8)
+        case .listeningEntry, .proxyEnabledEntry, .transitioning:
+            return NSRect(x: 11, y: 0, width: 8, height: 8)
         }
     }
 
     var badgePointSize: CGFloat {
         switch self {
-        case .listeningEntry: return 8.5
-        case .proxyEnabledEntry: return 8.5
+        case .listeningEntry, .proxyEnabledEntry: return 8.5
         case .transitioning: return 8.0
         }
     }

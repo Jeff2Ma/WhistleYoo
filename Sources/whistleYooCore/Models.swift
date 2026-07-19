@@ -248,7 +248,7 @@ public enum ApplicationStatus: Equatable, Sendable {
         case .systemProxyEnabled:
             badgeSymbolName = "bolt.fill"
         case .listeningOnly:
-            badgeSymbolName = "waveform"
+            badgeSymbolName = "checkmark.circle.fill"
         case .transitioning:
             badgeSymbolName = "ellipsis.circle.fill"
         case .stopped:
