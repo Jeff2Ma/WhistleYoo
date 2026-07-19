@@ -51,10 +51,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if mainWindowController?.hasUnsavedRules == true {
             let alert = NSAlert()
             alert.alertStyle = .warning
-            alert.messageText = appLocalized("存在未保存的规则修改")
-            alert.informativeText = appLocalized("退出 WhistleYoo 将放弃当前规则中未保存的修改。")
-            alert.addButton(withTitle: appLocalized("继续编辑"))
-            alert.addButton(withTitle: appLocalized("放弃并退出"))
+            alert.messageText = Localization.string(.menuUnsavedRuleChanges)
+            alert.informativeText = Localization.string(.menuQuittingWhistleyooWillDiscardTheUnsavedChangesInTheCurrentRule)
+            alert.addButton(withTitle: Localization.string(.rulesKeepEditing))
+            alert.addButton(withTitle: Localization.string(.menuDiscardAndQuit))
             alert.buttons[1].hasDestructiveAction = true
             popover.performClose(nil)
             guard alert.runModal() == .alertSecondButtonReturn else {
@@ -109,9 +109,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showRuleOperationInProgressAlert() {
         let alert = NSAlert()
         alert.alertStyle = .informational
-        alert.messageText = appLocalized("规则操作仍在进行")
-        alert.informativeText = appLocalized("请等待当前规则操作完成后再退出 WhistleYoo。")
-        alert.addButton(withTitle: appLocalized("继续编辑"))
+        alert.messageText = Localization.string(.menuRuleOperationInProgress)
+        alert.informativeText = Localization.string(.menuWaitForTheCurrentRuleOperationToFinishBeforeQuittingWhistleyoo)
+        alert.addButton(withTitle: Localization.string(.rulesKeepEditing))
         popover.performClose(nil)
         alert.runModal()
     }
@@ -196,7 +196,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let applicationMenuItem = NSMenuItem()
         let applicationMenu = NSMenu()
         applicationMenu.addItem(
-            withTitle: appLocalized("退出 WhistleYoo"),
+            withTitle: Localization.string(.menuQuitWhistleyoo),
             action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q"
         )
@@ -204,38 +204,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         mainMenu.addItem(applicationMenuItem)
 
         let editMenuItem = NSMenuItem()
-        let editMenu = NSMenu(title: appLocalized("编辑"))
+        let editMenu = NSMenu(title: Localization.string(.rulesEdit))
         editMenuItem.submenu = editMenu
         editMenu.addItem(
-            withTitle: appLocalized("撤销"),
+            withTitle: Localization.string(.menuUndo),
             action: Selector(("undo:")),
             keyEquivalent: "z"
         )
         let redoItem = editMenu.addItem(
-            withTitle: appLocalized("重做"),
+            withTitle: Localization.string(.menuRedo),
             action: Selector(("redo:")),
             keyEquivalent: "z"
         )
         redoItem.keyEquivalentModifierMask = [.command, .shift]
         editMenu.addItem(.separator())
         editMenu.addItem(
-            withTitle: appLocalized("剪切"),
+            withTitle: Localization.string(.menuCut),
             action: #selector(NSText.cut(_:)),
             keyEquivalent: "x"
         )
         editMenu.addItem(
-            withTitle: appLocalized("复制"),
+            withTitle: Localization.string(.mobileCopy),
             action: #selector(NSText.copy(_:)),
             keyEquivalent: "c"
         )
         editMenu.addItem(
-            withTitle: appLocalized("粘贴"),
+            withTitle: Localization.string(.menuPaste),
             action: #selector(NSText.paste(_:)),
             keyEquivalent: "v"
         )
         editMenu.addItem(.separator())
         editMenu.addItem(
-            withTitle: appLocalized("全选"),
+            withTitle: Localization.string(.menuSelectAll),
             action: #selector(NSText.selectAll(_:)),
             keyEquivalent: "a"
         )
@@ -307,7 +307,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         if state.needsOnboarding || isEnvironmentUnavailable {
             addStatusMenuItem(
-                title: appLocalized("运行设置引导"),
+                title: Localization.string(.onboardingRunSetupAssistant),
                 action: #selector(openOnboardingFromStatusMenu(_:)),
                 isEnabled: !state.isTransitioning
             )
@@ -320,14 +320,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 isRunningOrStopping = false
             }
             addStatusMenuItem(
-                title: appLocalized(isRunningOrStopping ? "停止代理引擎" : "启动代理引擎"),
+                title: Localization.string(
+                    isRunningOrStopping ? .settingsStopProxyEngine : .mobileStartProxyEngine
+                ),
                 action: #selector(toggleEngineFromStatusMenu(_:)),
                 isEnabled: !state.isTransitioning
             )
         }
 
         let proxyItem = addStatusMenuItem(
-            title: appLocalized("全局系统代理"),
+            title: Localization.string(.settingsGlobalSystemProxy),
             action: #selector(toggleSystemProxyFromStatusMenu(_:)),
             isEnabled: state.isEngineRunning && !state.isTransitioning
         )
@@ -342,30 +344,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         statusMenu.addItem(.separator())
         addStatusMenuItem(
-            title: appLocalized("Whistle 面板"),
+            title: Localization.string(.consoleWhistleConsole),
             action: #selector(openConsoleFromStatusMenu(_:)),
             isEnabled: !state.isTransitioning
         )
         addStatusMenuItem(
-            title: appLocalized("手机代理"),
+            title: Localization.string(.mobileMobileProxy),
             action: #selector(openMobileSetupFromStatusMenu(_:)),
             isEnabled: !state.isTransitioning
         )
         addStatusMenuItem(
-            title: appLocalized("更多设置"),
+            title: Localization.string(.settingsMoreSettings),
             action: #selector(openSettingsFromStatusMenu(_:))
         )
 
         statusMenu.addItem(.separator())
         addStatusMenuItem(
-            title: appLocalized("检查更新…"),
+            title: Localization.string(.menuCheckForUpdates),
             action: #selector(checkForUpdatesFromStatusMenu(_:)),
             isEnabled: UpdateController.shared.canCheckForUpdates
         )
 
         statusMenu.addItem(.separator())
         addStatusMenuItem(
-            title: appLocalized("退出 WhistleYoo"),
+            title: Localization.string(.menuQuitWhistleyoo),
             action: #selector(quitFromStatusMenu(_:))
         )
     }
@@ -671,12 +673,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
         alert.alertStyle = .critical
-        alert.messageText = appLocalized("无法安全退出 WhistleYoo")
-        alert.informativeText = appLocalizedFormat(
-            "系统代理或代理引擎未能安全关闭，应用将继续运行。请重试；若仍失败，请检查网络代理设置。\n\n%@",
+        alert.messageText = Localization.string(.menuUnableToQuitWhistleyooSafely)
+        alert.informativeText = Localization.format(
+            .coreTheSystemProxyOrProxyEngineCouldNotBeShutDownSafelySoTheAp,
             error.localizedDescription
         )
-        alert.addButton(withTitle: appLocalized("好"))
+        alert.addButton(withTitle: Localization.string(.menuOk))
         alert.runModal()
     }
 }

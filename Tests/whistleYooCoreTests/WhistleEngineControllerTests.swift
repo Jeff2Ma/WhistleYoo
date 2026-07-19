@@ -2,6 +2,21 @@ import XCTest
 @testable import whistleYooCore
 
 final class WhistleEngineControllerTests: XCTestCase {
+    func testStartupModePreservesConfiguredModesAndAddsKeepProxyUIOnce() {
+        XCTAssertEqual(
+            WhistleEngineController.startupMode(configuredMode: nil),
+            "keepProxyUI"
+        )
+        XCTAssertEqual(
+            WhistleEngineController.startupMode(configuredMode: "safe|keepProxyUI|safe"),
+            "safe|keepProxyUI"
+        )
+        XCTAssertEqual(
+            WhistleEngineController.startupMode(configuredMode: "safe, network&keepProxyUI"),
+            "safe|network|keepProxyUI"
+        )
+    }
+
     @MainActor
     func testStartsWithIsolatedRuntimeAndStopsThroughCLI() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)

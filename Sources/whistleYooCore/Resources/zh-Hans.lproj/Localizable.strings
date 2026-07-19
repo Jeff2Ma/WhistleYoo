@@ -1,0 +1,725 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>about.a_native_macos_controller_for_whistle</key>
+	<string>Whistle 的原生 macOS 控制端</string>
+	<key>about.check_for_and_install_whistleyoo_updates_with_sparkle</key>
+	<string>通过 Sparkle 检查并安装 WhistleYoo 更新。</string>
+	<key>about.check_for_updates</key>
+	<string>检查更新</string>
+	<key>about.check_whether_a_new_version_is_available</key>
+	<string>检查是否有可用的新版本。</string>
+	<key>about.contact_the_author</key>
+	<string>联系作者</string>
+	<key>about.current_version</key>
+	<string>当前版本</string>
+	<key>about.official_project</key>
+	<string>官方项目</string>
+	<key>about.project_information</key>
+	<string>项目信息</string>
+	<key>about.report_an_issue_or_suggestion_in_github_issues</key>
+	<string>在 GitHub Issues 中反馈问题或建议</string>
+	<key>about.software_update</key>
+	<string>软件更新</string>
+	<key>about.stay_up_to_date</key>
+	<string>保持最新版本</string>
+	<key>about.view_the_source_code_or_contact_the_author_on_github</key>
+	<string>查看项目源码，或通过 GitHub 联系作者。</string>
+	<key>console.failed_to_load_the_whistle_console</key>
+	<string>Whistle 面板加载失败</string>
+	<key>console.loading_the_whistle_console</key>
+	<string>正在加载 Whistle 面板…</string>
+	<key>console.open_in_browser</key>
+	<string>在浏览器中打开</string>
+	<key>console.reload</key>
+	<string>重新加载</string>
+	<key>console.whistle_console</key>
+	<string>Whistle 面板</string>
+	<key>core.a_global_whistle_installation_was_not_found_run_npm_install_g_whistle</key>
+	<string>未找到全局 Whistle，请执行 npm install -g whistle</string>
+	<key>core.a_matching_fingerprint_was_found_in_the_login_keychain</key>
+	<string>登录钥匙串中已找到匹配指纹</string>
+	<key>core.after_setting_the_proxy_scan_to_download_the_certificate_on_ios_install</key>
+	<string>设置代理后扫码下载证书。iOS 还需要在系统设置中安装并开启完全信任。</string>
+	<key>core.an_incompatible_whistleyoo_configuration_file_cannot_be_written</key>
+	<string>不能写入版本不兼容的 WhistleYoo 配置文件</string>
+	<key>core.apply_the_enabled_state_when_saving</key>
+	<string>保存时应用启用状态</string>
+	<key>core.built_in_compatibility_rules_read_only</key>
+	<string>内置兼容性规则 · 只读</string>
+	<key>core.built_in_rule_read_only</key>
+	<string>内置规则，不可修改</string>
+	<key>core.changing_active_ports_safely_restarts_the_proxy_engine_automatically</key>
+	<string>修改运行中的端口会自动安全重启代理引擎。</string>
+	<key>core.command_timed_out_value</key>
+	<string>命令执行超时：%@</string>
+	<key>core.disabling_the_system_proxy_did_not_complete</key>
+	<string>系统代理关闭未完成</string>
+	<key>core.do_not_decrypt_and_hide_common_domains_for_apple_icloud_jetbrains_and_ot</key>
+	<string>不解密并隐藏 Apple、iCloud、JetBrains 等常用软件域名，减少证书兼容问题和抓包噪音。</string>
+	<key>core.enabling_the_system_proxy_failed_and_automatic_restoration_did_not_compl</key>
+	<string>系统代理启用失败，且自动恢复未完成：%@；%@</string>
+	<key>core.https_inspection_requires_installing_and_trusting_the_root_certificate</key>
+	<string>HTTPS 调试需要安装并信任根证书</string>
+	<key>core.in_the_http_proxy_settings_for_the_phone_s_current_wi_fi_network_choose</key>
+	<string>在手机当前 Wi-Fi 的 HTTP 代理设置中选择“手动”，然后填写：</string>
+	<key>core.in_the_mobile_device_s_wi_fi_http_proxy_settings_choose_manual_enter_the</key>
+	<string>在手机 Wi-Fi 的 HTTP 代理中选择“手动”，服务器填写上方 IP，端口填写 %@。iOS 下载证书后还需在系统设置中确认安装与信任。</string>
+	<key>core.local_network_address</key>
+	<string>局域网地址</string>
+	<key>core.missing_settings_migration_v_value_v_value</key>
+	<string>缺少设置迁移：v%lld → v%lld</string>
+	<key>core.network_service_value_is_still_using_the_whistleyoo_proxy</key>
+	<string>网络服务“%@”仍在使用 WhistleYoo 代理</string>
+	<key>core.network_service_value_still_has_whistleyoo_proxy_settings_that_were_not</key>
+	<string>网络服务“%@”仍有 WhistleYoo 代理配置未恢复</string>
+	<key>core.networksetup_failed</key>
+	<string>networksetup 执行失败</string>
+	<key>core.node_js_is_too_old_version_18_or_later_is_required</key>
+	<string>Node.js 版本过低，需要 18 或更高版本</string>
+	<key>core.node_js_was_not_found_install_node_18_or_later</key>
+	<string>未找到 Node.js，请安装 Node 18 或更高版本</string>
+	<key>core.one_whistle_rule_per_line</key>
+	<string>每行一条 Whistle 规则</string>
+	<key>core.openssl_did_not_generate_a_whistle_root_certificate</key>
+	<string>OpenSSL 未生成 Whistle 根证书</string>
+	<key>core.port_value_is_already_in_use</key>
+	<string>端口 %@ 已被占用</string>
+	<key>core.scan_to_download_and_install_the_root_certificate</key>
+	<string>扫码下载并安装根证书</string>
+	<key>core.set_up_wi_fi_proxy</key>
+	<string>设置 Wi-Fi 代理</string>
+	<key>core.settings</key>
+	<string>设置…</string>
+	<key>core.system_proxy_restoration_did_not_complete</key>
+	<string>系统代理恢复未完成</string>
+	<key>core.the_configuration_file_contains_invalid_or_conflicting_ports</key>
+	<string>配置文件包含无效或冲突的端口</string>
+	<key>core.the_configuration_file_contains_invalid_or_duplicate_rule_names</key>
+	<string>配置文件包含无效或重复的规则名称</string>
+	<key>core.the_configuration_file_must_contain_an_enabled_default_rule</key>
+	<string>配置文件必须包含已启用的 Default 规则</string>
+	<key>core.the_new_rule_is_enabled_automatically_edit_its_content_on_the_right_then</key>
+	<string>创建后会自动启用；可以在右侧编辑内容并保存。</string>
+	<key>core.the_operation_was_cancelled</key>
+	<string>用户取消了操作</string>
+	<key>core.the_proxy_switch_for_network_service_value_could_not_be_turned_off</key>
+	<string>网络服务“%@”的代理开关未能关闭</string>
+	<key>core.the_root_certificate_format_is_invalid</key>
+	<string>根证书格式无效</string>
+	<key>core.the_root_certificate_was_installed_in_the_current_user_s_keychain_sha_25</key>
+	<string>根证书已安装到当前用户钥匙串。
+SHA-256：%@</string>
+	<key>core.the_running_whistle_version_is_unsupported_value</key>
+	<string>运行中的 Whistle 版本不受支持：%@</string>
+	<key>core.the_settings_file_is_missing_schemaversion</key>
+	<string>设置文件缺少 schemaVersion</string>
+	<key>core.the_settings_file_was_created_by_a_newer_version_of_whistleyoo</key>
+	<string>设置文件来自更高版本的 WhistleYoo</string>
+	<key>core.the_settings_version_in_the_configuration_file_is_incompatible_v_value</key>
+	<string>配置文件中的设置版本不兼容：v%lld</string>
+	<key>core.the_system_proxy_or_proxy_engine_could_not_be_shut_down_safely_so_the_ap</key>
+	<string>系统代理或代理引擎未能安全关闭，应用将继续运行。请重试；若仍失败，请检查网络代理设置。
+
+%@</string>
+	<key>core.the_v1_settings_file_format_is_invalid</key>
+	<string>v1 设置文件格式无效</string>
+	<key>core.the_v2_settings_file_format_is_invalid</key>
+	<string>v2 设置文件格式无效</string>
+	<key>core.the_v3_settings_file_format_is_invalid</key>
+	<string>v3 设置文件格式无效</string>
+	<key>core.the_whistle_command_failed_value</key>
+	<string>Whistle 命令执行失败（%lld）</string>
+	<key>core.this_removes_value_from_whistleyoo_s_dedicated_whistle_rule_storage</key>
+	<string>此操作会从 Whistle 的专属规则存储中删除“%@”。</string>
+	<key>core.unable_to_confirm_that_the_system_proxy_is_active_for_network_service_va</key>
+	<string>未能确认网络服务“%@”的系统代理已生效</string>
+	<key>core.unable_to_confirm_that_the_system_proxy_was_enabled</key>
+	<string>未能确认系统代理已生效</string>
+	<key>core.unable_to_obtain_the_whistle_root_certificate</key>
+	<string>未能获取 Whistle 根证书</string>
+	<key>core.unable_to_read_settings_value</key>
+	<string>无法读取设置：%@</string>
+	<key>core.unable_to_read_the_node_js_version_value</key>
+	<string>无法读取 Node.js 版本：%@</string>
+	<key>core.unable_to_read_the_whistle_version_value</key>
+	<string>无法读取 Whistle 版本：%@</string>
+	<key>core.unable_to_read_the_whistleyoo_configuration_file_value</key>
+	<string>无法读取 WhistleYoo 配置文件：%@</string>
+	<key>core.unable_to_run_value_value</key>
+	<string>无法执行 %@：%@</string>
+	<key>core.unsupported_whistleyoo_configuration_file_version_v_value</key>
+	<string>不支持的 WhistleYoo 配置文件版本：v%lld</string>
+	<key>core.whistle_did_not_pass_its_health_check_after_starting</key>
+	<string>Whistle 启动后未能通过健康检查</string>
+	<key>core.whistle_did_not_stop_before_the_timeout</key>
+	<string>Whistle 未能在超时时间内停止</string>
+	<key>core.whistle_failed_to_save_the_allowlist_rules</key>
+	<string>Whistle 保存白名单规则失败</string>
+	<key>core.whistle_is_too_old_version_2_9_0_or_later_is_required_detected_value</key>
+	<string>Whistle 版本过低，需要 2.9.0 或更高版本（检测结果：%@）</string>
+	<key>core.whistle_repeatedly_exited_unexpectedly_automatic_restart_has_stopped</key>
+	<string>Whistle 连续异常退出，已停止自动重启</string>
+	<key>core.wi_fi_http_proxy</key>
+	<string>Wi-Fi HTTP 代理</string>
+	<key>menu.check_for_updates</key>
+	<string>检查更新…</string>
+	<key>menu.cut</key>
+	<string>剪切</string>
+	<key>menu.discard_and_quit</key>
+	<string>放弃并退出</string>
+	<key>menu.ok</key>
+	<string>好</string>
+	<key>menu.paste</key>
+	<string>粘贴</string>
+	<key>menu.quit_whistleyoo</key>
+	<string>退出 WhistleYoo</string>
+	<key>menu.quitting_whistleyoo_will_discard_the_unsaved_changes_in_the_current_rule</key>
+	<string>退出 WhistleYoo 将放弃当前规则中未保存的修改。</string>
+	<key>menu.redo</key>
+	<string>重做</string>
+	<key>menu.rule_operation_in_progress</key>
+	<string>规则操作仍在进行</string>
+	<key>menu.select_all</key>
+	<string>全选</string>
+	<key>menu.unable_to_quit_whistleyoo_safely</key>
+	<string>无法安全退出 WhistleYoo</string>
+	<key>menu.undo</key>
+	<string>撤销</string>
+	<key>menu.unsaved_rule_changes</key>
+	<string>存在未保存的规则修改</string>
+	<key>menu.wait_for_the_current_rule_operation_to_finish_before_quitting_whistleyoo</key>
+	<string>请等待当前规则操作完成后再退出 WhistleYoo。</string>
+	<key>mobile.connect_the_phone_to_the_same_wi_fi</key>
+	<string>手机连接相同 Wi-Fi</string>
+	<key>mobile.copied</key>
+	<string>已复制</string>
+	<key>mobile.copy</key>
+	<string>复制</string>
+	<key>mobile.copy_certificate_url</key>
+	<string>复制证书地址</string>
+	<key>mobile.copy_proxy_info</key>
+	<string>复制代理信息</string>
+	<key>mobile.current_network</key>
+	<string>当前网络</string>
+	<key>mobile.enter_the_proxy_server_and_port_shown_above</key>
+	<string>服务器和端口填写上方代理信息</string>
+	<key>mobile.failed_to_start</key>
+	<string>启动失败</string>
+	<key>mobile.failed_to_start_the_proxy_engine</key>
+	<string>代理引擎启动失败</string>
+	<key>mobile.https_root_certificate</key>
+	<string>HTTPS 根证书</string>
+	<key>mobile.install_and_trust_the_certificate</key>
+	<string>安装并信任证书</string>
+	<key>mobile.install_https_root_certificate</key>
+	<string>安装 HTTPS 根证书</string>
+	<key>mobile.local_network</key>
+	<string>局域网</string>
+	<key>mobile.make_sure_the_phone_and_mac_are_on_the_same_local_network</key>
+	<string>确保手机与 Mac 位于同一个局域网</string>
+	<key>mobile.mobile_proxy</key>
+	<string>手机代理</string>
+	<key>mobile.mobile_proxy_setup</key>
+	<string>手机代理配置</string>
+	<key>mobile.mobile_setup_steps</key>
+	<string>手机配置步骤</string>
+	<key>mobile.network_interface</key>
+	<string>网络接口</string>
+	<key>mobile.no_local_ipv4_address_available_to_mobile_devices_was_detected</key>
+	<string>没有检测到可供手机连接的局域网 IPv4 地址</string>
+	<key>mobile.port</key>
+	<string>端口</string>
+	<key>mobile.preparing_mobile_proxy_setup</key>
+	<string>正在准备手机代理配置…</string>
+	<key>mobile.proxy_engine</key>
+	<string>代理引擎</string>
+	<key>mobile.proxy_engine_required</key>
+	<string>需要启动代理引擎</string>
+	<key>mobile.proxy_information</key>
+	<string>代理信息</string>
+	<key>mobile.proxy_server</key>
+	<string>代理服务器</string>
+	<key>mobile.proxy_service_is_listening</key>
+	<string>代理服务已监听</string>
+	<key>mobile.recommended</key>
+	<string>推荐</string>
+	<key>mobile.recommended_suffix</key>
+	<string> · 推荐</string>
+	<key>mobile.retry</key>
+	<string>重试</string>
+	<key>mobile.scan_the_qr_code_on_the_right_then_enable_trust_in_system_settings</key>
+	<string>扫描右侧二维码，安装后在系统设置中开启信任</string>
+	<key>mobile.server</key>
+	<string>服务器</string>
+	<key>mobile.set_http_proxy_to_manual</key>
+	<string>HTTP 代理选择“手动”</string>
+	<key>mobile.start_engine_and_prepare_setup</key>
+	<string>启动引擎并准备配置</string>
+	<key>mobile.start_proxy_engine</key>
+	<string>启动代理引擎</string>
+	<key>mobile.start_the_engine_to_prepare_the_mobile_proxy_address_and_https_root_cert</key>
+	<string>启动后才能准备手机代理地址和 HTTPS 根证书。</string>
+	<key>mobile.the_mobile_device_and_mac_must_be_on_the_same_local_network</key>
+	<string>手机与 Mac 需要连接同一个局域网</string>
+	<key>mobile.the_qr_code_uses_whistle_s_official_certificate_url_on_the_same_port_as</key>
+	<string>二维码使用 Whistle 官方证书地址，并与代理共用同一端口。</string>
+	<key>mobile.the_selected_interface_is_virtual_and_may_not_be_reachable_from_your_pho</key>
+	<string>当前选择的是虚拟网卡，手机可能无法访问。建议选择 Wi-Fi 或当前默认网络。</string>
+	<key>mobile.virtual</key>
+	<string> · 虚拟网卡</string>
+	<key>onboarding.a_matching_fingerprint_was_found_in_the_login_keychain</key>
+	<string>已通过证书指纹在登录钥匙串中确认</string>
+	<key>onboarding.back</key>
+	<string>上一步</string>
+	<key>onboarding.certificate_does_not_match_the_current_whistle_instance</key>
+	<string>证书与当前 Whistle 实例不匹配</string>
+	<key>onboarding.certificate_installed</key>
+	<string>证书已安装</string>
+	<key>onboarding.certificate_matches_the_current_whistle_instance</key>
+	<string>证书与当前 Whistle 实例匹配</string>
+	<key>onboarding.certificate_not_installed</key>
+	<string>证书未安装</string>
+	<key>onboarding.check_node_js_and_whistle</key>
+	<string>检查 Node.js 与 Whistle</string>
+	<key>onboarding.check_proxy_ports</key>
+	<string>检查代理端口</string>
+	<key>onboarding.check_the_environment_ports_and_https_certificate</key>
+	<string>完成环境、端口和 HTTPS 证书检查</string>
+	<key>onboarding.configure_proxy_listening_ports_and_the_network_services_that_use_the_sy</key>
+	<string>配置代理监听端口和系统代理适用的网络服务。</string>
+	<key>onboarding.download_node_js</key>
+	<string>下载 Node.js</string>
+	<key>onboarding.enter_two_different_valid_ports_1_65535</key>
+	<string>请输入两个不同的有效端口（1–65535）</string>
+	<key>onboarding.enter_valid_numeric_ports</key>
+	<string>请输入有效的数字端口</string>
+	<key>onboarding.export_certificate</key>
+	<string>导出证书…</string>
+	<key>onboarding.failed_to_apply_port_settings</key>
+	<string>端口设置应用失败</string>
+	<key>onboarding.https_root_certificate_needs_attention</key>
+	<string>HTTPS 根证书需要检查</string>
+	<key>onboarding.install_certificate</key>
+	<string>安装证书</string>
+	<key>onboarding.install_certificate_action</key>
+	<string>安装证书…</string>
+	<key>onboarding.install_or_update_certificate</key>
+	<string>安装/更新证书…</string>
+	<key>onboarding.install_the_certificate_to_inspect_https_requests_it_is_stored_in_the_cu</key>
+	<string>安装后才能正常调试 HTTPS 请求，证书保存在当前用户钥匙串。</string>
+	<key>onboarding.install_update_certificate</key>
+	<string>安装/更新证书</string>
+	<key>onboarding.local_endpoint_127_0_0_1_value</key>
+	<string>本机端口 127.0.0.1:%@</string>
+	<key>onboarding.port_is_unavailable</key>
+	<string>端口不可用</string>
+	<key>onboarding.port_settings_saved</key>
+	<string>端口设置已保存</string>
+	<key>onboarding.ports_applied_and_proxy_engine_restarted</key>
+	<string>端口已应用，代理引擎已重启</string>
+	<key>onboarding.ports_are_available_and_the_proxy_engine_has_started</key>
+	<string>端口可用，代理引擎已启动</string>
+	<key>onboarding.ports_in_use_value</key>
+	<string>端口被占用：%@</string>
+	<key>onboarding.proxy_and_ports</key>
+	<string>代理与端口</string>
+	<key>onboarding.proxy_port</key>
+	<string>代理端口</string>
+	<key>onboarding.reinstall_certificate</key>
+	<string>重新安装证书</string>
+	<key>onboarding.root_certificate_installed</key>
+	<string>根证书已安装</string>
+	<key>onboarding.root_certificate_not_installed</key>
+	<string>根证书尚未安装</string>
+	<key>onboarding.root_certificate_not_trusted</key>
+	<string>根证书未受信任</string>
+	<key>onboarding.root_certificate_trusted</key>
+	<string>根证书已设为信任</string>
+	<key>onboarding.run_setup_assistant</key>
+	<string>运行设置引导</string>
+	<key>onboarding.run_setup_assistant_again</key>
+	<string>重新执行初始化引导</string>
+	<key>onboarding.setup_complete</key>
+	<string>设置完成</string>
+	<key>onboarding.skip_certificate_installation_for_now</key>
+	<string>暂时跳过证书安装</string>
+	<key>onboarding.skip_https_decryption_for_apple_icloud_jetbrains_and_other_services_and</key>
+	<string>Apple、iCloud、JetBrains 等服务不进行 HTTPS 解密，并从请求列表中隐藏，以减少证书错误和抓包噪音。</string>
+	<key>onboarding.start_the_proxy_engine_to_verify_the_instance_certificate</key>
+	<string>启动代理引擎后核对实例证书</string>
+	<key>onboarding.the_certificate_is_generated_by_the_current_dedicated_whistle_instance</key>
+	<string>证书由当前专属 Whistle 实例生成。</string>
+	<key>onboarding.the_mobile_proxy_page_also_provides_a_qr_code_for_downloading_the_certif</key>
+	<string>手机代理页面也会提供局域网证书下载二维码。</string>
+	<key>onboarding.the_proxy_port_accepts_mac_and_mobile_connections_and_exposes_the_whistl</key>
+	<string>代理端口供 Mac 和手机连接，并开放 Whistle 管理 UI；应用内 Web UI 端口仍仅本机访问。</string>
+	<key>onboarding.trust_certificate_again</key>
+	<string>重新信任证书…</string>
+	<key>onboarding.update_certificate</key>
+	<string>更新证书…</string>
+	<key>onboarding.we_recommend_managing_node_js_with_nvm_fnm_volta_or_homebrew_after_insta</key>
+	<string>建议使用 nvm、fnm、Volta 或 Homebrew 管理 Node.js，安装 Whistle 后点击“重新检测”。</string>
+	<key>onboarding.web_ui_port</key>
+	<string>Web UI 端口</string>
+	<key>onboarding.whistleyoo_setup_assistant</key>
+	<string>WhistleYoo 初始化引导</string>
+	<key>onboarding.whistleyoo_uses_the_locally_installed_node_js_and_global_whistle_package</key>
+	<string>WhistleYoo 使用本机安装的 Node.js 和全局 Whistle。</string>
+	<key>rules.apply</key>
+	<string>应用</string>
+	<key>rules.built_in_compatibility_rules_are_disabled_manage_them_in_settings</key>
+	<string>内置兼容性规则未启用，如需管理请前往「设置」</string>
+	<key>rules.cancel</key>
+	<string>取消</string>
+	<key>rules.clear_search</key>
+	<string>清除搜索</string>
+	<key>rules.combine_and_apply_rule_sets_from_whistle_in_list_order</key>
+	<string>按列表顺序组合并应用 Whistle 中的规则集</string>
+	<key>rules.configuration</key>
+	<string>规则配置</string>
+	<key>rules.confirm_delete_rule</key>
+	<string>删除规则？</string>
+	<key>rules.continue</key>
+	<string>继续</string>
+	<key>rules.create</key>
+	<string>创建</string>
+	<key>rules.create_rule</key>
+	<string>新建规则</string>
+	<key>rules.default</key>
+	<string>默认</string>
+	<key>rules.default_always_enabled</key>
+	<string>默认 · 始终启用</string>
+	<key>rules.delete</key>
+	<string>删除</string>
+	<key>rules.delete_rule</key>
+	<string>删除规则</string>
+	<key>rules.discard_changes</key>
+	<string>放弃修改</string>
+	<key>rules.done</key>
+	<string>完成</string>
+	<key>rules.drag_to_change_the_effective_order</key>
+	<string>拖拽可调整生效顺序</string>
+	<key>rules.edit</key>
+	<string>编辑</string>
+	<key>rules.enable_rule_set_value</key>
+	<string>启用规则集“%@”</string>
+	<key>rules.enabled</key>
+	<string>启用</string>
+	<key>rules.enabled_state</key>
+	<string>已启用</string>
+	<key>rules.enter_one_rule_per_line_the_full_whistle_rule_syntax_is_supported</key>
+	<string>每行一条规则，支持 Whistle 完整规则语法。</string>
+	<key>rules.keep_editing</key>
+	<string>继续编辑</string>
+	<key>rules.no_editable_rules</key>
+	<string>没有可编辑的规则</string>
+	<key>rules.no_matching_rules</key>
+	<string>没有匹配的规则</string>
+	<key>rules.not_enabled</key>
+	<string>未启用</string>
+	<key>rules.refresh</key>
+	<string>刷新</string>
+	<key>rules.refresh_the_rules_or_create_a_new_rule_file</key>
+	<string>刷新规则，或新建一个规则文件。</string>
+	<key>rules.reload</key>
+	<string>重新载入</string>
+	<key>rules.reload_and_discard_changes</key>
+	<string>重新载入并放弃修改？</string>
+	<key>rules.reload_rules_from_whistle</key>
+	<string>重新从 Whistle 载入规则</string>
+	<key>rules.rename</key>
+	<string>重命名</string>
+	<key>rules.rename_rule</key>
+	<string>重命名规则</string>
+	<key>rules.rule_name</key>
+	<string>规则名称</string>
+	<key>rules.rule_names_must_be_unique</key>
+	<string>规则名称不能重复</string>
+	<key>rules.rule_sets</key>
+	<string>规则集</string>
+	<key>rules.rules</key>
+	<string>规则</string>
+	<key>rules.save</key>
+	<string>保存</string>
+	<key>rules.saved</key>
+	<string>已保存</string>
+	<key>rules.search_names_or_content</key>
+	<string>搜索名称或内容</string>
+	<key>rules.settings</key>
+	<string>设置</string>
+	<key>rules.the_default_rule_cannot_be_deleted</key>
+	<string>默认规则不能删除</string>
+	<key>rules.the_default_rule_cannot_be_modified</key>
+	<string>默认规则不能修改</string>
+	<key>rules.the_default_rule_cannot_be_renamed_or_overwritten</key>
+	<string>默认规则不能重命名或覆盖</string>
+	<key>rules.the_default_rule_is_always_enabled</key>
+	<string>默认规则始终启用</string>
+	<key>rules.the_default_rule_must_remain_present_and_enabled</key>
+	<string>默认规则必须保留且保持启用</string>
+	<key>rules.the_default_rule_name_is_reserved</key>
+	<string>默认规则名称已保留</string>
+	<key>rules.the_default_rule_s_enabled_state_cannot_be_changed</key>
+	<string>默认规则启用状态不能修改</string>
+	<key>rules.the_new_rule_is_enabled_automatically_click_save_after_finishing_all_rul</key>
+	<string>创建后会自动启用；完成编辑后请点击全局保存。</string>
+	<key>rules.the_rule_name_cannot_be_empty_or_contain_leading_or_trailing_whitespace</key>
+	<string>规则名称不能为空或包含首尾空白</string>
+	<key>rules.the_whistle_rule_operation_failed</key>
+	<string>Whistle 规则操作失败</string>
+	<key>rules.the_whistle_rules_api_returned_an_invalid_response</key>
+	<string>Whistle 规则接口响应异常</string>
+	<key>rules.this_removes_value_from_whistleyoo_s_dedicated_whistle_rule_storage_afte</key>
+	<string>点击全局保存后会从 Whistle 的专属规则存储中删除“%@”。</string>
+	<key>rules.try_another_search_term</key>
+	<string>换个关键词试试</string>
+	<key>rules.unsaved</key>
+	<string>未保存</string>
+	<key>settings.about</key>
+	<string>关于</string>
+	<key>settings.apply_and_restart</key>
+	<string>应用并重启</string>
+	<key>settings.applying_these_changes_will_restart_the_proxy_engine</key>
+	<string>应用后将自动重启代理引擎</string>
+	<key>settings.check_again</key>
+	<string>重新检测</string>
+	<key>settings.check_and_start</key>
+	<string>检查并启动</string>
+	<key>settings.check_the_finder_launch_environment_and_common_nvm_fnm_volta_and_homebre</key>
+	<string>检测 Finder 启动环境以及 nvm、fnm、Volta、Homebrew 常用目录。</string>
+	<key>settings.choose_custom_save_location</key>
+	<string>自定义保存路径…</string>
+	<key>settings.choose_whistleyoo_configuration_save_location</key>
+	<string>选择 WhistleYoo 配置保存路径</string>
+	<key>settings.compatibility_domain_filtering</key>
+	<string>兼容性域名过滤</string>
+	<key>settings.compatibility_domains_saved</key>
+	<string>兼容域名已保存</string>
+	<key>settings.configuration_export_failed</key>
+	<string>配置导出失败</string>
+	<key>settings.configuration_exported</key>
+	<string>配置已导出</string>
+	<key>settings.configuration_import_failed</key>
+	<string>配置导入失败</string>
+	<key>settings.configuration_imported_and_applied</key>
+	<string>配置已导入并应用</string>
+	<key>settings.configuration_save_location_updated</key>
+	<string>配置保存路径已更新</string>
+	<key>settings.control_app_launch_dock_and_menu_bar_behavior</key>
+	<string>控制应用启动、程序坞和菜单栏行为。</string>
+	<key>settings.copy_whistle_install_command</key>
+	<string>复制 Whistle 安装命令</string>
+	<key>settings.custom_save_location</key>
+	<string>自定义保存路径</string>
+	<key>settings.default_configuration_save_location_restored</key>
+	<string>已恢复默认配置保存路径</string>
+	<key>settings.default_save_location</key>
+	<string>默认保存路径</string>
+	<key>settings.disable_system_proxy_before_changing_network_services_help</key>
+	<string>请先关闭系统代理，再修改网络服务。</string>
+	<key>settings.disable_the_system_proxy_before_changing_network_services</key>
+	<string>请先关闭系统代理，再修改网络服务</string>
+	<key>settings.discard_unsaved_changes</key>
+	<string>放弃未保存的修改？</string>
+	<key>settings.enable_global_system_proxy</key>
+	<string>开启全局系统代理</string>
+	<key>settings.enter_one_domain_per_line_and_wildcard_forms_are_supported_saving_immedi</key>
+	<string>每行填写一个域名，支持 * 和 *** 通配形式。保存后会立即更新运行中的 Whistle 规则。</string>
+	<key>settings.export</key>
+	<string>导出</string>
+	<key>settings.export_configuration</key>
+	<string>导出配置…</string>
+	<key>settings.export_whistleyoo_configuration</key>
+	<string>导出 WhistleYoo 配置</string>
+	<key>settings.general</key>
+	<string>通用设置</string>
+	<key>settings.global_system_proxy</key>
+	<string>全局系统代理</string>
+	<key>settings.https_capture_is_ready</key>
+	<string>HTTPS 抓包已就绪</string>
+	<key>settings.import</key>
+	<string>导入</string>
+	<key>settings.import_configuration</key>
+	<string>导入配置…</string>
+	<key>settings.import_whistleyoo_configuration</key>
+	<string>导入 WhistleYoo 配置</string>
+	<key>settings.keep_all_settings_and_rule_configuration_in_one_file_with_cloud_drive_sy</key>
+	<string>统一保存全部设置项和规则配置，并支持云盘同步。</string>
+	<key>settings.launch_whistleyoo_at_login</key>
+	<string>登录时自动启动 WhistleYoo</string>
+	<key>settings.listen_on_0_0_0_0</key>
+	<string>监听 0.0.0.0</string>
+	<key>settings.listen_on_127_0_0_1_only</key>
+	<string>仅监听 127.0.0.1</string>
+	<key>settings.more_settings</key>
+	<string>更多设置</string>
+	<key>settings.network_services_using_the_system_proxy</key>
+	<string>应用系统代理的网络服务</string>
+	<key>settings.no_available_network_services_detected</key>
+	<string>没有检测到可用的网络服务</string>
+	<key>settings.open_whistle_console</key>
+	<string>打开 Whistle 面板</string>
+	<key>settings.proxy_engine_is_not_running</key>
+	<string>代理引擎未运行</string>
+	<key>settings.proxy_engine_is_running</key>
+	<string>代理引擎运行正常</string>
+	<key>settings.quit</key>
+	<string>退出</string>
+	<key>settings.reinstall_certificate_action</key>
+	<string>重新安装证书…</string>
+	<key>settings.restore_default_location</key>
+	<string>恢复默认路径</string>
+	<key>settings.restore_defaults</key>
+	<string>恢复默认</string>
+	<key>settings.root_certificate_not_installed</key>
+	<string>根证书未安装</string>
+	<key>settings.running</key>
+	<string>运行中</string>
+	<key>settings.runtime_environment</key>
+	<string>运行环境</string>
+	<key>settings.runtime_environment_is_ready</key>
+	<string>运行环境已就绪</string>
+	<key>settings.runtime_environment_needs_attention</key>
+	<string>需要准备运行环境</string>
+	<key>settings.save_domains</key>
+	<string>保存域名</string>
+	<key>settings.show_whistleyoo_in_the_dock</key>
+	<string>在程序坞中显示 WhistleYoo</string>
+	<key>settings.shut_down_and_quit</key>
+	<string>关闭并退出</string>
+	<key>settings.start_the_proxy_engine_to_use_the_whistle_console</key>
+	<string>启动代理引擎后即可使用 Whistle 面板。</string>
+	<key>settings.stop_proxy_engine</key>
+	<string>停止代理引擎</string>
+	<key>settings.switching_pages_will_discard_the_unsaved_changes_in_the_current_rule</key>
+	<string>切换页面将放弃当前规则中未保存的修改。</string>
+	<key>settings.system_proxy</key>
+	<string>系统代理</string>
+	<key>settings.the_proxy_engine_is_not_running</key>
+	<string>代理引擎当前未运行</string>
+	<key>settings.the_system_proxy_is_changing_please_wait</key>
+	<string>系统代理正在切换，请稍候。</string>
+	<key>settings.this_mac</key>
+	<string>本机</string>
+	<key>settings.unable_to_restore_the_default_configuration_save_location</key>
+	<string>无法恢复默认配置保存路径</string>
+	<key>settings.unable_to_update_the_configuration_save_location</key>
+	<string>无法更新配置保存路径</string>
+	<key>settings.use_this_location</key>
+	<string>使用此路径</string>
+	<key>settings.when_disabled_whistle_continues_listening_for_mobile_devices_and_manuall</key>
+	<string>关闭时 Whistle 仍会监听，可供手机或手动配置代理使用。</string>
+	<key>settings.when_the_app_quits_it_restores_the_system_proxy_settings_changed_by_whis</key>
+	<string>应用退出时会恢复由 WhistleYoo 修改的系统代理，并停止专属 Whistle 实例。</string>
+	<key>settings.whistle_is_ready_you_can_control_the_proxy_from_the_menu_bar_at_any_time</key>
+	<string>Whistle 已就绪，之后可以从状态栏随时控制代理。</string>
+	<key>settings.whistleyoo_configuration_file</key>
+	<string>WhistleYoo 配置文件</string>
+	<key>settings.with_a_custom_location_the_app_reads_this_file_at_launch_and_atomically</key>
+	<string>使用自定义路径后，应用启动时会从该文件读取配置，设置或规则保存后也会自动原子写回。</string>
+	<key>settings.you_can_skip_this_for_now_but_https_capture_will_not_work</key>
+	<string>可以暂时跳过，但 HTTPS 抓包会失败</string>
+	<key>status.a_rule_with_this_name_already_exists</key>
+	<string>已存在同名规则</string>
+	<key>status.another_proxy_configuration_exists_whistleyoo_has_not_taken_control</key>
+	<string>系统中存在其他代理配置，WhistleYoo 未接管</string>
+	<key>status.another_proxy_detected</key>
+	<string>检测到其他代理</string>
+	<key>status.available_after_starting_the_proxy_engine</key>
+	<string>启动代理引擎后可用</string>
+	<key>status.checking</key>
+	<string>正在检测…</string>
+	<key>status.checking_node_js_and_whistle</key>
+	<string>正在检测 Node.js 与 Whistle…</string>
+	<key>status.configuration_import_failed_value_restoring_the_previous_configuration_a</key>
+	<string>配置导入失败：%@；恢复原配置失败：%@</string>
+	<key>status.connected</key>
+	<string>已接入</string>
+	<key>status.environment_check_failed</key>
+	<string>环境检测失败</string>
+	<key>status.environment_not_ready</key>
+	<string>环境未就绪</string>
+	<key>status.keep_at_least_one_allowlisted_domain</key>
+	<string>请至少保留一个白名单域名</string>
+	<key>status.local_proxy</key>
+	<string>本机代理</string>
+	<key>status.mac_traffic_is_not_connected_mobile_and_manual_proxies_are_still_availab</key>
+	<string>Mac 流量尚未接入，手机和手动代理仍可使用</string>
+	<key>status.no_network_services_are_available</key>
+	<string>没有可用的网络服务</string>
+	<key>status.node_js_and_whistle_are_ready</key>
+	<string>Node.js 与 Whistle 已就绪</string>
+	<key>status.not_enabled</key>
+	<string>未开启</string>
+	<key>status.only_some_network_services_are_using_this_proxy</key>
+	<string>只有部分网络服务使用当前代理</string>
+	<key>status.partially_connected</key>
+	<string>部分接入</string>
+	<key>status.port_update_failed_value_restoring_the_previous_configuration_also_faile</key>
+	<string>端口更新失败：%@；恢复旧配置失败：%@</string>
+	<key>status.port_update_failed_value_stopping_the_new_configuration_also_failed_valu</key>
+	<string>端口更新失败：%@；停止新配置失败：%@</string>
+	<key>status.ports_must_be_between_1_and_65535_and_the_proxy_and_web_ui_ports_must_di</key>
+	<string>端口必须位于 1–65535，且代理端口和 Web UI 端口不能相同</string>
+	<key>status.proxy_engine_stopped</key>
+	<string>代理引擎已停止</string>
+	<key>status.proxy_listening_only</key>
+	<string>仅监听代理</string>
+	<key>status.proxy_status_needs_attention</key>
+	<string>代理状态需要检查</string>
+	<key>status.select_at_least_one_network_service</key>
+	<string>请至少选择一个网络服务</string>
+	<key>status.selected_network_services_are_using_the_local_proxy</key>
+	<string>所选网络服务已指向本机代理</string>
+	<key>status.start_the_proxy_engine_first</key>
+	<string>请先启动代理引擎</string>
+	<key>status.starting</key>
+	<string>正在启动</string>
+	<key>status.starting_proxy_engine</key>
+	<string>代理引擎启动中</string>
+	<key>status.starting_whistle</key>
+	<string>正在启动 Whistle…</string>
+	<key>status.status_unavailable</key>
+	<string>状态不可用</string>
+	<key>status.stopped</key>
+	<string>已停止</string>
+	<key>status.stopping</key>
+	<string>正在停止</string>
+	<key>status.stopping_proxy_engine</key>
+	<string>代理引擎停止中</string>
+	<key>status.stopping_whistle</key>
+	<string>正在停止 Whistle…</string>
+	<key>status.system_proxy_enabled</key>
+	<string>系统代理已开启</string>
+	<key>status.the_configuration_was_imported_but_the_system_proxy_could_not_be_re_enab</key>
+	<string>配置已导入，但系统代理未能重新启用</string>
+	<key>status.the_current_rules_are_missing_default_so_the_configuration_cannot_be_imp</key>
+	<string>当前规则缺少 Default，无法导入配置</string>
+	<key>status.the_current_rules_could_not_be_read_so_the_configuration_was_not_importe</key>
+	<string>无法读取当前规则，配置未导入</string>
+	<key>status.the_node_js_or_whistle_environment_is_not_ready</key>
+	<string>Node.js 或 Whistle 环境未就绪</string>
+	<key>status.the_ports_were_updated_but_the_system_proxy_could_not_be_re_enabled</key>
+	<string>端口已更新，但系统代理未能重新启用</string>
+	<key>status.the_previous_ports_were_restored_but_the_system_proxy_could_not_be_re_en</key>
+	<string>旧端口已恢复，但系统代理未能重新启用</string>
+	<key>status.the_proxy_engine_is_not_ready_so_the_rule_configuration_cannot_be_applie</key>
+	<string>代理引擎未就绪，无法应用规则配置</string>
+	<key>status.the_rule_to_update_could_not_be_found</key>
+	<string>未找到要更新的规则</string>
+	<key>status.unable_to_read_system_proxy_settings_value</key>
+	<string>无法读取系统代理：%@</string>
+	<key>status.unable_to_update_dock_visibility</key>
+	<string>无法更新程序坞显示状态</string>
+	<key>status.wait_for_the_current_operation_to_finish_before_importing_a_configuratio</key>
+	<string>请等待当前操作完成后再导入配置</string>
+	<key>status.wait_for_the_current_proxy_operation_to_finish_before_quitting</key>
+	<string>请等待当前代理操作完成后再退出</string>
+	<key>status.wait_for_the_current_proxy_operation_to_finish_then_try_again</key>
+	<string>请等待当前代理操作完成后再试</string>
+	<key>status.whistle_value_127_0_0_1_value</key>
+	<string>Whistle %@ · 127.0.0.1:%@</string>
+</dict>
+</plist>

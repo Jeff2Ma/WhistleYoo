@@ -41,7 +41,7 @@ public final class WhistleEngineController {
     public var uiURL: URL { configuration.uiURL }
 
     public func update(configuration: EngineConfiguration) {
-        precondition(state == .stopped || isFailed, "运行期间不能修改引擎配置")
+        precondition(state == .stopped || isFailed, "Engine configuration cannot be changed while running")
         self.configuration = configuration
     }
 
@@ -79,7 +79,7 @@ public final class WhistleEngineController {
             }
             guard let version = SemanticVersion(health.version),
                   version >= EnvironmentDetector.minimumWhistleVersion else {
-                throw WhistleYooError.unsupportedVersion(coreLocalizedFormat("运行中的 Whistle 版本不受支持：%@", health.version))
+                throw WhistleYooError.unsupportedVersion(Localization.format(.coreTheRunningWhistleVersionIsUnsupportedValue, health.version))
             }
             restartAttempts = 0
             state = .running(version: health.version)
@@ -116,7 +116,7 @@ public final class WhistleEngineController {
             return
         }
         guard restartAttempts < maximumAttempts else {
-            state = .failed(coreLocalized("Whistle 连续异常退出，已停止自动重启"))
+            state = .failed(Localization.string(.coreWhistleRepeatedlyExitedUnexpectedlyAutomaticRestartHasStopped))
             return
         }
         restartAttempts += 1
@@ -172,10 +172,22 @@ public final class WhistleEngineController {
         if !configuration.pluginPaths.isEmpty {
             arguments += ["-A", configuration.pluginPaths.joined(separator: ",")]
         }
-        if let mode = configuration.mode, !mode.isEmpty {
-            arguments += ["-M", mode]
-        }
+        arguments += ["-M", Self.startupMode(configuredMode: configuration.mode)]
         return arguments
+    }
+
+    nonisolated static func startupMode(configuredMode: String?) -> String {
+        var modes: [String] = []
+        for rawMode in (configuredMode ?? "").split(whereSeparator: { "|,&".contains($0) }) {
+            let mode = rawMode.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !mode.isEmpty, !modes.contains(mode) {
+                modes.append(mode)
+            }
+        }
+        if !modes.contains("keepProxyUI") {
+            modes.append("keepProxyUI")
+        }
+        return modes.joined(separator: "|")
     }
 
     private func managedStatusIsRunning() async -> Bool {
@@ -240,6 +252,6 @@ public final class WhistleEngineController {
     private func commandMessage(_ result: CommandResult) -> String {
         let message = (result.standardError + "\n" + result.standardOutput)
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        return message.isEmpty ? coreLocalizedFormat("Whistle 命令执行失败（%lld）", result.exitCode) : message
+        return message.isEmpty ? Localization.format(.coreTheWhistleCommandFailedValue, result.exitCode) : message
     }
 }

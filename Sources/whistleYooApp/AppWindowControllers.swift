@@ -1,5 +1,8 @@
 import AppKit
 import SwiftUI
+#if canImport(whistleYooCore)
+import whistleYooCore
+#endif
 
 @MainActor
 final class MainWindowController: NSWindowController, NSWindowDelegate {
@@ -167,7 +170,7 @@ final class OnboardingWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = appLocalized("WhistleYoo 初始化引导")
+        window.title = Localization.string(.onboardingWhistleyooSetupAssistant)
         window.isReleasedWhenClosed = false
         window.contentViewController = NSHostingController(rootView: rootView)
         super.init(window: window)

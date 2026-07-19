@@ -127,7 +127,7 @@ public final class CertificateManager: RootCertificatePreparing, @unchecked Send
         }
         guard fileManager.fileExists(atPath: temporaryKeyURL.path),
               fileManager.fileExists(atPath: temporaryCertificateURL.path) else {
-            throw WhistleYooError.commandFailed(coreLocalized("OpenSSL 未生成 Whistle 根证书"))
+            throw WhistleYooError.commandFailed(Localization.string(.coreOpensslDidNotGenerateAWhistleRootCertificate))
         }
 
         try fileManager.setAttributes(
@@ -193,7 +193,7 @@ public final class CertificateManager: RootCertificatePreparing, @unchecked Send
     @discardableResult
     public func install(certificateData: Data) throws -> CertificateRecord {
         guard let der = Self.certificateDER(from: certificateData) else {
-            throw WhistleYooError.invalidResponse(coreLocalized("根证书格式无效"))
+            throw WhistleYooError.invalidResponse(Localization.string(.coreTheRootCertificateFormatIsInvalid))
         }
         let fingerprint = Self.sha256(der)
         try fileManager.createDirectory(

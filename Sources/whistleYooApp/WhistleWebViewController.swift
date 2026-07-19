@@ -1,6 +1,9 @@
 import AppKit
 import SwiftUI
 import WebKit
+#if canImport(whistleYooCore)
+import whistleYooCore
+#endif
 
 @MainActor
 final class WhistleConsoleSession: NSObject, ObservableObject, WKNavigationDelegate {
@@ -137,7 +140,7 @@ struct WhistleConsoleView: View {
                 VStack(spacing: 12) {
                     ProgressView()
                         .controlSize(.large)
-                    Text("正在加载 Whistle 面板…")
+                    Text(Localization.string(.consoleLoadingTheWhistleConsole))
                         .foregroundStyle(.secondary)
                 }
                 .padding(24)
@@ -149,7 +152,7 @@ struct WhistleConsoleView: View {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.system(size: 36))
                         .foregroundStyle(.orange)
-                    Text("Whistle 面板加载失败")
+                    Text(Localization.string(.consoleFailedToLoadTheWhistleConsole))
                         .font(.title3.weight(.semibold))
                     Text(message)
                         .font(.callout)
@@ -158,11 +161,11 @@ struct WhistleConsoleView: View {
                         .lineLimit(3)
                         .frame(maxWidth: 420)
                     HStack(spacing: 10) {
-                        Button("重新加载") {
+                        Button(Localization.string(.consoleReload)) {
                             session.reload()
                         }
                         .buttonStyle(.borderedProminent)
-                        Button("在浏览器中打开") {
+                        Button(Localization.string(.consoleOpenInBrowser)) {
                             NSWorkspace.shared.open(baseURL)
                         }
                         .buttonStyle(.bordered)
