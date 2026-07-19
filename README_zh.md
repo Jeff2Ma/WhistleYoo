@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Sources/whistleYooApp/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-256@2x.png" width="104" alt="WhistleYoo 图标">
+  <img src="docs/assets/whistleyoo-readme-logo.png" width="104" alt="WhistleYoo 图标">
 </p>
 
 <h1 align="center">WhistleYoo</h1>
