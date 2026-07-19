@@ -25,7 +25,7 @@ final class NetworkAndProxyTests: XCTestCase {
 
         XCTAssertEqual(
             NetworkServiceSelection.resolve(
-                selectedNames: ["Other Mac VPN"],
+                selectedNames: ["Unavailable VPN"],
                 availableServices: services
             ),
             ["Wi-Fi", "USB LAN"]
@@ -264,8 +264,8 @@ final class NetworkAndProxyTests: XCTestCase {
     }
 
     func testManagedProcessCleanerOnlyMatchesOwnedPforkProcesses() {
-        let base = URL(fileURLWithPath: "/tmp/iProxy Test/data")
-        let encoded = "%2Ftmp%2FiProxy%20Test%2Fdata"
+        let base = URL(fileURLWithPath: "/tmp/WhistleYoo Test/data")
+        let encoded = "%2Ftmp%2FWhistleYoo%20Test%2Fdata"
         let output = """
           101 node /packages/whistle/node_modules/pfork/lib/main options=\(encoded)%2F.whistle
           102 node /packages/whistle/index.js \(encoded)

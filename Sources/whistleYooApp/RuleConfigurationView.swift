@@ -242,7 +242,7 @@ struct RuleConfigurationView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("规则配置")
                     .font(.title3.weight(.semibold))
-                Text("按列表顺序组合并应用规则集")
+                Text("按列表顺序组合并应用 Whistle 中的规则集")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -272,7 +272,7 @@ struct RuleConfigurationView: View {
             Button("保存") { saveAllRules() }
             .buttonStyle(.borderedProminent)
             .keyboardShortcut("s", modifiers: .command)
-            .disabled(isRuleOperationInProgress)
+            .disabled(!isDirty || isRuleOperationInProgress)
         }
         .padding(.horizontal, 16)
         .frame(height: 58)

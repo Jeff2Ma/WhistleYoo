@@ -8,11 +8,35 @@ SIGN_IDENTITY="-"
 CLEAN=0
 INSTALL_DIR="/Applications"
 NO_INSTALL=0
+MARKETING_VERSION_OVERRIDE=""
+BUILD_NUMBER_OVERRIDE=""
+
+usage() {
+  cat <<'EOF'
+Usage: ./build.sh [options]
+
+Options:
+  --sign <identity>       Sign with a Developer ID identity (default: ad-hoc)
+  --version <x.y.z>       Override MARKETING_VERSION for this build
+  --build-number <n>      Override CURRENT_PROJECT_VERSION for this build
+  --clean                 Remove existing build and dist directories first
+  --install-dir <path>    Install into the given directory (default: /Applications)
+  --no-install            Build without installing the app
+EOF
+}
 
 while (( $# > 0 )); do
   case "$1" in
     --sign)
       SIGN_IDENTITY="${2:?--sign requires a Developer ID identity}"
+      shift 2
+      ;;
+    --version)
+      MARKETING_VERSION_OVERRIDE="${2:?--version requires a value}"
+      shift 2
+      ;;
+    --build-number)
+      BUILD_NUMBER_OVERRIDE="${2:?--build-number requires a value}"
       shift 2
       ;;
     --clean)
@@ -27,27 +51,48 @@ while (( $# > 0 )); do
       NO_INSTALL=1
       shift
       ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
     *)
       print -u2 "Unknown option: $1"
+      usage >&2
       exit 2
       ;;
   esac
 done
+
+if [[ -n "$MARKETING_VERSION_OVERRIDE" && ! "$MARKETING_VERSION_OVERRIDE" =~ '^[0-9]+\.[0-9]+\.[0-9]+$' ]]; then
+  print -u2 "Invalid version '$MARKETING_VERSION_OVERRIDE'; expected x.y.z"
+  exit 2
+fi
+if [[ -n "$BUILD_NUMBER_OVERRIDE" && ! "$BUILD_NUMBER_OVERRIDE" =~ '^[1-9][0-9]*$' ]]; then
+  print -u2 "Invalid build number '$BUILD_NUMBER_OVERRIDE'; expected a positive integer"
+  exit 2
+fi
 
 if (( CLEAN )); then
   rm -rf "$DERIVED_DATA" "$DIST_DIR"
 fi
 
 mkdir -p "$DIST_DIR"
-xcodebuild \
+XCODEBUILD_ARGS=(
   -project "$ROOT_DIR/whistleYoo.xcodeproj" \
   -scheme whistleYoo \
   -configuration Release \
   -derivedDataPath "$DERIVED_DATA" \
-  ARCHS="arm64 x86_64" \
+  "ARCHS=arm64 x86_64" \
   ONLY_ACTIVE_ARCH=NO \
-  CODE_SIGNING_ALLOWED=NO \
-  build
+  CODE_SIGNING_ALLOWED=NO
+)
+if [[ -n "$MARKETING_VERSION_OVERRIDE" ]]; then
+  XCODEBUILD_ARGS+=("MARKETING_VERSION=$MARKETING_VERSION_OVERRIDE")
+fi
+if [[ -n "$BUILD_NUMBER_OVERRIDE" ]]; then
+  XCODEBUILD_ARGS+=("CURRENT_PROJECT_VERSION=$BUILD_NUMBER_OVERRIDE")
+fi
+xcodebuild "${XCODEBUILD_ARGS[@]}" build
 
 SOURCE_APP="$DERIVED_DATA/Build/Products/Release/WhistleYoo.app"
 TARGET_APP="$DIST_DIR/WhistleYoo.app"

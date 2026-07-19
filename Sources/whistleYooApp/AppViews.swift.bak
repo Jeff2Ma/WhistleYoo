@@ -37,7 +37,6 @@ extension View {
 struct StatusPopoverView: View {
     @ObservedObject var state: AppStateController
     @State private var optimisticSystemProxyEnabled: Bool?
-    @State private var isIconAnimating = false
     let openConsole: () -> Void
     let openSettings: () -> Void
     let openOnboarding: () -> Void
@@ -55,13 +54,6 @@ struct StatusPopoverView: View {
                         Image(systemName: statusSymbol)
                             .font(.system(size: 19, weight: .semibold))
                             .foregroundStyle(engineStatusColor)
-                            .scaleEffect(state.isEngineRunning && isIconAnimating ? 1.08 : 0.94)
-                            .opacity(state.isEngineRunning && isIconAnimating ? 1.0 : 0.8)
-                    }
-                    .onAppear {
-                        withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
-                            isIconAnimating = true
-                        }
                     }
                     VStack(alignment: .leading, spacing: 3) {
                         Text("代理引擎")
@@ -142,15 +134,14 @@ struct StatusPopoverView: View {
                         Label("Whistle 面板", systemImage: "rectangle.on.rectangle")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(PopoverButtonStyle(emphasis: .standard))
 
                     Button(action: openMobileSetup) {
                         Label("手机代理", systemImage: "iphone")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(PopoverButtonStyle(emphasis: .standard))
                 }
                 .controlSize(.large)
+                .buttonStyle(PopoverButtonStyle(emphasis: .standard))
                 .disabled(state.isTransitioning)
             }
 
@@ -171,7 +162,6 @@ struct StatusPopoverView: View {
         }
         .padding(16)
         .frame(width: 350)
-        .background(.ultraThinMaterial)
     }
 
     private var isEnvironmentUnavailable: Bool {
@@ -296,10 +286,10 @@ struct StatusPopoverView: View {
                 engineButtonLabel(
                     title: "停止代理引擎",
                     symbol: "stop.circle",
-                    loadingTint: .primary
+                    loadingTint: .accentColor
                 )
             }
-            .buttonStyle(PopoverButtonStyle(emphasis: .standard))
+            .buttonStyle(PopoverButtonStyle(emphasis: .outlined))
             .controlSize(.large)
             .disabled(state.isTransitioning || state.isChangingSystemProxy)
         case .starting, .stopped, .failed:

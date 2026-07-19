@@ -306,7 +306,7 @@
 "重新载入" = "Reload";
 "规则" = "Rules";
 "规则集" = "Rule Sets";
-"按列表顺序组合并应用规则集" = "Combine and apply rule sets in list order";
+"按列表顺序组合并应用 Whistle 中的规则集" = "Combine and apply rule sets from Whistle in list order";
 "拖拽可调整生效顺序" = "Drag to change the effective order";
 "默认" = "Default";
 "内置规则，不可修改" = "Built-in rule, read-only";

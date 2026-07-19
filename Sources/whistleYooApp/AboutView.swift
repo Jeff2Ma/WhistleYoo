@@ -7,7 +7,7 @@ struct AboutView: View {
 
     private var displayVersion: String {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
-        return "v\(version ?? "0.0.1")"
+        return "v\(version ?? "0.0.3")"
     }
 
     var body: some View {

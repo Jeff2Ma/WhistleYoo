@@ -13,7 +13,7 @@ macOS 13+ 原生菜单栏代理工具。Native 层管理用户本机安装的 No
 
 ```bash
 swift test
-IPROXY_RUN_INTEGRATION=1 swift test --filter WhistleIntegrationTests
+WHISTLEYOO_RUN_INTEGRATION=1 swift test --filter WhistleIntegrationTests
 ./build.sh --clean
 ./scripts/verify.sh
 open "dist/WhistleYoo.app"
@@ -23,6 +23,12 @@ open "dist/WhistleYoo.app"
 
 ```bash
 ./build.sh --sign "Developer ID Application: Your Name (TEAMID)"
+```
+
+临时覆盖版本号和构建号（不会修改 Xcode 工程文件）：
+
+```bash
+./build.sh --clean --no-install --version 0.0.4 --build-number 4
 ```
 
 ## 发布 Sparkle 更新
@@ -60,10 +66,43 @@ SPARKLE_DOWNLOAD_URL_PREFIX="https://downloads.example.com/whistleyoo" \
 需要手工生成 enclosure 签名属性时：
 
 ```bash
-./scripts/sign-sparkle-update.sh updates/WhistleYoo-0.0.1.zip
+./scripts/sign-sparkle-update.sh updates/WhistleYoo-<version>.zip
 ```
 
 当前没有 Apple Developer / Developer ID，`build.sh` 默认对 App 做 ad-hoc 签名。为使 Hardened Runtime 下的 App 能加载 SwiftPM 提供的 Sparkle 动态框架，entitlements 启用了 `com.apple.security.cs.disable-library-validation`。这会降低运行时库校验强度，并不能消除 Gatekeeper 的“无法验证开发者”提示；拿到 Developer ID 后，应删除该 entitlement，使用正式签名并公证后再发布。
+
+## GitHub Actions 自动发布 Universal DMG
+
+仓库内的 `.github/workflows/release-macos.yml` 会在推送 `vX.Y.Z` 标签时自动：
+
+1. 在固定的 Intel macOS runner 上运行单元测试和 Whistle 集成测试；
+2. 同时编译 `arm64` 与 `x86_64`，检查 App 内所有 Mach-O 文件的双架构切片；
+3. 生成并用 Sparkle EdDSA 签名 `WhistleYoo-X.Y.Z.dmg`；
+4. 创建或更新同名 GitHub Release，并上传 DMG 和 SHA-256 文件；
+5. 将新 `appcast.xml` 原子回写到默认分支。
+
+首次启用前，在 GitHub 仓库的 `Settings → Secrets and variables → Actions` 中新增 Repository Secret：
+
+```text
+SPARKLE_ED25519_PRIVATE_KEY
+```
+
+Secret 的值应为本机 `.sparkle/ed25519-private-key` 的完整内容。工作流会在发布前派生公钥并与 App 内的 `SUPublicEDKey` 比较，密钥不匹配时不会上传 Release。
+
+已登录 GitHub CLI 时，也可以在仓库根目录安全写入 Secret（命令不会把私钥打印到终端）：
+
+```bash
+gh secret set SPARKLE_ED25519_PRIVATE_KEY < .sparkle/ed25519-private-key
+```
+
+发布示例：
+
+```bash
+git tag v0.0.4
+git push origin v0.0.4
+```
+
+标签必须严格使用 `vX.Y.Z`，每段数字不能超过 `999`。工作流使用版本号计算稳定、递增的 Sparkle build number，例如 `v0.0.4 → 4`、`v0.1.0 → 1000`。默认分支还需允许此 workflow 使用 `contents: write` 回写 `updates/appcast.xml`；如果启用了禁止直接更新的分支保护，需要为 GitHub Actions 配置对应例外。当前自动发布仍是 ad-hoc 代码签名，GitHub Actions 自动化不会消除 Gatekeeper 提示；Developer ID 签名与 Apple 公证需要另行配置证书和公证凭据。
 
 ## 行为说明
 
