@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="${0:A:h:h}"
 cd "$ROOT_DIR"
 
+./scripts/verify-localization.sh
 swift test -Xswiftc -warnings-as-errors
 WHISTLEYOO_RUN_INTEGRATION=1 swift test --filter WhistleIntegrationTests
 ./build.sh

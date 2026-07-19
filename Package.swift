@@ -13,18 +13,28 @@ let package = Package(
         .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.9.2")
     ],
     targets: [
-        .target(name: "whistleYooCore"),
+        .target(
+            name: "whistleYooCore",
+            exclude: ["Resources/Localizable.xcstrings"],
+            resources: [
+                .process("Resources/en.lproj"),
+                .process("Resources/zh-Hans.lproj")
+            ]
+        ),
         .executableTarget(
             name: "whistleYooApp",
             dependencies: [
                 "whistleYooCore",
                 .product(name: "Sparkle", package: "Sparkle")
             ],
-            exclude: ["Resources/Info.plist", "Resources/whistleYoo.entitlements"],
+            exclude: [
+                "Resources/Info.plist",
+                "Resources/whistleYoo.entitlements"
+            ],
             resources: [
                 .process("Resources/Assets.xcassets"),
-                .process("Resources/en.lproj"),
-                .process("Resources/zh-Hans.lproj")
+                .process("Resources/en.lproj/InfoPlist.strings"),
+                .process("Resources/zh-Hans.lproj/InfoPlist.strings")
             ]
         ),
         .testTarget(name: "whistleYooCoreTests", dependencies: ["whistleYooCore"]),

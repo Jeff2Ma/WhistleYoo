@@ -57,7 +57,7 @@ public final class FoundationProcessRunner: ProcessRunning, @unchecked Sendable 
         do {
             try process.run()
         } catch {
-            throw WhistleYooError.commandFailed(coreLocalizedFormat("无法执行 %@：%@", executableURL.path, error.localizedDescription))
+            throw WhistleYooError.commandFailed(Localization.format(.coreUnableToRunValueValue, executableURL.path, error.localizedDescription))
         }
 
         let deadline = Date().addingTimeInterval(timeout)
@@ -71,7 +71,7 @@ public final class FoundationProcessRunner: ProcessRunning, @unchecked Sendable 
                 Thread.sleep(forTimeInterval: 0.02)
             }
             if process.isRunning { Darwin.kill(process.processIdentifier, SIGKILL) }
-            throw WhistleYooError.commandFailed(coreLocalizedFormat("命令执行超时：%@", executableURL.lastPathComponent))
+            throw WhistleYooError.commandFailed(Localization.format(.coreCommandTimedOutValue, executableURL.lastPathComponent))
         }
 
         try stdout.synchronize()

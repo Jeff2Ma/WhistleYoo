@@ -133,17 +133,17 @@ struct RuleConfigurationView: View {
     # Double click to enable/disable rule
 
     # hosts bindings
-    # 192.0.2.10  static.example.com
-    # 198.51.100.20  assets.example.com images.example.com
+    # 10.101.73.189  g.alicdn.com
+    # 140.205.215.168  i.alicdn.com b.alicdn.com  u.alicdn.com
 
     # mapping web page
-    # https://www.example.com https://example.org
+    # https://www.google.com https://www.alibaba.com
 
     # mapping to file
-    # https://www.example.com file:///path/to/mock.html
+    # https://www.google.com file:///User/xxx/xxx.html
 
     # mapping by wildcard
-    # ^https://*.example.com file:///path/to/mock.html
+    # ^https://*.example.com file:///User/xxx/xxx.html
     """
 
     @ObservedObject var state: AppStateController
@@ -206,26 +206,26 @@ struct RuleConfigurationView: View {
         .onChange(of: state.rulesSnapshot) { _ in
             synchronizeSelection(preferredName: selectedName)
         }
-        .alert("新建规则", isPresented: $isCreating) {
-            TextField("规则名称", text: $createName)
-            Button("取消", role: .cancel) {}
-            Button("创建") { createRule() }
+        .alert(Localization.string(.rulesCreateRule), isPresented: $isCreating) {
+            TextField(Localization.string(.rulesRuleName), text: $createName)
+            Button(Localization.string(.rulesCancel), role: .cancel) {}
+            Button(Localization.string(.rulesCreate)) { createRule() }
                 .disabled(!isValidCreateName)
         } message: {
-            Text("创建后会自动启用；完成编辑后请点击全局保存。")
+            Text(Localization.string(.rulesTheNewRuleIsEnabledAutomaticallyClickSaveAfterFinishingAllRul))
         }
-        .alert("删除规则？", isPresented: $isDeleting) {
-            Button("取消", role: .cancel) {}
-            Button("删除", role: .destructive) { deleteRule() }
+        .alert(Localization.string(.rulesConfirmDeleteRule), isPresented: $isDeleting) {
+            Button(Localization.string(.rulesCancel), role: .cancel) {}
+            Button(Localization.string(.rulesDelete), role: .destructive) { deleteRule() }
         } message: {
-            Text(appLocalizedFormat(
-                "点击全局保存后会从 Whistle 的专属规则存储中删除“%@”。",
+            Text(Localization.format(
+                .rulesThisRemovesValueFromWhistleyooSDedicatedWhistleRuleStorageAfte,
                 selectedName ?? ""
             ))
         }
-        .alert("重新载入并放弃修改？", isPresented: $isDiscardingForReload) {
-            Button("继续编辑", role: .cancel) {}
-            Button("重新载入", role: .destructive) {
+        .alert(Localization.string(.rulesReloadAndDiscardChanges), isPresented: $isDiscardingForReload) {
+            Button(Localization.string(.rulesKeepEditing), role: .cancel) {}
+            Button(Localization.string(.rulesReload), role: .destructive) {
                 draft.discardChanges()
                 reloadRules()
             }
@@ -240,14 +240,14 @@ struct RuleConfigurationView: View {
     private var globalToolbar: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("规则配置")
+                Text(Localization.string(.rulesConfiguration))
                     .font(.title3.weight(.semibold))
-                Text("按列表顺序组合并应用 Whistle 中的规则集")
+                Text(Localization.string(.rulesCombineAndApplyRuleSetsFromWhistleInListOrder))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             if isDirty {
-                Label("未保存", systemImage: "circle.fill")
+                Label(Localization.string(.rulesUnsaved), systemImage: "circle.fill")
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.orange)
                     .padding(.horizontal, 8)
@@ -265,11 +265,11 @@ struct RuleConfigurationView: View {
                 } else {
                     reloadRules()
                 }
-            } label: { Text("刷新") }
-            .help(appLocalized("重新从 Whistle 载入规则"))
+            } label: { Text(Localization.string(.rulesRefresh)) }
+            .help(Localization.string(.rulesReloadRulesFromWhistle))
             .disabled(isRuleOperationInProgress)
 
-            Button("保存") { saveAllRules() }
+            Button(Localization.string(.rulesSave)) { saveAllRules() }
             .buttonStyle(.borderedProminent)
             .keyboardShortcut("s", modifiers: .command)
             .disabled(!isDirty || isRuleOperationInProgress)
@@ -284,7 +284,7 @@ struct RuleConfigurationView: View {
             HStack(spacing: 8) {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
-                        Text("规则集")
+                        Text(Localization.string(.rulesRuleSets))
                             .font(.headline)
                         Text("\(draft.documents.count)")
                             .font(.caption2.weight(.semibold))
@@ -293,7 +293,7 @@ struct RuleConfigurationView: View {
                             .padding(.vertical, 2)
                             .background(Color.primary.opacity(0.055), in: Capsule())
                     }
-                    Text("拖拽可调整生效顺序")
+                    Text(Localization.string(.rulesDragToChangeTheEffectiveOrder))
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
@@ -309,8 +309,8 @@ struct RuleConfigurationView: View {
                         .frame(width: 26, height: 26)
                 }
                 .buttonStyle(HoverIconButtonStyle())
-                .help(appLocalized("新建规则"))
-                .accessibilityLabel(appLocalized("新建规则"))
+                .help(Localization.string(.rulesCreateRule))
+                .accessibilityLabel(Localization.string(.rulesCreateRule))
                 .disabled(isRuleOperationInProgress)
             }
             .padding(.horizontal, 12)
@@ -325,9 +325,9 @@ struct RuleConfigurationView: View {
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: 22))
                         .foregroundStyle(.tertiary)
-                    Text("没有匹配的规则")
+                    Text(Localization.string(.rulesNoMatchingRules))
                         .font(.callout.weight(.medium))
-                    Text("换个关键词试试")
+                    Text(Localization.string(.rulesTryAnotherSearchTerm))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -346,7 +346,7 @@ struct RuleConfigurationView: View {
             }
 
             if !filter.isEmpty {
-                Text(appLocalizedFormat("找到 %lld 个规则集 · 清除搜索后可排序", Int64(filteredDocuments.count)))
+                Text(Localization.format(.rulesValueRuleSetsFoundClearSearchToReorder, Int64(filteredDocuments.count)))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -363,7 +363,7 @@ struct RuleConfigurationView: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.secondary)
-            TextField("搜索名称或内容", text: $filter)
+            TextField(Localization.string(.rulesSearchNamesOrContent), text: $filter)
                 .textFieldStyle(.plain)
             if !filter.isEmpty {
                 Button { filter = "" } label: {
@@ -371,7 +371,7 @@ struct RuleConfigurationView: View {
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
-                .help(appLocalized("清除搜索"))
+                .help(Localization.string(.rulesClearSearch))
             }
         }
         .padding(.horizontal, 9)
@@ -433,8 +433,8 @@ struct RuleConfigurationView: View {
                                     .frame(width: 24, height: 24)
                             }
                             .buttonStyle(HoverIconButtonStyle())
-                            .help(appLocalized("重命名规则"))
-                            .accessibilityLabel(appLocalized("重命名规则"))
+                            .help(Localization.string(.rulesRenameRule))
+                            .accessibilityLabel(Localization.string(.rulesRenameRule))
                             .disabled(isRuleOperationInProgress)
                         }
                     }
@@ -447,8 +447,8 @@ struct RuleConfigurationView: View {
                             .frame(width: 26, height: 26)
                     }
                     .buttonStyle(HoverIconButtonStyle(role: .destructive))
-                    .help(appLocalized("删除规则"))
-                    .accessibilityLabel(appLocalized("删除规则"))
+                    .help(Localization.string(.rulesDeleteRule))
+                    .accessibilityLabel(Localization.string(.rulesDeleteRule))
                     .disabled(document.isDefault || isRuleOperationInProgress)
                 }
                 .padding(.horizontal, 16)
@@ -474,13 +474,13 @@ struct RuleConfigurationView: View {
                 HStack {
                     Text(document.isDefault
                         ? defaultCompatibilityHint
-                        : appLocalized("每行一条规则，支持 Whistle 完整规则语法。"))
+                        : Localization.string(.rulesEnterOneRulePerLineTheFullWhistleRuleSyntaxIsSupported))
                     Spacer()
                     if !filter.isEmpty {
-                        Text(appLocalizedFormat("%lld 处匹配", Int64(editorMatchCount)))
+                        Text(Localization.format(.rulesValueMatches, Int64(editorMatchCount)))
                         Text("·")
                     }
-                    Text(appLocalizedFormat("%lld 行", Int64(lineCount)))
+                    Text(Localization.format(.rulesValueLines, Int64(lineCount)))
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -492,11 +492,11 @@ struct RuleConfigurationView: View {
                 Image(systemName: "doc.text.magnifyingglass")
                     .font(.system(size: 34, weight: .light))
                     .foregroundStyle(.secondary)
-                Text("没有可编辑的规则")
+                Text(Localization.string(.rulesNoEditableRules))
                     .font(.title3.weight(.semibold))
-                Text("刷新规则，或新建一个规则文件。")
+                Text(Localization.string(.rulesRefreshTheRulesOrCreateANewRuleFile))
                     .foregroundStyle(.secondary)
-                Button("刷新") { reloadRules() }
+                Button(Localization.string(.rulesRefresh)) { reloadRules() }
                     .buttonStyle(.bordered)
                     .disabled(isRuleOperationInProgress)
             }
@@ -522,13 +522,13 @@ struct RuleConfigurationView: View {
 
     private var defaultCompatibilityHint: String {
         guard state.settings.softwareDomainWhitelistEnabled, editorEnabled else {
-            return appLocalized("内置兼容性规则未启用，如需管理请前往「设置」")
+            return Localization.string(.rulesBuiltInCompatibilityRulesAreDisabledManageThemInSettings)
         }
         let count = SoftwareDomainWhitelistManager.normalizedDomains(
             state.settings.softwareDomainWhitelistDomains
         ).count
-        return appLocalizedFormat(
-            "内置兼容性规则已启用（%lld 个域名），如需管理请前往「设置」",
+        return Localization.format(
+            .rulesBuiltInCompatibilityRulesAreEnabledValueDomainsManageThemInSe,
             Int64(count)
         )
     }
@@ -633,11 +633,11 @@ struct RuleConfigurationView: View {
     private func presentRenameAlert(for document: WhistleRuleDocument) {
         guard !isRuleOperationInProgress else { return }
         let dialog = RuleNameAlertController(
-            title: appLocalized("重命名规则"),
-            placeholder: appLocalized("规则名称"),
+            title: Localization.string(.rulesRenameRule),
+            placeholder: Localization.string(.rulesRuleName),
             initialName: document.name,
-            confirmTitle: appLocalized("重命名"),
-            cancelTitle: appLocalized("取消")
+            confirmTitle: Localization.string(.rulesRename),
+            cancelTitle: Localization.string(.rulesCancel)
         ) { candidate in
             isValidRuleName(candidate)
                 && candidate != document.name
@@ -667,7 +667,7 @@ struct RuleConfigurationView: View {
     private func showSaveFeedback() {
         let feedbackID = UUID()
         saveFeedbackID = feedbackID
-        saveFeedback = appLocalized("已保存")
+        saveFeedback = Localization.string(.rulesSaved)
         Task {
             try? await Task.sleep(for: .seconds(1.5))
             guard saveFeedbackID == feedbackID else { return }
@@ -714,7 +714,7 @@ private struct RuleListRow: View {
                         highlightedName
                             .font(.system(size: 12.5, weight: isSelected ? .semibold : .medium))
                             .lineLimit(1)
-                        Text(document.isDefault ? "默认 · 始终启用" : (enabled ? "已启用" : "未启用"))
+                        Text(document.isDefault ? Localization.string(.rulesDefaultAlwaysEnabled) : (enabled ? Localization.string(.rulesEnabledState) : Localization.string(.rulesNotEnabled)))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
@@ -736,16 +736,16 @@ private struct RuleListRow: View {
 
             Toggle(
                 document.isDefault
-                    ? appLocalized("默认规则始终启用")
-                    : appLocalizedFormat("启用规则集“%@”", document.name),
+                    ? Localization.string(.rulesTheDefaultRuleIsAlwaysEnabled)
+                    : Localization.format(.rulesEnableRuleSetValue, document.name),
                 isOn: $enabled
             )
             .labelsHidden()
             .toggleStyle(.switch)
             .controlSize(.mini)
             .help(document.isDefault
-                ? appLocalized("默认规则始终启用")
-                : appLocalizedFormat("启用规则集“%@”", document.name))
+                ? Localization.string(.rulesTheDefaultRuleIsAlwaysEnabled)
+                : Localization.format(.rulesEnableRuleSetValue, document.name))
             .disabled(document.isDefault || isInteractionDisabled)
         }
         .padding(.horizontal, 8)

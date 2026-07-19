@@ -144,70 +144,72 @@ final class AppStateController: ObservableObject {
 
     var engineStatusTitle: String {
         switch engineState {
-        case .running: return appLocalized("运行中")
-        case .starting: return appLocalized("正在启动")
-        case .stopping: return appLocalized("正在停止")
-        case .stopped: return appLocalized("已停止")
-        case .failed: return appLocalized("启动失败")
+        case .running: return Localization.string(.settingsRunning)
+        case .starting: return Localization.string(.statusStarting)
+        case .stopping: return Localization.string(.statusStopping)
+        case .stopped: return Localization.string(.statusStopped)
+        case .failed: return Localization.string(.mobileFailedToStart)
         }
     }
 
     var systemProxyTitle: String {
         switch systemProxyStatus {
-        case .disabled: return appLocalized("未开启")
-        case .enabledByThisApp: return appLocalized("已接入")
-        case .partiallyEnabled: return appLocalized("部分接入")
-        case .configuredByOther: return appLocalized("检测到其他代理")
-        case .unavailable: return appLocalized("状态不可用")
+        case .disabled: return Localization.string(.statusNotEnabled)
+        case .enabledByThisApp: return Localization.string(.statusConnected)
+        case .partiallyEnabled: return Localization.string(.statusPartiallyConnected)
+        case .configuredByOther: return Localization.string(.statusAnotherProxyDetected)
+        case .unavailable: return Localization.string(.statusStatusUnavailable)
         }
     }
 
     var statusTitle: String {
         switch applicationStatus {
-        case .systemProxyEnabled: return appLocalized("系统代理已开启")
-        case .listeningOnly: return appLocalized("仅监听代理")
+        case .systemProxyEnabled: return Localization.string(.statusSystemProxyEnabled)
+        case .listeningOnly: return Localization.string(.statusProxyListeningOnly)
         case .transitioning:
-            return appLocalized(engineState == .starting ? "代理引擎启动中" : "代理引擎停止中")
-        case .stopped: return appLocalized("代理引擎已停止")
-        case .attention: return appLocalized("代理状态需要检查")
-        case .unavailable: return appLocalized("环境未就绪")
+            return Localization.string(
+                engineState == .starting ? .statusStartingProxyEngine : .statusStoppingProxyEngine
+            )
+        case .stopped: return Localization.string(.statusProxyEngineStopped)
+        case .attention: return Localization.string(.statusProxyStatusNeedsAttention)
+        case .unavailable: return Localization.string(.statusEnvironmentNotReady)
         }
     }
 
     var engineDescription: String {
         switch engineState {
         case .running(let version):
-            return appLocalizedFormat(
-                "Whistle %@ · 127.0.0.1:%@",
+            return Localization.format(
+                .statusWhistleValue127001Value,
                 version,
                 String(settings.engine.proxyPort)
             )
         case .failed(let message): return message
-        case .starting: return appLocalized("正在启动 Whistle…")
-        case .stopping: return appLocalized("正在停止 Whistle…")
+        case .starting: return Localization.string(.statusStartingWhistle)
+        case .stopping: return Localization.string(.statusStoppingWhistle)
         case .stopped:
             switch environmentStatus {
             case .unavailable(let message): return message
-            case .checking: return appLocalized("正在检测 Node.js 与 Whistle…")
-            case .ready: return appLocalized("Node.js 与 Whistle 已就绪")
+            case .checking: return Localization.string(.statusCheckingNodeJsAndWhistle)
+            case .ready: return Localization.string(.statusNodeJsAndWhistleAreReady)
             }
         }
     }
 
     var proxyDescription: String {
-        guard isEngineRunning else { return appLocalized("启动代理引擎后可用") }
+        guard isEngineRunning else { return Localization.string(.statusAvailableAfterStartingTheProxyEngine) }
         switch systemProxyStatus {
-        case .disabled: return appLocalized("Mac 流量尚未接入，手机和手动代理仍可使用")
-        case .enabledByThisApp: return appLocalized("所选网络服务已指向本机代理")
-        case .partiallyEnabled: return appLocalized("只有部分网络服务使用当前代理")
-        case .configuredByOther: return appLocalized("系统中存在其他代理配置，WhistleYoo 未接管")
-        case .unavailable(let message): return appLocalizedFormat("无法读取系统代理：%@", message)
+        case .disabled: return Localization.string(.statusMacTrafficIsNotConnectedMobileAndManualProxiesAreStillAvailab)
+        case .enabledByThisApp: return Localization.string(.statusSelectedNetworkServicesAreUsingTheLocalProxy)
+        case .partiallyEnabled: return Localization.string(.statusOnlySomeNetworkServicesAreUsingThisProxy)
+        case .configuredByOther: return Localization.string(.statusAnotherProxyConfigurationExistsWhistleyooHasNotTakenControl)
+        case .unavailable(let message): return Localization.format(.statusUnableToReadSystemProxySettingsValue, message)
         }
     }
 
     var environmentDescription: String {
         switch environmentStatus {
-        case .checking: return appLocalized("正在检测…")
+        case .checking: return Localization.string(.statusChecking)
         case .unavailable(let message): return message
         case .ready(let info):
             return "Node \(versionString(info.nodeVersion)) · Whistle \(versionString(info.whistleVersion))"
@@ -298,7 +300,7 @@ final class AppStateController: ObservableObject {
 
         guard let detected = result.0 else {
             environment = nil
-            environmentStatus = .unavailable(result.1 ?? appLocalized("环境检测失败"))
+            environmentStatus = .unavailable(result.1 ?? Localization.string(.statusEnvironmentCheckFailed))
             if !isEngineRunning {
                 engine = nil
                 engineState = .stopped
@@ -387,11 +389,11 @@ final class AppStateController: ObservableObject {
         do {
             if enabled {
                 guard isEngineRunning else {
-                    throw WhistleYooError.commandFailed(appLocalized("请先启动代理引擎"))
+                    throw WhistleYooError.commandFailed(Localization.string(.statusStartTheProxyEngineFirst))
                 }
                 let services = selectedNetworkServiceNames
                 guard !services.isEmpty else {
-                    throw WhistleYooError.commandFailed(appLocalized("没有可用的网络服务"))
+                    throw WhistleYooError.commandFailed(Localization.string(.statusNoNetworkServicesAreAvailable))
                 }
                 let proxyPort = settings.engine.proxyPort
                 let socksPort = settings.engine.socksPort
@@ -430,11 +432,11 @@ final class AppStateController: ObservableObject {
     @discardableResult
     func updatePorts(proxyPort: Int, uiPort: Int) async -> Bool {
         guard !isPerformingEngineOperation, !isChangingSystemProxy else {
-            report(WhistleYooError.commandFailed(appLocalized("请等待当前代理操作完成后再试")))
+            report(WhistleYooError.commandFailed(Localization.string(.statusWaitForTheCurrentProxyOperationToFinishThenTryAgain)))
             return false
         }
         guard (1...65535).contains(proxyPort), (1...65535).contains(uiPort), proxyPort != uiPort else {
-            report(WhistleYooError.commandFailed(appLocalized("端口必须位于 1–65535，且代理端口和 Web UI 端口不能相同")))
+            report(WhistleYooError.commandFailed(Localization.string(.statusPortsMustBeBetween1And65535AndTheProxyAndWebUiPortsMustDi)))
             return false
         }
         guard proxyPort != settings.engine.proxyPort || uiPort != settings.engine.uiPort else {
@@ -471,7 +473,7 @@ final class AppStateController: ObservableObject {
                         allowDuringEngineOperation: true
                     ) else {
                         throw WhistleYooError.commandFailed(
-                            appLocalized("端口已更新，但系统代理未能重新启用")
+                            Localization.string(.statusThePortsWereUpdatedButTheSystemProxyCouldNotBeReEnabled)
                         )
                     }
                 }
@@ -483,8 +485,8 @@ final class AppStateController: ObservableObject {
                 do {
                     try await stopEngineThrowing()
                 } catch {
-                    report(WhistleYooError.commandFailed(appLocalizedFormat(
-                        "端口更新失败：%@；停止新配置失败：%@",
+                    report(WhistleYooError.commandFailed(Localization.format(
+                        .statusPortUpdateFailedValueStoppingTheNewConfigurationAlsoFailedValu,
                         updateError.localizedDescription,
                         error.localizedDescription
                     )))
@@ -503,12 +505,12 @@ final class AppStateController: ObservableObject {
                             allowDuringEngineOperation: true
                        )) {
                         throw WhistleYooError.commandFailed(
-                            appLocalized("旧端口已恢复，但系统代理未能重新启用")
+                            Localization.string(.statusThePreviousPortsWereRestoredButTheSystemProxyCouldNotBeReEn)
                         )
                     }
                 } catch {
-                    report(WhistleYooError.commandFailed(appLocalizedFormat(
-                        "端口更新失败：%@；恢复旧配置失败：%@",
+                    report(WhistleYooError.commandFailed(Localization.format(
+                        .statusPortUpdateFailedValueRestoringThePreviousConfigurationAlsoFaile,
                         updateError.localizedDescription,
                         error.localizedDescription
                     )))
@@ -550,7 +552,7 @@ final class AppStateController: ObservableObject {
             settings.certificateStepSkipped = false
             try persistSettings()
             await refreshCertificateStatus()
-            onMessage?(appLocalizedFormat("根证书已安装到当前用户钥匙串。\nSHA-256：%@", record.sha256))
+            onMessage?(Localization.format(.coreTheRootCertificateWasInstalledInTheCurrentUserSKeychainSha25, record.sha256))
             return true
         } catch {
             report(error)
@@ -609,7 +611,7 @@ final class AppStateController: ObservableObject {
     func importConfiguration(from url: URL) async -> Bool {
         guard !isImportingConfiguration, !isTransitioning,
               !isLoadingRules, !isSavingRules else {
-            report(WhistleYooError.commandFailed(appLocalized("请等待当前操作完成后再导入配置")))
+            report(WhistleYooError.commandFailed(Localization.string(.statusWaitForTheCurrentOperationToFinishBeforeImportingAConfiguratio)))
             return false
         }
 
@@ -633,7 +635,7 @@ final class AppStateController: ObservableObject {
         do {
             if !hasCompleteRulesSnapshot {
                 guard await loadRules() else {
-                    throw WhistleYooError.commandFailed(appLocalized("无法读取当前规则，配置未导入"))
+                    throw WhistleYooError.commandFailed(Localization.string(.statusTheCurrentRulesCouldNotBeReadSoTheConfigurationWasNotImporte))
                 }
             }
             originalRules = rulesSnapshot
@@ -654,7 +656,7 @@ final class AppStateController: ObservableObject {
 
             if shouldRestoreProxy {
                 guard await setSystemProxyEnabled(true) else {
-                    throw WhistleYooError.commandFailed(appLocalized("配置已导入，但系统代理未能重新启用"))
+                    throw WhistleYooError.commandFailed(Localization.string(.statusTheConfigurationWasImportedButTheSystemProxyCouldNotBeReEnab))
                 }
             }
             if !engineWasRunning, !shouldRestoreProxy {
@@ -690,8 +692,8 @@ final class AppStateController: ObservableObject {
                 } catch {
                     pendingStartupRules = originalPendingStartupRules
                     isImportingConfiguration = false
-                    report(WhistleYooError.commandFailed(appLocalizedFormat(
-                        "配置导入失败：%@；恢复原配置失败：%@",
+                    report(WhistleYooError.commandFailed(Localization.format(
+                        .statusConfigurationImportFailedValueRestoringThePreviousConfigurationA,
                         importError.localizedDescription,
                         error.localizedDescription
                     )))
@@ -727,7 +729,7 @@ final class AppStateController: ObservableObject {
         showDockIcon = isVisible
         guard onDockVisibilityChange?(isVisible) == true else {
             showDockIcon = previousValue
-            report(WhistleYooError.commandFailed(appLocalized("无法更新程序坞显示状态")))
+            report(WhistleYooError.commandFailed(Localization.string(.statusUnableToUpdateDockVisibility)))
             return
         }
         dockVisibilityPreference.setVisible(isVisible)
@@ -753,7 +755,7 @@ final class AppStateController: ObservableObject {
     func updateSoftwareDomainWhitelistDomains(_ domains: [String]) async -> Bool {
         let normalized = SoftwareDomainWhitelistManager.normalizedDomains(domains)
         guard !normalized.isEmpty else {
-            report(WhistleYooError.commandFailed(appLocalized("请至少保留一个白名单域名")))
+            report(WhistleYooError.commandFailed(Localization.string(.statusKeepAtLeastOneAllowlistedDomain)))
             return false
         }
         guard settings.softwareDomainWhitelistDomains != normalized else { return true }
@@ -844,7 +846,7 @@ final class AppStateController: ObservableObject {
     @discardableResult
     func createRule(name: String) async -> Bool {
         guard !rulesSnapshot.documents.contains(where: { $0.name == name }) else {
-            report(WhistleYooError.commandFailed(appLocalized("已存在同名规则")))
+            report(WhistleYooError.commandFailed(Localization.string(.statusARuleWithThisNameAlreadyExists)))
             return false
         }
         return await saveRule(name: name, value: "", isEnabled: true)
@@ -870,7 +872,7 @@ final class AppStateController: ObservableObject {
     @discardableResult
     func renameRule(name: String, to newName: String) async -> Bool {
         guard !rulesSnapshot.documents.contains(where: { $0.name == newName }) else {
-            report(WhistleYooError.commandFailed(appLocalized("已存在同名规则")))
+            report(WhistleYooError.commandFailed(Localization.string(.statusARuleWithThisNameAlreadyExists)))
             return false
         }
         guard !isSavingRules else { return false }
@@ -896,7 +898,7 @@ final class AppStateController: ObservableObject {
         guard await startEngine(), let baseURL = uiURL else { return false }
         do {
             guard let document = rulesSnapshot.documents.first(where: { $0.name == name }) else {
-                throw WhistleYooError.commandFailed(appLocalized("未找到要更新的规则"))
+                throw WhistleYooError.commandFailed(Localization.string(.statusTheRuleToUpdateCouldNotBeFound))
             }
             let persistedValue = document.isDefault
                 ? SoftwareDomainWhitelistManager.mergingManagedRules(
@@ -922,16 +924,16 @@ final class AppStateController: ObservableObject {
 
     func updateSelectedNetworkServices(_ names: Set<String>) {
         guard !isChangingSystemProxy, !isPerformingEngineOperation else {
-            report(WhistleYooError.commandFailed(appLocalized("请等待当前代理操作完成后再试")))
+            report(WhistleYooError.commandFailed(Localization.string(.statusWaitForTheCurrentProxyOperationToFinishThenTryAgain)))
             return
         }
         guard !names.isEmpty else {
-            report(WhistleYooError.commandFailed(appLocalized("请至少选择一个网络服务")))
+            report(WhistleYooError.commandFailed(Localization.string(.statusSelectAtLeastOneNetworkService)))
             return
         }
         guard systemProxyStatus != .enabledByThisApp,
               systemProxyStatus != .partiallyEnabled else {
-            report(WhistleYooError.commandFailed(appLocalized("请先关闭系统代理，再修改网络服务")))
+            report(WhistleYooError.commandFailed(Localization.string(.settingsDisableTheSystemProxyBeforeChangingNetworkServices)))
             return
         }
         settings.selectedNetworkServices = networkServices
@@ -976,7 +978,7 @@ final class AppStateController: ObservableObject {
 
     func shutdown() async throws {
         guard !isPerformingEngineOperation, !isChangingSystemProxy else {
-            throw WhistleYooError.commandFailed(appLocalized("请等待当前代理操作完成后再退出"))
+            throw WhistleYooError.commandFailed(Localization.string(.statusWaitForTheCurrentProxyOperationToFinishBeforeQuitting))
         }
         isPerformingEngineOperation = true
         defer { isPerformingEngineOperation = false }
@@ -1028,7 +1030,7 @@ final class AppStateController: ObservableObject {
             configureEngine(environment: environment)
         }
         guard let engine else {
-            throw WhistleYooError.environmentUnavailable(appLocalized("Node.js 或 Whistle 环境未就绪"))
+            throw WhistleYooError.environmentUnavailable(Localization.string(.statusTheNodeJsOrWhistleEnvironmentIsNotReady))
         }
         try await engine.start()
         await refreshCertificateStatus()
@@ -1103,7 +1105,7 @@ final class AppStateController: ObservableObject {
 
     private func applyImportedRules(_ imported: WhistleRulesSnapshot) async -> Bool {
         guard let baseURL = uiURL else {
-            report(WhistleYooError.commandFailed(appLocalized("代理引擎未就绪，无法应用规则配置")))
+            report(WhistleYooError.commandFailed(Localization.string(.statusTheProxyEngineIsNotReadySoTheRuleConfigurationCannotBeApplie)))
             return false
         }
         var original: WhistleRulesSnapshot?
@@ -1128,11 +1130,11 @@ final class AppStateController: ObservableObject {
 
     private func applyImportedRulesThrowing(_ imported: WhistleRulesSnapshot) async throws {
         guard let baseURL = uiURL else {
-            throw WhistleYooError.commandFailed(appLocalized("代理引擎未就绪，无法应用规则配置"))
+            throw WhistleYooError.commandFailed(Localization.string(.statusTheProxyEngineIsNotReadySoTheRuleConfigurationCannotBeApplie))
         }
         let current = snapshotForEditing(try await rulesManager.load(baseURL: baseURL))
         guard let currentDefault = current.documents.first(where: \.isDefault) else {
-            throw WhistleYooError.commandFailed(appLocalized("当前规则缺少 Default，无法导入配置"))
+            throw WhistleYooError.commandFailed(Localization.string(.statusTheCurrentRulesAreMissingDefaultSoTheConfigurationCannotBeImp))
         }
         let target = WhistleRulesSnapshot(
             documents: [currentDefault] + imported.documents.filter { !$0.isDefault },

@@ -174,7 +174,7 @@ public final class SystemProxyManager: @unchecked Sendable {
                 }
             }
             throw lastVerificationError ?? WhistleYooError.commandFailed(
-                coreLocalized("未能确认系统代理已生效")
+                Localization.string(.coreUnableToConfirmThatTheSystemProxyWasEnabled)
             )
         } catch {
             let activationError = error
@@ -182,8 +182,8 @@ public final class SystemProxyManager: @unchecked Sendable {
                 try restoreIfOwnedLocked()
             } catch {
                 throw WhistleYooError.commandFailed(
-                    coreLocalizedFormat(
-                        "系统代理启用失败，且自动恢复未完成：%@；%@",
+                    Localization.format(
+                        .coreEnablingTheSystemProxyFailedAndAutomaticRestorationDidNotCompl,
                         activationError.localizedDescription,
                         error.localizedDescription
                     )
@@ -250,7 +250,7 @@ public final class SystemProxyManager: @unchecked Sendable {
             }
         }
         // Keep the snapshot so launch/shutdown or the next user action can retry safely.
-        throw lastError ?? WhistleYooError.commandFailed(coreLocalized("系统代理恢复未完成"))
+        throw lastError ?? WhistleYooError.commandFailed(Localization.string(.coreSystemProxyRestorationDidNotComplete))
     }
 
     public func status(services: [String], proxyPort: Int) -> SystemProxyStatus {
@@ -352,7 +352,7 @@ public final class SystemProxyManager: @unchecked Sendable {
             let current = try readSettingsLocked(service: service)
             guard settingsStillOwned(current: current, original: original, applied: applied) else {
                 throw WhistleYooError.commandFailed(
-                    coreLocalizedFormat("未能确认网络服务“%@”的系统代理已生效", service)
+                    Localization.format(.coreUnableToConfirmThatTheSystemProxyIsActiveForNetworkServiceVa, service)
                 )
             }
         }
@@ -384,7 +384,7 @@ public final class SystemProxyManager: @unchecked Sendable {
                     : current.automatic != applied.automatic)
             guard webRestored, secureWebRestored, socksRestored, automaticRestored else {
                 throw WhistleYooError.commandFailed(
-                    coreLocalizedFormat("网络服务“%@”仍有 WhistleYoo 代理配置未恢复", service)
+                    Localization.format(.coreNetworkServiceValueStillHasWhistleyooProxySettingsThatWereNot, service)
                 )
             }
         }
@@ -416,7 +416,7 @@ public final class SystemProxyManager: @unchecked Sendable {
                           !Self.matches(current.secureWeb, port: proxyPort),
                           socksPort.map({ !Self.matches(current.socks, port: $0) }) ?? true else {
                         throw WhistleYooError.commandFailed(
-                            coreLocalizedFormat("网络服务“%@”仍在使用 WhistleYoo 代理", service)
+                            Localization.format(.coreNetworkServiceValueIsStillUsingTheWhistleyooProxy, service)
                         )
                     }
                 }
@@ -426,7 +426,7 @@ public final class SystemProxyManager: @unchecked Sendable {
                 if attempt + 1 < maximumAttempts { Thread.sleep(forTimeInterval: 0.1) }
             }
         }
-        throw lastError ?? WhistleYooError.commandFailed(coreLocalized("系统代理关闭未完成"))
+        throw lastError ?? WhistleYooError.commandFailed(Localization.string(.coreDisablingTheSystemProxyDidNotComplete))
     }
 
     private func settingsStillOwned(
@@ -510,7 +510,7 @@ public final class SystemProxyManager: @unchecked Sendable {
             }
             guard !current.enabled else {
                 throw WhistleYooError.commandFailed(
-                    coreLocalizedFormat("网络服务“%@”的代理开关未能关闭", service)
+                    Localization.format(.coreTheProxySwitchForNetworkServiceValueCouldNotBeTurnedOff, service)
                 )
             }
         }
@@ -541,7 +541,7 @@ public final class SystemProxyManager: @unchecked Sendable {
         guard result.exitCode == 0 else {
             let message = (result.standardError + result.standardOutput)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-            throw WhistleYooError.commandFailed(message.isEmpty ? coreLocalized("networksetup 执行失败") : message)
+            throw WhistleYooError.commandFailed(message.isEmpty ? Localization.string(.coreNetworksetupFailed) : message)
         }
         return result
     }

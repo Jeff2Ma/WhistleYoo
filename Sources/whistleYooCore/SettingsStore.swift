@@ -18,7 +18,7 @@ public struct MigrationManager: Sendable {
         var currentData = data
         while currentVersion < targetVersion {
             guard let migration = migrations.first(where: { $0.fromVersion == currentVersion }) else {
-                throw WhistleYooError.settingsCorrupted(coreLocalizedFormat("缺少设置迁移：v%lld → v%lld", currentVersion, targetVersion))
+                throw WhistleYooError.settingsCorrupted(Localization.format(.coreMissingSettingsMigrationVValueVValue, currentVersion, targetVersion))
             }
             currentData = try migration.migrate(currentData)
             currentVersion = migration.toVersion
@@ -35,7 +35,7 @@ public struct SettingsV1ToV2Migration: SettingsMigrating {
 
     public func migrate(_ data: Data) throws -> Data {
         guard var object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            throw WhistleYooError.settingsCorrupted(coreLocalized("v1 设置文件格式无效"))
+            throw WhistleYooError.settingsCorrupted(Localization.string(.coreTheV1SettingsFileFormatIsInvalid))
         }
         object["schemaVersion"] = toVersion
         object["certificateStepSkipped"] = false
@@ -51,7 +51,7 @@ public struct SettingsV2ToV3Migration: SettingsMigrating {
 
     public func migrate(_ data: Data) throws -> Data {
         guard var object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            throw WhistleYooError.settingsCorrupted(coreLocalized("v2 设置文件格式无效"))
+            throw WhistleYooError.settingsCorrupted(Localization.string(.coreTheV2SettingsFileFormatIsInvalid))
         }
         object["schemaVersion"] = toVersion
         object["softwareDomainWhitelistEnabled"] = true
@@ -67,7 +67,7 @@ public struct SettingsV3ToV4Migration: SettingsMigrating {
 
     public func migrate(_ data: Data) throws -> Data {
         guard var object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            throw WhistleYooError.settingsCorrupted(coreLocalized("v3 设置文件格式无效"))
+            throw WhistleYooError.settingsCorrupted(Localization.string(.coreTheV3SettingsFileFormatIsInvalid))
         }
         object["schemaVersion"] = toVersion
         object["softwareDomainWhitelistDomains"] = SoftwareDomainWhitelistManager.domains
@@ -116,10 +116,10 @@ public final class SettingsStore: @unchecked Sendable {
         let original = try Data(contentsOf: fileURL)
         guard let object = try JSONSerialization.jsonObject(with: original) as? [String: Any],
               let version = object["schemaVersion"] as? Int else {
-            throw WhistleYooError.settingsCorrupted(coreLocalized("设置文件缺少 schemaVersion"))
+            throw WhistleYooError.settingsCorrupted(Localization.string(.coreTheSettingsFileIsMissingSchemaversion))
         }
         guard version <= PersistedSettings.currentSchemaVersion else {
-            throw WhistleYooError.settingsCorrupted(coreLocalized("设置文件来自更高版本的 WhistleYoo"))
+            throw WhistleYooError.settingsCorrupted(Localization.string(.coreTheSettingsFileWasCreatedByANewerVersionOfWhistleyoo))
         }
         let data = version == PersistedSettings.currentSchemaVersion
             ? original
@@ -129,7 +129,7 @@ public final class SettingsStore: @unchecked Sendable {
             if data != original { try save(settings) }
             return settings
         } catch {
-            throw WhistleYooError.settingsCorrupted(coreLocalizedFormat("无法读取设置：%@", error.localizedDescription))
+            throw WhistleYooError.settingsCorrupted(Localization.format(.coreUnableToReadSettingsValue, error.localizedDescription))
         }
     }
 
@@ -221,18 +221,18 @@ public final class WhistleYooConfigurationStore: @unchecked Sendable {
             configuration = try decoder.decode(WhistleYooConfigurationFile.self, from: data)
         } catch {
             throw WhistleYooError.settingsCorrupted(
-                coreLocalizedFormat("无法读取 WhistleYoo 配置文件：%@", error.localizedDescription)
+                Localization.format(.coreUnableToReadTheWhistleyooConfigurationFileValue, error.localizedDescription)
             )
         }
         guard configuration.formatVersion == WhistleYooConfigurationFile.currentFormatVersion else {
-            throw WhistleYooError.settingsCorrupted(coreLocalizedFormat(
-                "不支持的 WhistleYoo 配置文件版本：v%lld",
+            throw WhistleYooError.settingsCorrupted(Localization.format(
+                .coreUnsupportedWhistleyooConfigurationFileVersionVValue,
                 configuration.formatVersion
             ))
         }
         guard configuration.settings.schemaVersion == PersistedSettings.currentSchemaVersion else {
-            throw WhistleYooError.settingsCorrupted(coreLocalizedFormat(
-                "配置文件中的设置版本不兼容：v%lld",
+            throw WhistleYooError.settingsCorrupted(Localization.format(
+                .coreTheSettingsVersionInTheConfigurationFileIsIncompatibleVValue,
                 configuration.settings.schemaVersion
             ))
         }
@@ -243,7 +243,7 @@ public final class WhistleYooConfigurationStore: @unchecked Sendable {
     public func save(_ configuration: WhistleYooConfigurationFile, to url: URL) throws {
         guard configuration.formatVersion == WhistleYooConfigurationFile.currentFormatVersion,
               configuration.settings.schemaVersion == PersistedSettings.currentSchemaVersion else {
-            throw WhistleYooError.settingsCorrupted(coreLocalized("不能写入版本不兼容的 WhistleYoo 配置文件"))
+            throw WhistleYooError.settingsCorrupted(Localization.string(.coreAnIncompatibleWhistleyooConfigurationFileCannotBeWritten))
         }
         try validate(configuration)
         try fileManager.createDirectory(
@@ -258,18 +258,18 @@ public final class WhistleYooConfigurationStore: @unchecked Sendable {
         guard (1...65_535).contains(engine.proxyPort),
               (1...65_535).contains(engine.uiPort),
               engine.proxyPort != engine.uiPort else {
-            throw WhistleYooError.settingsCorrupted(coreLocalized("配置文件包含无效或冲突的端口"))
+            throw WhistleYooError.settingsCorrupted(Localization.string(.coreTheConfigurationFileContainsInvalidOrConflictingPorts))
         }
         let defaults = configuration.rules.documents.filter(\.isDefault)
         guard defaults.count == 1,
               defaults[0].name == "Default",
               defaults[0].isEnabled else {
-            throw WhistleYooError.settingsCorrupted(coreLocalized("配置文件必须包含已启用的 Default 规则"))
+            throw WhistleYooError.settingsCorrupted(Localization.string(.coreTheConfigurationFileMustContainAnEnabledDefaultRule))
         }
         let names = configuration.rules.documents.map(\.name)
         guard Set(names).count == names.count,
               names.allSatisfy({ !$0.isEmpty && $0 == $0.trimmingCharacters(in: .whitespacesAndNewlines) }) else {
-            throw WhistleYooError.settingsCorrupted(coreLocalized("配置文件包含无效或重复的规则名称"))
+            throw WhistleYooError.settingsCorrupted(Localization.string(.coreTheConfigurationFileContainsInvalidOrDuplicateRuleNames))
         }
     }
 }

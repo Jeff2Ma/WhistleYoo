@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>rules.built_in_compatibility_rules_are_enabled_value_domains_manage_them_in_se</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@value@</string>
+		<key>value</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>内置兼容性规则已启用（%lld 个域名），如需管理请前往「设置」</string>
+			<key>other</key>
+			<string>内置兼容性规则已启用（%lld 个域名），如需管理请前往「设置」</string>
+		</dict>
+	</dict>
+	<key>rules.value_lines</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@value@</string>
+		<key>value</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld 行</string>
+			<key>other</key>
+			<string>%lld 行</string>
+		</dict>
+	</dict>
+	<key>rules.value_matches</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@value@</string>
+		<key>value</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld 处匹配</string>
+			<key>other</key>
+			<string>%lld 处匹配</string>
+		</dict>
+	</dict>
+	<key>rules.value_rule_sets_found_clear_search_to_reorder</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@value@</string>
+		<key>value</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>找到 %lld 个规则集 · 清除搜索后可排序</string>
+			<key>other</key>
+			<string>找到 %lld 个规则集 · 清除搜索后可排序</string>
+		</dict>
+	</dict>
+	<key>settings.edit_built_in_domains_value</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@value@</string>
+		<key>value</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>编辑内置域名（%lld 个）</string>
+			<key>other</key>
+			<string>编辑内置域名（%lld 个）</string>
+		</dict>
+	</dict>
+	<key>settings.network_services_using_the_system_proxy_value_selected</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@value@</string>
+		<key>value</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>应用系统代理的网络服务（已选择 %lld 个）</string>
+			<key>other</key>
+			<string>应用系统代理的网络服务（已选择 %lld 个）</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

@@ -18,11 +18,11 @@ public enum WhistleYooError: LocalizedError, Equatable {
              .commandFailed(let message), .invalidResponse(let message),
              .settingsCorrupted(let message):
             return message
-        case .portInUse(let port): return coreLocalizedFormat("端口 %@ 已被占用", String(port))
-        case .engineDidNotBecomeReady: return coreLocalized("Whistle 启动后未能通过健康检查")
-        case .engineDidNotStop: return coreLocalized("Whistle 未能在超时时间内停止")
-        case .certificateNotFound: return coreLocalized("未能获取 Whistle 根证书")
-        case .userCancelled: return coreLocalized("用户取消了操作")
+        case .portInUse(let port): return Localization.format(.corePortValueIsAlreadyInUse, String(port))
+        case .engineDidNotBecomeReady: return Localization.string(.coreWhistleDidNotPassItsHealthCheckAfterStarting)
+        case .engineDidNotStop: return Localization.string(.coreWhistleDidNotStopBeforeTheTimeout)
+        case .certificateNotFound: return Localization.string(.coreUnableToObtainTheWhistleRootCertificate)
+        case .userCancelled: return Localization.string(.coreTheOperationWasCancelled)
         }
     }
 }
@@ -119,6 +119,18 @@ public struct EngineConfiguration: Codable, Equatable, Sendable {
 
     public var uiURL: URL {
         URL(string: "http://\(uiHost):\(uiPort)/")!
+    }
+
+    public func mobileRootCertificateURL(host: String) -> URL? {
+        let host = host.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !host.isEmpty else { return nil }
+        var components = URLComponents()
+        components.scheme = "http"
+        components.host = host
+        components.port = proxyPort
+        components.path = "/cgi-bin/rootca"
+        components.queryItems = [URLQueryItem(name: "type", value: "crt")]
+        return components.url
     }
 
     public var customCertificateDirectory: URL {

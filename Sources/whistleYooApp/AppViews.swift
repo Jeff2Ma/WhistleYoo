@@ -64,7 +64,7 @@ struct StatusPopoverView: View {
                         }
                     }
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("代理引擎")
+                        Text(Localization.string(.mobileProxyEngine))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         HStack(spacing: 6) {
@@ -92,7 +92,7 @@ struct StatusPopoverView: View {
             HStack(alignment: .center, spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
-                        Text("全局系统代理")
+                        Text(Localization.string(.settingsGlobalSystemProxy))
                             .fontWeight(.medium)
                         Text(systemProxyDisplayTitle)
                             .font(.caption.weight(.medium))
@@ -105,7 +105,7 @@ struct StatusPopoverView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                Toggle("全局系统代理", isOn: systemProxyToggleBinding)
+                Toggle(Localization.string(.settingsGlobalSystemProxy), isOn: systemProxyToggleBinding)
                 .labelsHidden()
                 .toggleStyle(.switch)
                 .disabled(!state.isEngineRunning)
@@ -115,14 +115,14 @@ struct StatusPopoverView: View {
 
             VStack(spacing: 8) {
                 addressRow(
-                    title: appLocalized("本机"),
+                    title: Localization.string(.settingsThisMac),
                     detail: nil,
                     value: "127.0.0.1:\(state.settings.engine.proxyPort)"
                 )
                 if let endpoint = state.preferredLocalEndpoint {
                     addressRow(
                         title: endpoint.displayName,
-                        detail: endpoint.isDefaultRoute ? appLocalized("推荐") : endpoint.interfaceName,
+                        detail: endpoint.isDefaultRoute ? Localization.string(.mobileRecommended) : endpoint.interfaceName,
                         value: "\(endpoint.address):\(state.settings.engine.proxyPort)"
                     )
                 }
@@ -132,20 +132,20 @@ struct StatusPopoverView: View {
 
             if state.needsOnboarding || isEnvironmentUnavailable {
                 Button(action: openOnboarding) {
-                    Label("运行设置引导", systemImage: "wrench.and.screwdriver")
+                    Label(Localization.string(.onboardingRunSetupAssistant), systemImage: "wrench.and.screwdriver")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(PopoverButtonStyle(emphasis: .prominent))
             } else {
                 HStack(spacing: 8) {
                     Button(action: openConsole) {
-                        Label("Whistle 面板", systemImage: "rectangle.on.rectangle")
+                        Label(Localization.string(.consoleWhistleConsole), systemImage: "rectangle.on.rectangle")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(PopoverButtonStyle(emphasis: .standard))
 
                     Button(action: openMobileSetup) {
-                        Label("手机代理", systemImage: "iphone")
+                        Label(Localization.string(.mobileMobileProxy), systemImage: "iphone")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(PopoverButtonStyle(emphasis: .standard))
@@ -158,12 +158,12 @@ struct StatusPopoverView: View {
 
             HStack {
                 Button(action: openSettings) {
-                    Label("更多设置", systemImage: "gearshape")
+                    Label(Localization.string(.settingsMoreSettings), systemImage: "gearshape")
                 }
                 .buttonStyle(PopoverButtonStyle(emphasis: .quiet))
                 Spacer()
                 Button(action: quit) {
-                    Label("关闭并退出", systemImage: "power")
+                    Label(Localization.string(.settingsShutDownAndQuit), systemImage: "power")
                 }
                 .buttonStyle(PopoverButtonStyle(emphasis: .quiet))
             }
@@ -228,7 +228,7 @@ struct StatusPopoverView: View {
         case .enabledByThisApp, .partiallyEnabled, .unavailable:
             return state.systemProxyTitle
         case .disabled, .configuredByOther:
-            return appLocalized("未启用")
+            return Localization.string(.rulesNotEnabled)
         }
     }
 
@@ -261,7 +261,7 @@ struct StatusPopoverView: View {
     }
 
     private func engineButtonLabel(
-        title: LocalizedStringKey,
+        title: String,
         symbol: String,
         loadingTint: Color
     ) -> some View {
@@ -294,7 +294,7 @@ struct StatusPopoverView: View {
                 Task { await state.stopEngine() }
             } label: {
                 engineButtonLabel(
-                    title: "停止代理引擎",
+                    title: Localization.string(.settingsStopProxyEngine),
                     symbol: "stop.circle",
                     loadingTint: .primary
                 )
@@ -307,7 +307,7 @@ struct StatusPopoverView: View {
                 Task { await state.startEngine() }
             } label: {
                 engineButtonLabel(
-                    title: "启动代理引擎",
+                    title: Localization.string(.mobileStartProxyEngine),
                     symbol: "play.circle",
                     loadingTint: .white
                 )
@@ -458,27 +458,27 @@ struct MainWorkspaceView: View {
         HStack(spacing: 0) {
             VStack(spacing: 10) {
                 sidebarButton(
-                    title: "Whistle 面板",
+                    title: Localization.string(.consoleWhistleConsole),
                     symbol: "rectangle.on.rectangle",
                     tab: .console
                 )
                 sidebarButton(
-                    title: "规则配置",
+                    title: Localization.string(.rulesConfiguration),
                     symbol: "doc.text",
                     tab: .rules
                 )
                 sidebarButton(
-                    title: "手机代理",
+                    title: Localization.string(.mobileMobileProxy),
                     symbol: "iphone.and.arrow.forward",
                     tab: .mobile
                 )
                 sidebarButton(
-                    title: "设置",
+                    title: Localization.string(.rulesSettings),
                     symbol: "gearshape",
                     tab: .settings
                 )
                 sidebarButton(
-                    title: "关于",
+                    title: Localization.string(.settingsAbout),
                     symbol: "info.circle",
                     tab: .about
                 )
@@ -497,11 +497,11 @@ struct MainWorkspaceView: View {
                 .background(Color(nsColor: .textBackgroundColor))
         }
         .frame(minWidth: 900, minHeight: 640)
-        .alert("放弃未保存的修改？", isPresented: $isDiscardingRulesForTabChange) {
-            Button("继续编辑", role: .cancel) {
+        .alert(Localization.string(.settingsDiscardUnsavedChanges), isPresented: $isDiscardingRulesForTabChange) {
+            Button(Localization.string(.rulesKeepEditing), role: .cancel) {
                 pendingTabSelection = nil
             }
-            Button("放弃修改", role: .destructive) {
+            Button(Localization.string(.rulesDiscardChanges), role: .destructive) {
                 rulesDraft.discardChanges()
                 if let pendingTabSelection {
                     selection.selected = pendingTabSelection
@@ -509,7 +509,7 @@ struct MainWorkspaceView: View {
                 self.pendingTabSelection = nil
             }
         } message: {
-            Text("切换页面将放弃当前规则中未保存的修改。")
+            Text(Localization.string(.settingsSwitchingPagesWillDiscardTheUnsavedChangesInTheCurrentRule))
         }
     }
 
@@ -522,7 +522,7 @@ struct MainWorkspaceView: View {
                     Circle()
                         .fill(sidebarEngineStatusColor)
                         .frame(width: 7, height: 7)
-                    Text("代理引擎")
+                    Text(Localization.string(.mobileProxyEngine))
                         .lineLimit(1)
                     Spacer(minLength: 2)
                     Text(state.engineStatusTitle)
@@ -534,7 +534,7 @@ struct MainWorkspaceView: View {
                     Circle()
                         .fill(sidebarSystemProxyStatusColor)
                         .frame(width: 7, height: 7)
-                    Text("全局系统代理")
+                    Text(Localization.string(.settingsGlobalSystemProxy))
                         .lineLimit(1)
                     Spacer(minLength: 2)
                     Text(state.systemProxyTitle)
@@ -549,7 +549,7 @@ struct MainWorkspaceView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(SidebarStatusButtonStyle())
-        .help(appLocalized("打开 Whistle 面板"))
+        .help(Localization.string(.settingsOpenWhistleConsole))
     }
 
     private var sidebarEngineStatusColor: Color {
@@ -591,7 +591,7 @@ struct MainWorkspaceView: View {
     }
 
     private func sidebarButton(
-        title: LocalizedStringKey,
+        title: String,
         symbol: String,
         tab: MainWorkspaceTab
     ) -> some View {
@@ -649,11 +649,11 @@ struct MainWorkspaceView: View {
                 Image(systemName: "rectangle.slash")
                     .font(.system(size: 40))
                     .foregroundStyle(.secondary)
-                Text("代理引擎未运行")
+                Text(Localization.string(.settingsProxyEngineIsNotRunning))
                     .font(.title3.weight(.semibold))
-                Text("启动代理引擎后即可使用 Whistle 面板。")
+                Text(Localization.string(.settingsStartTheProxyEngineToUseTheWhistleConsole))
                     .foregroundStyle(.secondary)
-                Button("启动代理引擎") {
+                Button(Localization.string(.mobileStartProxyEngine)) {
                     Task { await state.startEngine() }
                 }
                 .buttonStyle(.borderedProminent)
@@ -754,9 +754,9 @@ struct OnboardingView: View {
                     .font(.system(size: 27))
                     .foregroundStyle(.blue)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("WhistleYoo 初始化引导")
+                    Text(Localization.string(.onboardingWhistleyooSetupAssistant))
                         .font(.title2.weight(.semibold))
-                    Text("完成环境、端口和 HTTPS 证书检查")
+                    Text(Localization.string(.onboardingCheckTheEnvironmentPortsAndHttpsCertificate))
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -774,32 +774,32 @@ struct OnboardingView: View {
 
     private var environmentStep: some View {
         VStack(alignment: .leading, spacing: 18) {
-            stepTitle("检查 Node.js 与 Whistle", detail: "WhistleYoo 使用本机安装的 Node.js 和全局 Whistle。")
+            stepTitle(Localization.string(.onboardingCheckNodeJsAndWhistle), detail: Localization.string(.onboardingWhistleyooUsesTheLocallyInstalledNodeJsAndGlobalWhistlePackage))
 
             statusCard(
                 symbol: environmentReady ? "checkmark.circle.fill" : "exclamationmark.triangle.fill",
                 color: environmentReady ? .green : .orange,
-                title: environmentReady ? "运行环境已就绪" : "需要准备运行环境",
+                title: environmentReady ? Localization.string(.settingsRuntimeEnvironmentIsReady) : Localization.string(.settingsRuntimeEnvironmentNeedsAttention),
                 detail: state.environmentDescription
             )
 
             HStack {
-                Button("下载 Node.js") {
+                Button(Localization.string(.onboardingDownloadNodeJs)) {
                     if let url = URL(string: "https://nodejs.org/en/download") {
                         NSWorkspace.shared.open(url)
                     }
                 }
-                Button("复制 Whistle 安装命令") {
+                Button(Localization.string(.settingsCopyWhistleInstallCommand)) {
                     copy("npm install -g whistle")
                 }
                 Spacer()
                 Button {
                     Task { await state.refreshEnvironment() }
                 } label: {
-                    Label("重新检测", systemImage: "arrow.clockwise")
+                    Label(Localization.string(.settingsCheckAgain), systemImage: "arrow.clockwise")
                 }
             }
-            Text("建议使用 nvm、fnm、Volta 或 Homebrew 管理 Node.js，安装 Whistle 后点击“重新检测”。")
+            Text(Localization.string(.onboardingWeRecommendManagingNodeJsWithNvmFnmVoltaOrHomebrewAfterInsta))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -808,11 +808,11 @@ struct OnboardingView: View {
 
     private var portsStep: some View {
         VStack(alignment: .leading, spacing: 18) {
-            stepTitle("检查代理端口", detail: "代理端口供 Mac 和手机连接；Web UI 只允许本机访问。")
+            stepTitle(Localization.string(.onboardingCheckProxyPorts), detail: Localization.string(.onboardingTheProxyPortAcceptsMacAndMobileConnectionsAndExposesTheWhistl))
 
             VStack(spacing: 12) {
-                portRow("代理端口", text: $proxyPort, detail: "监听 0.0.0.0")
-                portRow("Web UI 端口", text: $uiPort, detail: "仅监听 127.0.0.1")
+                portRow(Localization.string(.onboardingProxyPort), text: $proxyPort, detail: Localization.string(.settingsListenOn0000))
+                portRow(Localization.string(.onboardingWebUiPort), text: $uiPort, detail: Localization.string(.settingsListenOn127001Only))
             }
             .padding(16)
             .background(.quaternary.opacity(0.45), in: RoundedRectangle(cornerRadius: 10))
@@ -829,19 +829,23 @@ struct OnboardingView: View {
 
     private var certificateStep: some View {
         VStack(alignment: .leading, spacing: 18) {
-            stepTitle("安装 HTTPS 根证书", detail: "安装后才能正常调试 HTTPS 请求，证书保存在当前用户钥匙串。")
+            stepTitle(Localization.string(.mobileInstallHttpsRootCertificate), detail: Localization.string(.onboardingInstallTheCertificateToInspectHttpsRequestsItIsStoredInTheCu))
 
             statusCard(
                 symbol: state.certificateInstalled ? "checkmark.seal.fill" : "lock.trianglebadge.exclamationmark",
                 color: state.certificateInstalled ? .green : .orange,
-                title: state.certificateInstalled ? "根证书已安装" : "根证书尚未安装",
+                title: state.certificateInstalled ? Localization.string(.onboardingRootCertificateInstalled) : Localization.string(.onboardingRootCertificateNotInstalled),
                 detail: state.certificateInstalled
-                    ? "已通过证书指纹在登录钥匙串中确认"
-                    : "可以暂时跳过，但 HTTPS 抓包会失败"
+                    ? Localization.string(.onboardingAMatchingFingerprintWasFoundInTheLoginKeychain)
+                    : Localization.string(.settingsYouCanSkipThisForNowButHttpsCaptureWillNotWork)
             )
 
             HStack {
-                Button(appLocalized(state.certificateInstalled ? "重新安装证书" : "安装证书")) {
+                Button(Localization.string(
+                    state.certificateInstalled
+                        ? .onboardingReinstallCertificate
+                        : .onboardingInstallCertificate
+                )) {
                     isWorking = true
                     Task {
                         _ = await state.installCertificate()
@@ -857,7 +861,7 @@ struct OnboardingView: View {
                 }
             }
 
-            Toggle("暂时跳过证书安装", isOn: $skippedCertificate)
+            Toggle(Localization.string(.onboardingSkipCertificateInstallationForNow), isOn: $skippedCertificate)
                 .disabled(state.certificateInstalled)
             Spacer()
         }
@@ -866,18 +870,18 @@ struct OnboardingView: View {
 
     private var finishStep: some View {
         VStack(alignment: .leading, spacing: 20) {
-            stepTitle("设置完成", detail: "Whistle 已就绪，之后可以从状态栏随时控制代理。")
+            stepTitle(Localization.string(.onboardingSetupComplete), detail: Localization.string(.settingsWhistleIsReadyYouCanControlTheProxyFromTheMenuBarAtAnyTime))
             statusCard(
                 symbol: "checkmark.circle.fill",
                 color: .green,
-                title: "代理引擎运行正常",
-                detail: appLocalizedFormat("本机端口 127.0.0.1:%@", String(state.settings.engine.proxyPort))
+                title: Localization.string(.settingsProxyEngineIsRunning),
+                detail: Localization.format(.onboardingLocalEndpoint127001Value, String(state.settings.engine.proxyPort))
             )
             Toggle(isOn: $enableSystemProxy) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("开启全局系统代理")
+                    Text(Localization.string(.settingsEnableGlobalSystemProxy))
                         .fontWeight(.medium)
-                    Text("关闭时 Whistle 仍会监听，可供手机或手动配置代理使用。")
+                    Text(Localization.string(.settingsWhenDisabledWhistleContinuesListeningForMobileDevicesAndManuall))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -891,7 +895,7 @@ struct OnboardingView: View {
     private var footer: some View {
         HStack {
             if step.rawValue > 0 {
-                Button("上一步") {
+                Button(Localization.string(.onboardingBack)) {
                     step = Step(rawValue: step.rawValue - 1) ?? .environment
                 }
                 .disabled(isWorking)
@@ -900,19 +904,19 @@ struct OnboardingView: View {
 
             switch step {
             case .environment:
-                Button("继续") { step = .ports }
+                Button(Localization.string(.rulesContinue)) { step = .ports }
                     .buttonStyle(.borderedProminent)
                     .disabled(!environmentReady)
             case .ports:
-                Button("检查并启动") { applyPortsAndStart() }
+                Button(Localization.string(.settingsCheckAndStart)) { applyPortsAndStart() }
                     .buttonStyle(.borderedProminent)
                     .disabled(isWorking)
             case .certificate:
-                Button("继续") { step = .finish }
+                Button(Localization.string(.rulesContinue)) { step = .finish }
                     .buttonStyle(.borderedProminent)
                     .disabled(!state.certificateInstalled && !skippedCertificate)
             case .finish:
-                Button("完成") {
+                Button(Localization.string(.rulesDone)) {
                     isWorking = true
                     Task {
                         await state.completeOnboarding(
@@ -939,7 +943,7 @@ struct OnboardingView: View {
     private func applyPortsAndStart() {
         guard let proxy = Int(proxyPort), let ui = Int(uiPort) else {
             portStatusIsSuccess = false
-            portStatus = appLocalized("请输入有效的数字端口")
+            portStatus = Localization.string(.onboardingEnterValidNumericPorts)
             return
         }
         isWorking = true
@@ -948,31 +952,31 @@ struct OnboardingView: View {
             let saved = await state.updatePorts(proxyPort: proxy, uiPort: ui)
             guard saved else {
                 portStatusIsSuccess = false
-                portStatus = state.lastErrorMessage ?? appLocalized("端口不可用")
+                portStatus = state.lastErrorMessage ?? Localization.string(.onboardingPortIsUnavailable)
                 isWorking = false
                 return
             }
             let conflicts = state.portConflicts()
             guard conflicts.isEmpty else {
                 portStatusIsSuccess = false
-                portStatus = appLocalizedFormat("端口被占用：%@", conflicts.map(String.init).joined(separator: ", "))
+                portStatus = Localization.format(.onboardingPortsInUseValue, conflicts.map(String.init).joined(separator: ", "))
                 isWorking = false
                 return
             }
             guard await state.startEngine() else {
                 portStatusIsSuccess = false
-                portStatus = state.lastErrorMessage ?? appLocalized("代理引擎启动失败")
+                portStatus = state.lastErrorMessage ?? Localization.string(.mobileFailedToStartTheProxyEngine)
                 isWorking = false
                 return
             }
             portStatusIsSuccess = true
-            portStatus = appLocalized("端口可用，代理引擎已启动")
+            portStatus = Localization.string(.onboardingPortsAreAvailableAndTheProxyEngineHasStarted)
             isWorking = false
             step = .certificate
         }
     }
 
-    private func stepTitle(_ title: LocalizedStringKey, detail: LocalizedStringKey) -> some View {
+    private func stepTitle(_ title: String, detail: String) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(title)
                 .font(.title3.weight(.semibold))
@@ -988,9 +992,9 @@ struct OnboardingView: View {
                 .foregroundStyle(color)
                 .frame(width: 34)
             VStack(alignment: .leading, spacing: 3) {
-                Text(LocalizedStringKey(title))
+                Text(title)
                     .fontWeight(.medium)
-                Text(LocalizedStringKey(detail))
+                Text(detail)
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -1001,11 +1005,11 @@ struct OnboardingView: View {
         .background(.quaternary.opacity(0.45), in: RoundedRectangle(cornerRadius: 10))
     }
 
-    private func portRow(_ title: LocalizedStringKey, text: Binding<String>, detail: LocalizedStringKey) -> some View {
+    private func portRow(_ title: String, text: Binding<String>, detail: String) -> some View {
         HStack {
             Text(title)
                 .frame(width: 110, alignment: .leading)
-            TextField("端口", text: text)
+            TextField(Localization.string(.mobilePort), text: text)
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 110)
             Text(detail)
@@ -1094,8 +1098,8 @@ struct SettingsView: View {
     private var configurationFileSection: some View {
         VStack(alignment: .leading, spacing: 18) {
             sectionTitle(
-                "WhistleYoo 配置文件",
-                detail: "统一保存全部设置项和规则配置，并支持云盘同步。"
+                Localization.string(.settingsWhistleyooConfigurationFile),
+                detail: Localization.string(.settingsKeepAllSettingsAndRuleConfigurationInOneFileWithCloudDriveSy)
             )
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
@@ -1103,7 +1107,7 @@ struct SettingsView: View {
                         Image(systemName: "doc.badge.gearshape")
                             .foregroundStyle(.blue)
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(state.usesCustomConfigurationFileLocation ? "自定义保存路径" : "默认保存路径")
+                            Text(state.usesCustomConfigurationFileLocation ? Localization.string(.settingsCustomSaveLocation) : Localization.string(.settingsDefaultSaveLocation))
                                 .fontWeight(.medium)
                             Text(state.configurationFileURL.path)
                                 .font(.system(.caption, design: .monospaced))
@@ -1114,7 +1118,7 @@ struct SettingsView: View {
                         }
                     }
 
-                    Text("使用自定义路径后，应用启动时会从该文件读取配置，设置或规则保存后也会自动原子写回。")
+                    Text(Localization.string(.settingsWithACustomLocationTheAppReadsThisFileAtLaunchAndAtomically))
                         .font(.callout)
                         .foregroundStyle(.secondary)
 
@@ -1130,11 +1134,11 @@ struct SettingsView: View {
                     }
 
                     HStack {
-                        Button("导入配置…", action: importConfiguration)
-                        Button("导出配置…", action: exportConfiguration)
-                        Button("自定义保存路径…", action: chooseConfigurationFileLocation)
+                        Button(Localization.string(.settingsImportConfiguration), action: importConfiguration)
+                        Button(Localization.string(.settingsExportConfiguration), action: exportConfiguration)
+                        Button(Localization.string(.settingsChooseCustomSaveLocation), action: chooseConfigurationFileLocation)
                         if state.usesCustomConfigurationFileLocation {
-                            Button("恢复默认路径", action: restoreDefaultConfigurationFileLocation)
+                            Button(Localization.string(.settingsRestoreDefaultLocation), action: restoreDefaultConfigurationFileLocation)
                         }
                         Spacer()
                         if isHandlingConfigurationFile {
@@ -1150,12 +1154,12 @@ struct SettingsView: View {
 
     private var generalSection: some View {
         VStack(alignment: .leading, spacing: 20) {
-            sectionTitle("通用设置", detail: "控制应用启动、程序坞和菜单栏行为。")
-            Toggle("登录时自动启动 WhistleYoo", isOn: Binding(
+            sectionTitle(Localization.string(.settingsGeneral), detail: Localization.string(.settingsControlAppLaunchDockAndMenuBarBehavior))
+            Toggle(Localization.string(.settingsLaunchWhistleyooAtLogin), isOn: Binding(
                 get: { state.launchAtLoginEnabled },
                 set: { state.setLaunchAtLogin($0) }
             ))
-            Toggle("在程序坞中显示 WhistleYoo", isOn: Binding(
+            Toggle(Localization.string(.settingsShowWhistleyooInTheDock), isOn: Binding(
                 get: { state.showDockIcon },
                 set: { state.setShowDockIcon($0) }
             ))
@@ -1173,9 +1177,9 @@ struct SettingsView: View {
                 }
             )) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("兼容性域名过滤")
+                    Text(Localization.string(.settingsCompatibilityDomainFiltering))
                         .fontWeight(.medium)
-                    Text("Apple、iCloud、JetBrains 等服务不进行 HTTPS 解密，并从请求列表中隐藏，以减少证书错误和抓包噪音。")
+                    Text(Localization.string(.onboardingSkipHttpsDecryptionForAppleIcloudJetbrainsAndOtherServicesAnd))
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
@@ -1184,7 +1188,7 @@ struct SettingsView: View {
             .disabled(isCompatibilityOperationInProgress)
 
             DisclosureGroup(
-                appLocalizedFormat("编辑内置域名（%lld 个）", state.settings.softwareDomainWhitelistDomains.count),
+                Localization.format(.settingsEditBuiltInDomainsValue, state.settings.softwareDomainWhitelistDomains.count),
                 isExpanded: $showWhitelistDomains
             ) {
                 VStack(alignment: .leading, spacing: 8) {
@@ -1195,11 +1199,11 @@ struct SettingsView: View {
                         .padding(4)
                         .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 6))
                         .disabled(isCompatibilityOperationInProgress)
-                    Text("每行填写一个域名，支持 * 和 *** 通配形式。保存后会立即更新运行中的 Whistle 规则。")
+                    Text(Localization.string(.settingsEnterOneDomainPerLineAndWildcardFormsAreSupportedSavingImmedi))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     HStack {
-                        Button("恢复默认") {
+                        Button(Localization.string(.settingsRestoreDefaults)) {
                             whitelistDomainsText = SoftwareDomainWhitelistManager.domains.joined(separator: "\n")
                         }
                         .disabled(isCompatibilityOperationInProgress)
@@ -1211,7 +1215,7 @@ struct SettingsView: View {
                                 .font(.caption)
                                 .foregroundStyle(.green)
                         }
-                        Button("保存域名") {
+                        Button(Localization.string(.settingsSaveDomains)) {
                             savingWhitelistDomains = true
                             whitelistSaveFeedback = nil
                             let domains = whitelistDomainsText.components(separatedBy: .newlines)
@@ -1231,7 +1235,7 @@ struct SettingsView: View {
                 }
                 .padding(.top, 6)
             }
-            Text("应用退出时会恢复由 WhistleYoo 修改的系统代理，并停止专属 Whistle 实例。")
+            Text(Localization.string(.settingsWhenTheAppQuitsItRestoresTheSystemProxySettingsChangedByWhis))
                 .font(.callout)
                 .foregroundStyle(.secondary)
         }
@@ -1239,14 +1243,14 @@ struct SettingsView: View {
 
     private var proxySection: some View {
         VStack(alignment: .leading, spacing: 18) {
-            sectionTitle("代理与端口", detail: "配置代理监听端口和系统代理适用的网络服务。")
+            sectionTitle(Localization.string(.onboardingProxyAndPorts), detail: Localization.string(.onboardingConfigureProxyListeningPortsAndTheNetworkServicesThatUseTheSy))
 
-            GroupBox("端口") {
+            GroupBox(Localization.string(.mobilePort)) {
                 VStack(spacing: 12) {
-                    settingsPortRow("代理端口", text: $proxyPort, focus: .proxyPort)
-                    settingsPortRow("Web UI 端口", text: $uiPort, focus: .uiPort)
+                    settingsPortRow(Localization.string(.onboardingProxyPort), text: $proxyPort, focus: .proxyPort)
+                    settingsPortRow(Localization.string(.onboardingWebUiPort), text: $uiPort, focus: .uiPort)
                     if portsAreDirty, parsedPorts == nil {
-                        Label("请输入两个不同的有效端口（1–65535）", systemImage: "exclamationmark.triangle.fill")
+                        Label(Localization.string(.onboardingEnterTwoDifferentValidPorts165535), systemImage: "exclamationmark.triangle.fill")
                             .font(.callout)
                             .foregroundStyle(.red)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -1260,12 +1264,18 @@ struct SettingsView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     HStack {
-                        Text(appLocalized(state.isEngineRunning ? "应用后将自动重启代理引擎" : "代理引擎当前未运行"))
+                        Text(Localization.string(
+                            state.isEngineRunning
+                                ? .settingsApplyingTheseChangesWillRestartTheProxyEngine
+                                : .settingsTheProxyEngineIsNotRunning
+                        ))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Spacer()
                         if savingPorts { ProgressView().controlSize(.small) }
-                        Button(appLocalized(state.isEngineRunning ? "应用并重启" : "应用")) { applyPorts() }
+                        Button(Localization.string(
+                            state.isEngineRunning ? .settingsApplyAndRestart : .rulesApply
+                        )) { applyPorts() }
                         .buttonStyle(.borderedProminent)
                         .disabled(!canApplyPorts)
                     }
@@ -1275,12 +1285,12 @@ struct SettingsView: View {
 
             GroupBox {
                 DisclosureGroup(
-                    appLocalizedFormat("应用系统代理的网络服务（已选择 %lld 个）", selectedNetworkServiceCount),
+                    Localization.format(.settingsNetworkServicesUsingTheSystemProxyValueSelected, selectedNetworkServiceCount),
                     isExpanded: $showNetworkServices
                 ) {
                     VStack(alignment: .leading, spacing: 8) {
                         if state.networkServices.isEmpty {
-                            Text("没有检测到可用的网络服务")
+                            Text(Localization.string(.settingsNoAvailableNetworkServicesDetected))
                                 .foregroundStyle(.secondary)
                         } else {
                             ForEach(state.networkServices) { service in
@@ -1289,11 +1299,11 @@ struct SettingsView: View {
                             }
                         }
                         if state.isChangingSystemProxy {
-                            Text("系统代理正在切换，请稍候。")
+                            Text(Localization.string(.settingsTheSystemProxyIsChangingPleaseWait))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         } else if isSystemProxyActiveOrPartial {
-                            Text("请先关闭系统代理，再修改网络服务。")
+                            Text(Localization.string(.settingsDisableSystemProxyBeforeChangingNetworkServicesHelp))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -1307,32 +1317,36 @@ struct SettingsView: View {
 
     private var certificateSection: some View {
         VStack(alignment: .leading, spacing: 20) {
-            sectionTitle("HTTPS 根证书", detail: "证书由当前专属 Whistle 实例生成。")
+            sectionTitle(Localization.string(.mobileHttpsRootCertificate), detail: Localization.string(.onboardingTheCertificateIsGeneratedByTheCurrentDedicatedWhistleInstance))
             HStack(spacing: 12) {
                 Image(systemName: state.certificateHealth.isReady ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
                     .font(.system(size: 30))
                     .foregroundStyle(state.certificateHealth.isReady ? .green : .orange)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(appLocalized(state.certificateHealth.isReady ? "HTTPS 抓包已就绪" : "HTTPS 根证书需要检查"))
+                    Text(Localization.string(
+                        state.certificateHealth.isReady
+                            ? .settingsHttpsCaptureIsReady
+                            : .onboardingHttpsRootCertificateNeedsAttention
+                    ))
                         .fontWeight(.medium)
                     certificateHealthRow(
-                        title: state.certificateHealth.isInstalled ? "根证书已安装" : "根证书未安装",
+                        title: state.certificateHealth.isInstalled ? Localization.string(.onboardingRootCertificateInstalled) : Localization.string(.settingsRootCertificateNotInstalled),
                         isHealthy: state.certificateHealth.isInstalled
                     )
                     certificateHealthRow(
-                        title: state.certificateHealth.isTrusted ? "根证书已设为信任" : "根证书未受信任",
+                        title: state.certificateHealth.isTrusted ? Localization.string(.onboardingRootCertificateTrusted) : Localization.string(.onboardingRootCertificateNotTrusted),
                         isHealthy: state.certificateHealth.isTrusted
                     )
                     switch state.certificateHealth.matchesCurrentInstance {
                     case .some(let matchesCurrentInstance):
                         certificateHealthRow(
                             title: matchesCurrentInstance
-                                ? "证书与当前 Whistle 实例匹配"
-                                : "证书与当前 Whistle 实例不匹配",
+                                ? Localization.string(.onboardingCertificateMatchesTheCurrentWhistleInstance)
+                                : Localization.string(.onboardingCertificateDoesNotMatchTheCurrentWhistleInstance),
                             isHealthy: matchesCurrentInstance
                         )
                     case .none:
-                        Text("启动代理引擎后核对实例证书")
+                        Text(Localization.string(.onboardingStartTheProxyEngineToVerifyTheInstanceCertificate))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -1346,13 +1360,13 @@ struct SettingsView: View {
                     certificateInstallButton
                         .buttonStyle(.borderedProminent)
                 }
-                Button("导出证书…", action: exportCertificate)
+                Button(Localization.string(.onboardingExportCertificate), action: exportCertificate)
                     .disabled(!state.isEngineRunning)
-                Button("重新检测") {
+                Button(Localization.string(.settingsCheckAgain)) {
                     Task { await state.refreshCertificateStatus() }
                 }
             }
-            Text("手机代理页面也会提供局域网证书下载二维码。")
+            Text(Localization.string(.onboardingTheMobileProxyPageAlsoProvidesAQrCodeForDownloadingTheCertif))
                 .font(.callout)
                 .foregroundStyle(.secondary)
         }
@@ -1366,14 +1380,14 @@ struct SettingsView: View {
 
     private var certificateInstallButtonTitle: String {
         let health = state.certificateHealth
-        if !health.isInstalled { return appLocalized("安装证书…") }
-        if !health.isTrusted { return appLocalized("重新信任证书…") }
-        if health.matchesCurrentInstance == false { return appLocalized("更新证书…") }
-        if health.isReady { return appLocalized("重新安装证书…") }
-        return appLocalized("安装/更新证书…")
+        if !health.isInstalled { return Localization.string(.onboardingInstallCertificateAction) }
+        if !health.isTrusted { return Localization.string(.onboardingTrustCertificateAgain) }
+        if health.matchesCurrentInstance == false { return Localization.string(.onboardingUpdateCertificate) }
+        if health.isReady { return Localization.string(.settingsReinstallCertificateAction) }
+        return Localization.string(.onboardingInstallOrUpdateCertificate)
     }
 
-    private func certificateHealthRow(title: LocalizedStringKey, isHealthy: Bool) -> some View {
+    private func certificateHealthRow(title: String, isHealthy: Bool) -> some View {
         Label(title, systemImage: isHealthy ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
             .font(.caption)
             .foregroundStyle(isHealthy ? Color.green : Color.orange)
@@ -1381,7 +1395,7 @@ struct SettingsView: View {
 
     private var environmentSection: some View {
         VStack(alignment: .leading, spacing: 18) {
-            sectionTitle("运行环境", detail: "检测 Finder 启动环境以及 nvm、fnm、Volta、Homebrew 常用目录。")
+            sectionTitle(Localization.string(.settingsRuntimeEnvironment), detail: Localization.string(.settingsCheckTheFinderLaunchEnvironmentAndCommonNvmFnmVoltaAndHomebre))
             GroupBox {
                 VStack(alignment: .leading, spacing: 10) {
                     Label(state.environmentDescription, systemImage: environmentReady ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
@@ -1395,10 +1409,10 @@ struct SettingsView: View {
                 .padding(8)
             }
             HStack {
-                Button("重新检测") {
+                Button(Localization.string(.settingsCheckAgain)) {
                     Task { await state.refreshEnvironment() }
                 }
-                Button("重新执行初始化引导", action: runOnboarding)
+                Button(Localization.string(.onboardingRunSetupAssistantAgain), action: runOnboarding)
             }
         }
     }
@@ -1447,8 +1461,8 @@ struct SettingsView: View {
 
     private func importConfiguration() {
         let panel = NSOpenPanel()
-        panel.title = appLocalized("导入 WhistleYoo 配置")
-        panel.prompt = appLocalized("导入")
+        panel.title = Localization.string(.settingsImportWhistleyooConfiguration)
+        panel.prompt = Localization.string(.settingsImport)
         panel.allowedContentTypes = [.json, legacyConfigurationContentType]
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
@@ -1464,12 +1478,12 @@ struct SettingsView: View {
                 whitelistDomainsText = state.settings.softwareDomainWhitelistDomains
                     .joined(separator: "\n")
                 finishConfigurationFileOperation(
-                    message: appLocalized("配置已导入并应用"),
+                    message: Localization.string(.settingsConfigurationImportedAndApplied),
                     succeeded: true
                 )
             } else {
                 finishConfigurationFileOperation(
-                    message: state.lastErrorMessage ?? appLocalized("配置导入失败"),
+                    message: state.lastErrorMessage ?? Localization.string(.settingsConfigurationImportFailed),
                     succeeded: false
                 )
             }
@@ -1478,8 +1492,8 @@ struct SettingsView: View {
 
     private func exportConfiguration() {
         let panel = configurationSavePanel(
-            title: appLocalized("导出 WhistleYoo 配置"),
-            prompt: appLocalized("导出")
+            title: Localization.string(.settingsExportWhistleyooConfiguration),
+            prompt: Localization.string(.settingsExport)
         )
         guard panel.runModal() == .OK, let url = panel.url else { return }
 
@@ -1488,8 +1502,8 @@ struct SettingsView: View {
             let exported = await state.exportConfiguration(to: url)
             finishConfigurationFileOperation(
                 message: exported
-                    ? appLocalized("配置已导出")
-                    : (state.lastErrorMessage ?? appLocalized("配置导出失败")),
+                    ? Localization.string(.settingsConfigurationExported)
+                    : (state.lastErrorMessage ?? Localization.string(.settingsConfigurationExportFailed)),
                 succeeded: exported
             )
         }
@@ -1497,8 +1511,8 @@ struct SettingsView: View {
 
     private func chooseConfigurationFileLocation() {
         let panel = configurationSavePanel(
-            title: appLocalized("选择 WhistleYoo 配置保存路径"),
-            prompt: appLocalized("使用此路径")
+            title: Localization.string(.settingsChooseWhistleyooConfigurationSaveLocation),
+            prompt: Localization.string(.settingsUseThisLocation)
         )
         guard panel.runModal() == .OK, let url = panel.url else { return }
 
@@ -1507,8 +1521,8 @@ struct SettingsView: View {
             let changed = await state.useConfigurationFile(at: url)
             finishConfigurationFileOperation(
                 message: changed
-                    ? appLocalized("配置保存路径已更新")
-                    : (state.lastErrorMessage ?? appLocalized("无法更新配置保存路径")),
+                    ? Localization.string(.settingsConfigurationSaveLocationUpdated)
+                    : (state.lastErrorMessage ?? Localization.string(.settingsUnableToUpdateTheConfigurationSaveLocation)),
                 succeeded: changed
             )
         }
@@ -1520,8 +1534,8 @@ struct SettingsView: View {
             let restored = await state.restoreDefaultConfigurationFileLocation()
             finishConfigurationFileOperation(
                 message: restored
-                    ? appLocalized("已恢复默认配置保存路径")
-                    : (state.lastErrorMessage ?? appLocalized("无法恢复默认配置保存路径")),
+                    ? Localization.string(.settingsDefaultConfigurationSaveLocationRestored)
+                    : (state.lastErrorMessage ?? Localization.string(.settingsUnableToRestoreTheDefaultConfigurationSaveLocation)),
                 succeeded: restored
             )
         }
@@ -1551,7 +1565,7 @@ struct SettingsView: View {
 
     private func applyPorts() {
         guard let ports = parsedPorts else {
-            portStatus = appLocalized("请输入两个不同的有效端口（1–65535）")
+            portStatus = Localization.string(.onboardingEnterTwoDifferentValidPorts165535)
             portStatusIsSuccess = false
             return
         }
@@ -1563,10 +1577,14 @@ struct SettingsView: View {
             if saved {
                 proxyPort = String(state.settings.engine.proxyPort)
                 uiPort = String(state.settings.engine.uiPort)
-                portStatus = appLocalized(wasRunning ? "端口已应用，代理引擎已重启" : "端口设置已保存")
+                portStatus = Localization.string(
+                    wasRunning
+                        ? .onboardingPortsAppliedAndProxyEngineRestarted
+                        : .onboardingPortSettingsSaved
+                )
                 portStatusIsSuccess = true
             } else {
-                portStatus = state.lastErrorMessage ?? appLocalized("端口设置应用失败")
+                portStatus = state.lastErrorMessage ?? Localization.string(.onboardingFailedToApplyPortSettings)
                 portStatusIsSuccess = false
             }
             savingPorts = false
@@ -1576,7 +1594,7 @@ struct SettingsView: View {
     private func showWhitelistSaveFeedback() {
         let feedbackID = UUID()
         whitelistSaveFeedbackID = feedbackID
-        whitelistSaveFeedback = appLocalized("兼容域名已保存")
+        whitelistSaveFeedback = Localization.string(.settingsCompatibilityDomainsSaved)
         Task {
             try? await Task.sleep(for: .seconds(1.5))
             guard whitelistSaveFeedbackID == feedbackID else { return }
@@ -1585,7 +1603,7 @@ struct SettingsView: View {
         }
     }
 
-    private func sectionTitle(_ title: LocalizedStringKey, detail: LocalizedStringKey) -> some View {
+    private func sectionTitle(_ title: String, detail: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title).font(.title3.weight(.semibold))
             Text(detail).foregroundStyle(.secondary)
@@ -1593,14 +1611,14 @@ struct SettingsView: View {
     }
 
     private func settingsPortRow(
-        _ title: LocalizedStringKey,
+        _ title: String,
         text: Binding<String>,
         focus: FocusField
     ) -> some View {
         HStack {
             Text(title)
                 .frame(width: 130, alignment: .leading)
-            TextField("端口", text: text)
+            TextField(Localization.string(.mobilePort), text: text)
                 .focused($focusedField, equals: focus)
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 130)

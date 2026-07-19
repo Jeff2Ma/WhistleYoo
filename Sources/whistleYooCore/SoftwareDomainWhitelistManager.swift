@@ -133,13 +133,13 @@ public struct SoftwareDomainWhitelistManager: Sendable {
         let (data, response) = try await session.data(for: request)
         try validate(response: response, data: data)
         if let result = try? JSONDecoder().decode(ActionResult.self, from: data), result.ec != 0 {
-            throw WhistleYooError.invalidResponse(result.em ?? coreLocalized("Whistle 保存白名单规则失败"))
+            throw WhistleYooError.invalidResponse(result.em ?? Localization.string(.coreWhistleFailedToSaveTheAllowlistRules))
         }
     }
 
     private func validate(response: URLResponse, data: Data) throws {
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            let message = String(data: data, encoding: .utf8) ?? coreLocalized("Whistle 规则接口响应异常")
+            let message = String(data: data, encoding: .utf8) ?? Localization.string(.rulesTheWhistleRulesApiReturnedAnInvalidResponse)
             throw WhistleYooError.invalidResponse(message)
         }
     }

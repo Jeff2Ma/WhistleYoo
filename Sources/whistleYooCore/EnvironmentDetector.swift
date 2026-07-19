@@ -25,7 +25,7 @@ public struct EnvironmentDetector {
         let searchDirectories = candidateDirectories()
         let executablePath = searchDirectories.map(\.path).joined(separator: ":")
         guard let nodeURL = findExecutable(named: "node", directories: searchDirectories) else {
-            throw WhistleYooError.environmentUnavailable(coreLocalized("未找到 Node.js，请安装 Node 18 或更高版本"))
+            throw WhistleYooError.environmentUnavailable(Localization.string(.coreNodeJsWasNotFoundInstallNode18OrLater))
         }
         let nodeDetection = try readVersion(
             executableURL: nodeURL,
@@ -33,15 +33,15 @@ public struct EnvironmentDetector {
             environment: ["PATH": executablePath]
         )
         guard let nodeVersion = nodeDetection.version else {
-            throw WhistleYooError.environmentUnavailable(coreLocalizedFormat("无法读取 Node.js 版本：%@", nodeDetection.diagnostic))
+            throw WhistleYooError.environmentUnavailable(Localization.format(.coreUnableToReadTheNodeJsVersionValue, nodeDetection.diagnostic))
         }
         guard nodeVersion >= Self.minimumNodeVersion else {
-            throw WhistleYooError.unsupportedVersion(coreLocalized("Node.js 版本过低，需要 18 或更高版本"))
+            throw WhistleYooError.unsupportedVersion(Localization.string(.coreNodeJsIsTooOldVersion18OrLaterIsRequired))
         }
 
         guard let whistleURL = findExecutable(named: "w2", directories: searchDirectories)
                 ?? findExecutable(named: "whistle", directories: searchDirectories) else {
-            throw WhistleYooError.environmentUnavailable(coreLocalized("未找到全局 Whistle，请执行 npm install -g whistle"))
+            throw WhistleYooError.environmentUnavailable(Localization.string(.coreAGlobalWhistleInstallationWasNotFoundRunNpmInstallGWhistle))
         }
         let whistleDetection = try readVersion(
             executableURL: whistleURL,
@@ -49,11 +49,11 @@ public struct EnvironmentDetector {
             environment: ["PATH": executablePath]
         )
         guard let whistleVersion = whistleDetection.version else {
-            throw WhistleYooError.environmentUnavailable(coreLocalizedFormat("无法读取 Whistle 版本：%@", whistleDetection.diagnostic))
+            throw WhistleYooError.environmentUnavailable(Localization.format(.coreUnableToReadTheWhistleVersionValue, whistleDetection.diagnostic))
         }
         guard whistleVersion >= Self.minimumWhistleVersion else {
             throw WhistleYooError.unsupportedVersion(
-                coreLocalizedFormat("Whistle 版本过低，需要 2.9.0 或更高版本（检测结果：%@）", whistleDetection.diagnostic)
+                Localization.format(.coreWhistleIsTooOldVersion290OrLaterIsRequiredDetectedValue, whistleDetection.diagnostic)
             )
         }
 

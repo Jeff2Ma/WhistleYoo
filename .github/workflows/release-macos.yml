@@ -80,12 +80,14 @@ jobs:
           package-manager-cache: false
 
       - name: 运行单元测试
-        run: swift test -Xswiftc -warnings-as-errors
+        run: |
+          ./scripts/verify-localization.sh
+          swift test -Xswiftc -warnings-as-errors
 
       - name: 运行 Whistle 集成测试
         run: |
           npm install --global whistle@2.10.5
-          IPROXY_RUN_INTEGRATION=1 swift test --filter WhistleIntegrationTests
+          WHISTLEYOO_RUN_INTEGRATION=1 swift test --filter WhistleIntegrationTests
 
   release:
     name: 构建并发布 Universal DMG

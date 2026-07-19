@@ -1,5 +1,8 @@
 import AppKit
 import SwiftUI
+#if canImport(whistleYooCore)
+import whistleYooCore
+#endif
 
 struct AboutView: View {
     private static let repositoryURL = URL(string: "https://github.com/Jeff2Ma/WhistleYoo")!
@@ -36,7 +39,7 @@ struct AboutView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("WhistleYoo")
                     .font(.title2.weight(.semibold))
-                Text("Whistle 的原生 macOS 控制端")
+                Text(Localization.string(.aboutANativeMacosControllerForWhistle))
                     .foregroundStyle(.secondary)
             }
         }
@@ -44,22 +47,22 @@ struct AboutView: View {
 
     private var projectSection: some View {
         VStack(alignment: .leading, spacing: 18) {
-            sectionTitle("项目信息", detail: "查看项目源码，或通过 GitHub 联系作者。")
+            sectionTitle(Localization.string(.aboutProjectInformation), detail: Localization.string(.aboutViewTheSourceCodeOrContactTheAuthorOnGithub))
 
             GroupBox {
                 VStack(spacing: 0) {
-                    informationRow(title: "当前版本", value: displayVersion)
+                    informationRow(title: Localization.string(.aboutCurrentVersion), value: displayVersion)
                     Divider()
                     linkRow(
-                        title: "官方项目",
+                        title: Localization.string(.aboutOfficialProject),
                         detail: "github.com/Jeff2Ma/WhistleYoo",
                         symbol: "link",
                         destination: Self.repositoryURL
                     )
                     Divider()
                     linkRow(
-                        title: "联系作者",
-                        detail: "在 GitHub Issues 中反馈问题或建议",
+                        title: Localization.string(.aboutContactTheAuthor),
+                        detail: Localization.string(.aboutReportAnIssueOrSuggestionInGithubIssues),
                         symbol: "bubble.left.and.bubble.right",
                         destination: Self.issuesURL
                     )
@@ -71,21 +74,21 @@ struct AboutView: View {
 
     private var updateSection: some View {
         VStack(alignment: .leading, spacing: 18) {
-            sectionTitle("软件更新", detail: "通过 Sparkle 检查并安装 WhistleYoo 更新。")
+            sectionTitle(Localization.string(.aboutSoftwareUpdate), detail: Localization.string(.aboutCheckForAndInstallWhistleyooUpdatesWithSparkle))
 
             HStack(spacing: 14) {
                 Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
                     .font(.system(size: 30))
                     .foregroundStyle(.blue)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("保持最新版本")
+                    Text(Localization.string(.aboutStayUpToDate))
                         .fontWeight(.medium)
-                    Text("检查是否有可用的新版本。")
+                    Text(Localization.string(.aboutCheckWhetherANewVersionIsAvailable))
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                Button("检查更新") {
+                Button(Localization.string(.aboutCheckForUpdates)) {
                     UpdateController.shared.checkForUpdates()
                 }
                 .buttonStyle(.borderedProminent)
@@ -93,7 +96,7 @@ struct AboutView: View {
         }
     }
 
-    private func sectionTitle(_ title: LocalizedStringKey, detail: LocalizedStringKey) -> some View {
+    private func sectionTitle(_ title: String, detail: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
                 .font(.title3.weight(.semibold))
@@ -103,7 +106,7 @@ struct AboutView: View {
         }
     }
 
-    private func informationRow(title: LocalizedStringKey, value: String) -> some View {
+    private func informationRow(title: String, value: String) -> some View {
         HStack(spacing: 14) {
             Image(systemName: "info.circle")
                 .foregroundStyle(.secondary)
@@ -118,8 +121,8 @@ struct AboutView: View {
     }
 
     private func linkRow(
-        title: LocalizedStringKey,
-        detail: LocalizedStringKey,
+        title: String,
+        detail: String,
         symbol: String,
         destination: URL
     ) -> some View {

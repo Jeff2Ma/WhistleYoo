@@ -2,6 +2,21 @@ import XCTest
 @testable import whistleYooCore
 
 final class ModelAndSettingsTests: XCTestCase {
+    func testMobileRootCertificateURLUsesProxyPortAndWhistleEndpoint() {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let configuration = EngineConfiguration(
+            proxyPort: 10_080,
+            baseDirectory: root.appendingPathComponent("data"),
+            runtimeDirectory: root.appendingPathComponent("runtime")
+        )
+
+        XCTAssertEqual(
+            configuration.mobileRootCertificateURL(host: " 192.0.2.10 ")?.absoluteString,
+            "http://192.0.2.10:10080/cgi-bin/rootca?type=crt"
+        )
+        XCTAssertNil(configuration.mobileRootCertificateURL(host: "  \n "))
+    }
+
     func testDockVisibilityDefaultsToVisibleAndPersistsChanges() throws {
         let suiteName = "DockVisibilityPreferenceTests.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))

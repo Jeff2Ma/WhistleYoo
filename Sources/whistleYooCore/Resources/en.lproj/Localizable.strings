@@ -1,0 +1,725 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>about.a_native_macos_controller_for_whistle</key>
+	<string>A native macOS controller for Whistle</string>
+	<key>about.check_for_and_install_whistleyoo_updates_with_sparkle</key>
+	<string>Check for and install WhistleYoo updates with Sparkle.</string>
+	<key>about.check_for_updates</key>
+	<string>Check for Updates</string>
+	<key>about.check_whether_a_new_version_is_available</key>
+	<string>Check whether a new version is available.</string>
+	<key>about.contact_the_author</key>
+	<string>Contact the Author</string>
+	<key>about.current_version</key>
+	<string>Current Version</string>
+	<key>about.official_project</key>
+	<string>Official Project</string>
+	<key>about.project_information</key>
+	<string>Project Information</string>
+	<key>about.report_an_issue_or_suggestion_in_github_issues</key>
+	<string>Report an issue or suggestion in GitHub Issues</string>
+	<key>about.software_update</key>
+	<string>Software Update</string>
+	<key>about.stay_up_to_date</key>
+	<string>Stay Up to Date</string>
+	<key>about.view_the_source_code_or_contact_the_author_on_github</key>
+	<string>View the source code or contact the author on GitHub.</string>
+	<key>console.failed_to_load_the_whistle_console</key>
+	<string>Failed to load the Whistle console</string>
+	<key>console.loading_the_whistle_console</key>
+	<string>Loading the Whistle console…</string>
+	<key>console.open_in_browser</key>
+	<string>Open in Browser</string>
+	<key>console.reload</key>
+	<string>Reload</string>
+	<key>console.whistle_console</key>
+	<string>Whistle Console</string>
+	<key>core.a_global_whistle_installation_was_not_found_run_npm_install_g_whistle</key>
+	<string>A global Whistle installation was not found. Run npm install -g whistle.</string>
+	<key>core.a_matching_fingerprint_was_found_in_the_login_keychain</key>
+	<string>A matching fingerprint was found in the login keychain</string>
+	<key>core.after_setting_the_proxy_scan_to_download_the_certificate_on_ios_install</key>
+	<string>After setting the proxy, scan to download the certificate. On iOS, install it in Settings and enable full trust.</string>
+	<key>core.an_incompatible_whistleyoo_configuration_file_cannot_be_written</key>
+	<string>An incompatible WhistleYoo configuration file cannot be written</string>
+	<key>core.apply_the_enabled_state_when_saving</key>
+	<string>Apply the enabled state when saving</string>
+	<key>core.built_in_compatibility_rules_read_only</key>
+	<string>Built-in compatibility rules · Read-only</string>
+	<key>core.built_in_rule_read_only</key>
+	<string>Built-in rule, read-only</string>
+	<key>core.changing_active_ports_safely_restarts_the_proxy_engine_automatically</key>
+	<string>Changing active ports safely restarts the proxy engine automatically.</string>
+	<key>core.command_timed_out_value</key>
+	<string>Command timed out: %@</string>
+	<key>core.disabling_the_system_proxy_did_not_complete</key>
+	<string>Disabling the system proxy did not complete</string>
+	<key>core.do_not_decrypt_and_hide_common_domains_for_apple_icloud_jetbrains_and_ot</key>
+	<string>Do not decrypt and hide common domains for Apple, iCloud, JetBrains, and other apps to reduce certificate issues and capture noise.</string>
+	<key>core.enabling_the_system_proxy_failed_and_automatic_restoration_did_not_compl</key>
+	<string>Enabling the system proxy failed, and automatic restoration did not complete: %@; %@</string>
+	<key>core.https_inspection_requires_installing_and_trusting_the_root_certificate</key>
+	<string>HTTPS inspection requires installing and trusting the root certificate</string>
+	<key>core.in_the_http_proxy_settings_for_the_phone_s_current_wi_fi_network_choose</key>
+	<string>In the HTTP proxy settings for the phone's current Wi-Fi network, choose Manual and enter:</string>
+	<key>core.in_the_mobile_device_s_wi_fi_http_proxy_settings_choose_manual_enter_the</key>
+	<string>In the mobile device's Wi-Fi HTTP proxy settings, choose Manual, enter the IP address above as the server, and use port %@. On iOS, confirm installation and trust in Settings after downloading the certificate.</string>
+	<key>core.local_network_address</key>
+	<string>Local Network Address</string>
+	<key>core.missing_settings_migration_v_value_v_value</key>
+	<string>Missing settings migration: v%lld → v%lld</string>
+	<key>core.network_service_value_is_still_using_the_whistleyoo_proxy</key>
+	<string>Network service “%@” is still using the WhistleYoo proxy</string>
+	<key>core.network_service_value_still_has_whistleyoo_proxy_settings_that_were_not</key>
+	<string>Network service “%@” still has WhistleYoo proxy settings that were not restored</string>
+	<key>core.networksetup_failed</key>
+	<string>networksetup failed</string>
+	<key>core.node_js_is_too_old_version_18_or_later_is_required</key>
+	<string>Node.js is too old. Version 18 or later is required.</string>
+	<key>core.node_js_was_not_found_install_node_18_or_later</key>
+	<string>Node.js was not found. Install Node 18 or later.</string>
+	<key>core.one_whistle_rule_per_line</key>
+	<string>One Whistle rule per line</string>
+	<key>core.openssl_did_not_generate_a_whistle_root_certificate</key>
+	<string>OpenSSL did not generate a Whistle root certificate</string>
+	<key>core.port_value_is_already_in_use</key>
+	<string>Port %@ is already in use</string>
+	<key>core.scan_to_download_and_install_the_root_certificate</key>
+	<string>Scan to download and install the root certificate</string>
+	<key>core.set_up_wi_fi_proxy</key>
+	<string>Set Up Wi-Fi Proxy</string>
+	<key>core.settings</key>
+	<string>Settings…</string>
+	<key>core.system_proxy_restoration_did_not_complete</key>
+	<string>System proxy restoration did not complete</string>
+	<key>core.the_configuration_file_contains_invalid_or_conflicting_ports</key>
+	<string>The configuration file contains invalid or conflicting ports</string>
+	<key>core.the_configuration_file_contains_invalid_or_duplicate_rule_names</key>
+	<string>The configuration file contains invalid or duplicate rule names</string>
+	<key>core.the_configuration_file_must_contain_an_enabled_default_rule</key>
+	<string>The configuration file must contain an enabled Default rule</string>
+	<key>core.the_new_rule_is_enabled_automatically_edit_its_content_on_the_right_then</key>
+	<string>The new rule is enabled automatically. Edit its content on the right, then save.</string>
+	<key>core.the_operation_was_cancelled</key>
+	<string>The operation was cancelled</string>
+	<key>core.the_proxy_switch_for_network_service_value_could_not_be_turned_off</key>
+	<string>The proxy switch for network service “%@” could not be turned off</string>
+	<key>core.the_root_certificate_format_is_invalid</key>
+	<string>The root certificate format is invalid</string>
+	<key>core.the_root_certificate_was_installed_in_the_current_user_s_keychain_sha_25</key>
+	<string>The root certificate was installed in the current user's keychain.
+SHA-256: %@</string>
+	<key>core.the_running_whistle_version_is_unsupported_value</key>
+	<string>The running Whistle version is unsupported: %@</string>
+	<key>core.the_settings_file_is_missing_schemaversion</key>
+	<string>The settings file is missing schemaVersion</string>
+	<key>core.the_settings_file_was_created_by_a_newer_version_of_whistleyoo</key>
+	<string>The settings file was created by a newer version of WhistleYoo</string>
+	<key>core.the_settings_version_in_the_configuration_file_is_incompatible_v_value</key>
+	<string>The settings version in the configuration file is incompatible: v%lld</string>
+	<key>core.the_system_proxy_or_proxy_engine_could_not_be_shut_down_safely_so_the_ap</key>
+	<string>The system proxy or proxy engine could not be shut down safely, so the app will keep running. Try again. If the problem continues, check Network proxy settings.
+
+%@</string>
+	<key>core.the_v1_settings_file_format_is_invalid</key>
+	<string>The v1 settings file format is invalid</string>
+	<key>core.the_v2_settings_file_format_is_invalid</key>
+	<string>The v2 settings file format is invalid</string>
+	<key>core.the_v3_settings_file_format_is_invalid</key>
+	<string>The v3 settings file format is invalid</string>
+	<key>core.the_whistle_command_failed_value</key>
+	<string>The Whistle command failed (%lld)</string>
+	<key>core.this_removes_value_from_whistleyoo_s_dedicated_whistle_rule_storage</key>
+	<string>This removes “%@” from WhistleYoo's dedicated Whistle rule storage.</string>
+	<key>core.unable_to_confirm_that_the_system_proxy_is_active_for_network_service_va</key>
+	<string>Unable to confirm that the system proxy is active for network service “%@”</string>
+	<key>core.unable_to_confirm_that_the_system_proxy_was_enabled</key>
+	<string>Unable to confirm that the system proxy was enabled</string>
+	<key>core.unable_to_obtain_the_whistle_root_certificate</key>
+	<string>Unable to obtain the Whistle root certificate</string>
+	<key>core.unable_to_read_settings_value</key>
+	<string>Unable to read settings: %@</string>
+	<key>core.unable_to_read_the_node_js_version_value</key>
+	<string>Unable to read the Node.js version: %@</string>
+	<key>core.unable_to_read_the_whistle_version_value</key>
+	<string>Unable to read the Whistle version: %@</string>
+	<key>core.unable_to_read_the_whistleyoo_configuration_file_value</key>
+	<string>Unable to read the WhistleYoo configuration file: %@</string>
+	<key>core.unable_to_run_value_value</key>
+	<string>Unable to run %@: %@</string>
+	<key>core.unsupported_whistleyoo_configuration_file_version_v_value</key>
+	<string>Unsupported WhistleYoo configuration file version: v%lld</string>
+	<key>core.whistle_did_not_pass_its_health_check_after_starting</key>
+	<string>Whistle did not pass its health check after starting</string>
+	<key>core.whistle_did_not_stop_before_the_timeout</key>
+	<string>Whistle did not stop before the timeout</string>
+	<key>core.whistle_failed_to_save_the_allowlist_rules</key>
+	<string>Whistle failed to save the allowlist rules</string>
+	<key>core.whistle_is_too_old_version_2_9_0_or_later_is_required_detected_value</key>
+	<string>Whistle is too old. Version 2.9.0 or later is required (detected: %@).</string>
+	<key>core.whistle_repeatedly_exited_unexpectedly_automatic_restart_has_stopped</key>
+	<string>Whistle repeatedly exited unexpectedly; automatic restart has stopped</string>
+	<key>core.wi_fi_http_proxy</key>
+	<string>Wi-Fi HTTP Proxy</string>
+	<key>menu.check_for_updates</key>
+	<string>Check for Updates…</string>
+	<key>menu.cut</key>
+	<string>Cut</string>
+	<key>menu.discard_and_quit</key>
+	<string>Discard and Quit</string>
+	<key>menu.ok</key>
+	<string>OK</string>
+	<key>menu.paste</key>
+	<string>Paste</string>
+	<key>menu.quit_whistleyoo</key>
+	<string>Quit WhistleYoo</string>
+	<key>menu.quitting_whistleyoo_will_discard_the_unsaved_changes_in_the_current_rule</key>
+	<string>Quitting WhistleYoo will discard the unsaved changes in the current rule.</string>
+	<key>menu.redo</key>
+	<string>Redo</string>
+	<key>menu.rule_operation_in_progress</key>
+	<string>Rule Operation in Progress</string>
+	<key>menu.select_all</key>
+	<string>Select All</string>
+	<key>menu.unable_to_quit_whistleyoo_safely</key>
+	<string>Unable to Quit WhistleYoo Safely</string>
+	<key>menu.undo</key>
+	<string>Undo</string>
+	<key>menu.unsaved_rule_changes</key>
+	<string>Unsaved Rule Changes</string>
+	<key>menu.wait_for_the_current_rule_operation_to_finish_before_quitting_whistleyoo</key>
+	<string>Wait for the current rule operation to finish before quitting WhistleYoo.</string>
+	<key>mobile.connect_the_phone_to_the_same_wi_fi</key>
+	<string>Connect the phone to the same Wi-Fi</string>
+	<key>mobile.copied</key>
+	<string>Copied</string>
+	<key>mobile.copy</key>
+	<string>Copy</string>
+	<key>mobile.copy_certificate_url</key>
+	<string>Copy Certificate URL</string>
+	<key>mobile.copy_proxy_info</key>
+	<string>Copy Proxy Info</string>
+	<key>mobile.current_network</key>
+	<string>Current Network</string>
+	<key>mobile.enter_the_proxy_server_and_port_shown_above</key>
+	<string>Enter the proxy server and port shown above</string>
+	<key>mobile.failed_to_start</key>
+	<string>Failed to Start</string>
+	<key>mobile.failed_to_start_the_proxy_engine</key>
+	<string>Failed to start the proxy engine</string>
+	<key>mobile.https_root_certificate</key>
+	<string>HTTPS Root Certificate</string>
+	<key>mobile.install_and_trust_the_certificate</key>
+	<string>Install and trust the certificate</string>
+	<key>mobile.install_https_root_certificate</key>
+	<string>Install HTTPS Root Certificate</string>
+	<key>mobile.local_network</key>
+	<string>Local Network</string>
+	<key>mobile.make_sure_the_phone_and_mac_are_on_the_same_local_network</key>
+	<string>Make sure the phone and Mac are on the same local network</string>
+	<key>mobile.mobile_proxy</key>
+	<string>Mobile Proxy</string>
+	<key>mobile.mobile_proxy_setup</key>
+	<string>Mobile Proxy Setup</string>
+	<key>mobile.mobile_setup_steps</key>
+	<string>Mobile Setup Steps</string>
+	<key>mobile.network_interface</key>
+	<string>Network Interface</string>
+	<key>mobile.no_local_ipv4_address_available_to_mobile_devices_was_detected</key>
+	<string>No local IPv4 address available to mobile devices was detected</string>
+	<key>mobile.port</key>
+	<string>Port</string>
+	<key>mobile.preparing_mobile_proxy_setup</key>
+	<string>Preparing mobile proxy setup…</string>
+	<key>mobile.proxy_engine</key>
+	<string>Proxy Engine</string>
+	<key>mobile.proxy_engine_required</key>
+	<string>Proxy Engine Required</string>
+	<key>mobile.proxy_information</key>
+	<string>Proxy Information</string>
+	<key>mobile.proxy_server</key>
+	<string>Proxy Server</string>
+	<key>mobile.proxy_service_is_listening</key>
+	<string>Proxy service is listening</string>
+	<key>mobile.recommended</key>
+	<string>Recommended</string>
+	<key>mobile.recommended_suffix</key>
+	<string> · Recommended</string>
+	<key>mobile.retry</key>
+	<string>Retry</string>
+	<key>mobile.scan_the_qr_code_on_the_right_then_enable_trust_in_system_settings</key>
+	<string>Scan the QR code on the right, then enable trust in System Settings</string>
+	<key>mobile.server</key>
+	<string>Server</string>
+	<key>mobile.set_http_proxy_to_manual</key>
+	<string>Set HTTP Proxy to Manual</string>
+	<key>mobile.start_engine_and_prepare_setup</key>
+	<string>Start Engine and Prepare Setup</string>
+	<key>mobile.start_proxy_engine</key>
+	<string>Start Proxy Engine</string>
+	<key>mobile.start_the_engine_to_prepare_the_mobile_proxy_address_and_https_root_cert</key>
+	<string>Start the engine to prepare the mobile proxy address and HTTPS root certificate.</string>
+	<key>mobile.the_mobile_device_and_mac_must_be_on_the_same_local_network</key>
+	<string>The mobile device and Mac must be on the same local network</string>
+	<key>mobile.the_qr_code_uses_whistle_s_official_certificate_url_on_the_same_port_as</key>
+	<string>The QR code uses Whistle's official certificate URL on the same port as the proxy.</string>
+	<key>mobile.the_selected_interface_is_virtual_and_may_not_be_reachable_from_your_pho</key>
+	<string>The selected interface is virtual and may not be reachable from your phone. Choose Wi-Fi or the current default network.</string>
+	<key>mobile.virtual</key>
+	<string> · Virtual</string>
+	<key>onboarding.a_matching_fingerprint_was_found_in_the_login_keychain</key>
+	<string>A matching fingerprint was found in the login keychain</string>
+	<key>onboarding.back</key>
+	<string>Back</string>
+	<key>onboarding.certificate_does_not_match_the_current_whistle_instance</key>
+	<string>Certificate does not match the current Whistle instance</string>
+	<key>onboarding.certificate_installed</key>
+	<string>Certificate installed</string>
+	<key>onboarding.certificate_matches_the_current_whistle_instance</key>
+	<string>Certificate matches the current Whistle instance</string>
+	<key>onboarding.certificate_not_installed</key>
+	<string>Certificate not installed</string>
+	<key>onboarding.check_node_js_and_whistle</key>
+	<string>Check Node.js and Whistle</string>
+	<key>onboarding.check_proxy_ports</key>
+	<string>Check Proxy Ports</string>
+	<key>onboarding.check_the_environment_ports_and_https_certificate</key>
+	<string>Check the environment, ports, and HTTPS certificate</string>
+	<key>onboarding.configure_proxy_listening_ports_and_the_network_services_that_use_the_sy</key>
+	<string>Configure proxy listening ports and the network services that use the system proxy.</string>
+	<key>onboarding.download_node_js</key>
+	<string>Download Node.js</string>
+	<key>onboarding.enter_two_different_valid_ports_1_65535</key>
+	<string>Enter two different valid ports (1–65535)</string>
+	<key>onboarding.enter_valid_numeric_ports</key>
+	<string>Enter valid numeric ports</string>
+	<key>onboarding.export_certificate</key>
+	<string>Export Certificate…</string>
+	<key>onboarding.failed_to_apply_port_settings</key>
+	<string>Failed to apply port settings</string>
+	<key>onboarding.https_root_certificate_needs_attention</key>
+	<string>HTTPS root certificate needs attention</string>
+	<key>onboarding.install_certificate</key>
+	<string>Install Certificate</string>
+	<key>onboarding.install_certificate_action</key>
+	<string>Install Certificate…</string>
+	<key>onboarding.install_or_update_certificate</key>
+	<string>Install or Update Certificate…</string>
+	<key>onboarding.install_the_certificate_to_inspect_https_requests_it_is_stored_in_the_cu</key>
+	<string>Install the certificate to inspect HTTPS requests. It is stored in the current user's keychain.</string>
+	<key>onboarding.install_update_certificate</key>
+	<string>Install/Update Certificate</string>
+	<key>onboarding.local_endpoint_127_0_0_1_value</key>
+	<string>Local endpoint 127.0.0.1:%@</string>
+	<key>onboarding.port_is_unavailable</key>
+	<string>Port is unavailable</string>
+	<key>onboarding.port_settings_saved</key>
+	<string>Port settings saved</string>
+	<key>onboarding.ports_applied_and_proxy_engine_restarted</key>
+	<string>Ports applied and proxy engine restarted</string>
+	<key>onboarding.ports_are_available_and_the_proxy_engine_has_started</key>
+	<string>Ports are available and the proxy engine has started</string>
+	<key>onboarding.ports_in_use_value</key>
+	<string>Ports in use: %@</string>
+	<key>onboarding.proxy_and_ports</key>
+	<string>Proxy and Ports</string>
+	<key>onboarding.proxy_port</key>
+	<string>Proxy Port</string>
+	<key>onboarding.reinstall_certificate</key>
+	<string>Reinstall Certificate</string>
+	<key>onboarding.root_certificate_installed</key>
+	<string>Root certificate installed</string>
+	<key>onboarding.root_certificate_not_installed</key>
+	<string>Root certificate not installed</string>
+	<key>onboarding.root_certificate_not_trusted</key>
+	<string>Root certificate not trusted</string>
+	<key>onboarding.root_certificate_trusted</key>
+	<string>Root certificate trusted</string>
+	<key>onboarding.run_setup_assistant</key>
+	<string>Run Setup Assistant</string>
+	<key>onboarding.run_setup_assistant_again</key>
+	<string>Run Setup Assistant Again</string>
+	<key>onboarding.setup_complete</key>
+	<string>Setup Complete</string>
+	<key>onboarding.skip_certificate_installation_for_now</key>
+	<string>Skip certificate installation for now</string>
+	<key>onboarding.skip_https_decryption_for_apple_icloud_jetbrains_and_other_services_and</key>
+	<string>Skip HTTPS decryption for Apple, iCloud, JetBrains, and other services, and hide them from the request list to reduce certificate errors and capture noise.</string>
+	<key>onboarding.start_the_proxy_engine_to_verify_the_instance_certificate</key>
+	<string>Start the proxy engine to verify the instance certificate</string>
+	<key>onboarding.the_certificate_is_generated_by_the_current_dedicated_whistle_instance</key>
+	<string>The certificate is generated by the current dedicated Whistle instance.</string>
+	<key>onboarding.the_mobile_proxy_page_also_provides_a_qr_code_for_downloading_the_certif</key>
+	<string>The Mobile Proxy page also provides a QR code for downloading the certificate over the local network.</string>
+	<key>onboarding.the_proxy_port_accepts_mac_and_mobile_connections_and_exposes_the_whistl</key>
+	<string>The proxy port accepts Mac and mobile connections and exposes the Whistle management UI; the in-app Web UI port remains local-only.</string>
+	<key>onboarding.trust_certificate_again</key>
+	<string>Trust Certificate Again…</string>
+	<key>onboarding.update_certificate</key>
+	<string>Update Certificate…</string>
+	<key>onboarding.we_recommend_managing_node_js_with_nvm_fnm_volta_or_homebrew_after_insta</key>
+	<string>We recommend managing Node.js with nvm, fnm, Volta, or Homebrew. After installing Whistle, click Check Again.</string>
+	<key>onboarding.web_ui_port</key>
+	<string>Web UI Port</string>
+	<key>onboarding.whistleyoo_setup_assistant</key>
+	<string>WhistleYoo Setup Assistant</string>
+	<key>onboarding.whistleyoo_uses_the_locally_installed_node_js_and_global_whistle_package</key>
+	<string>WhistleYoo uses the locally installed Node.js and global Whistle package.</string>
+	<key>rules.apply</key>
+	<string>Apply</string>
+	<key>rules.built_in_compatibility_rules_are_disabled_manage_them_in_settings</key>
+	<string>Built-in compatibility rules are disabled. Manage them in Settings.</string>
+	<key>rules.cancel</key>
+	<string>Cancel</string>
+	<key>rules.clear_search</key>
+	<string>Clear Search</string>
+	<key>rules.combine_and_apply_rule_sets_from_whistle_in_list_order</key>
+	<string>Combine and apply rule sets from Whistle in list order</string>
+	<key>rules.configuration</key>
+	<string>Rules</string>
+	<key>rules.confirm_delete_rule</key>
+	<string>Delete Rule?</string>
+	<key>rules.continue</key>
+	<string>Continue</string>
+	<key>rules.create</key>
+	<string>Create</string>
+	<key>rules.create_rule</key>
+	<string>Create Rule</string>
+	<key>rules.default</key>
+	<string>Default</string>
+	<key>rules.default_always_enabled</key>
+	<string>Default · Always Enabled</string>
+	<key>rules.delete</key>
+	<string>Delete</string>
+	<key>rules.delete_rule</key>
+	<string>Delete Rule</string>
+	<key>rules.discard_changes</key>
+	<string>Discard Changes</string>
+	<key>rules.done</key>
+	<string>Done</string>
+	<key>rules.drag_to_change_the_effective_order</key>
+	<string>Drag to change the effective order</string>
+	<key>rules.edit</key>
+	<string>Edit</string>
+	<key>rules.enable_rule_set_value</key>
+	<string>Enable rule set “%@”</string>
+	<key>rules.enabled</key>
+	<string>Enabled</string>
+	<key>rules.enabled_state</key>
+	<string>Enabled</string>
+	<key>rules.enter_one_rule_per_line_the_full_whistle_rule_syntax_is_supported</key>
+	<string>Enter one rule per line. The full Whistle rule syntax is supported.</string>
+	<key>rules.keep_editing</key>
+	<string>Keep Editing</string>
+	<key>rules.no_editable_rules</key>
+	<string>No Editable Rules</string>
+	<key>rules.no_matching_rules</key>
+	<string>No Matching Rules</string>
+	<key>rules.not_enabled</key>
+	<string>Not Enabled</string>
+	<key>rules.refresh</key>
+	<string>Refresh</string>
+	<key>rules.refresh_the_rules_or_create_a_new_rule_file</key>
+	<string>Refresh the rules or create a new rule file.</string>
+	<key>rules.reload</key>
+	<string>Reload</string>
+	<key>rules.reload_and_discard_changes</key>
+	<string>Reload and Discard Changes?</string>
+	<key>rules.reload_rules_from_whistle</key>
+	<string>Reload rules from Whistle</string>
+	<key>rules.rename</key>
+	<string>Rename</string>
+	<key>rules.rename_rule</key>
+	<string>Rename Rule</string>
+	<key>rules.rule_name</key>
+	<string>Rule Name</string>
+	<key>rules.rule_names_must_be_unique</key>
+	<string>Rule names must be unique</string>
+	<key>rules.rule_sets</key>
+	<string>Rule Sets</string>
+	<key>rules.rules</key>
+	<string>Rules</string>
+	<key>rules.save</key>
+	<string>Save</string>
+	<key>rules.saved</key>
+	<string>Saved</string>
+	<key>rules.search_names_or_content</key>
+	<string>Search names or content</string>
+	<key>rules.settings</key>
+	<string>Settings</string>
+	<key>rules.the_default_rule_cannot_be_deleted</key>
+	<string>The Default rule cannot be deleted</string>
+	<key>rules.the_default_rule_cannot_be_modified</key>
+	<string>The Default rule cannot be modified</string>
+	<key>rules.the_default_rule_cannot_be_renamed_or_overwritten</key>
+	<string>The Default rule cannot be renamed or overwritten</string>
+	<key>rules.the_default_rule_is_always_enabled</key>
+	<string>The default rule is always enabled</string>
+	<key>rules.the_default_rule_must_remain_present_and_enabled</key>
+	<string>The Default rule must remain present and enabled</string>
+	<key>rules.the_default_rule_name_is_reserved</key>
+	<string>The Default rule name is reserved</string>
+	<key>rules.the_default_rule_s_enabled_state_cannot_be_changed</key>
+	<string>The Default rule's enabled state cannot be changed</string>
+	<key>rules.the_new_rule_is_enabled_automatically_click_save_after_finishing_all_rul</key>
+	<string>The new rule is enabled automatically. Click Save after finishing all rule edits.</string>
+	<key>rules.the_rule_name_cannot_be_empty_or_contain_leading_or_trailing_whitespace</key>
+	<string>The rule name cannot be empty or contain leading or trailing whitespace</string>
+	<key>rules.the_whistle_rule_operation_failed</key>
+	<string>The Whistle rule operation failed</string>
+	<key>rules.the_whistle_rules_api_returned_an_invalid_response</key>
+	<string>The Whistle rules API returned an invalid response</string>
+	<key>rules.this_removes_value_from_whistleyoo_s_dedicated_whistle_rule_storage_afte</key>
+	<string>This removes “%@” from WhistleYoo's dedicated Whistle rule storage after you click Save.</string>
+	<key>rules.try_another_search_term</key>
+	<string>Try another search term</string>
+	<key>rules.unsaved</key>
+	<string>Unsaved</string>
+	<key>settings.about</key>
+	<string>About</string>
+	<key>settings.apply_and_restart</key>
+	<string>Apply and Restart</string>
+	<key>settings.applying_these_changes_will_restart_the_proxy_engine</key>
+	<string>Applying these changes will restart the proxy engine</string>
+	<key>settings.check_again</key>
+	<string>Check Again</string>
+	<key>settings.check_and_start</key>
+	<string>Check and Start</string>
+	<key>settings.check_the_finder_launch_environment_and_common_nvm_fnm_volta_and_homebre</key>
+	<string>Check the Finder launch environment and common nvm, fnm, Volta, and Homebrew directories.</string>
+	<key>settings.choose_custom_save_location</key>
+	<string>Choose Custom Save Location…</string>
+	<key>settings.choose_whistleyoo_configuration_save_location</key>
+	<string>Choose WhistleYoo Configuration Save Location</string>
+	<key>settings.compatibility_domain_filtering</key>
+	<string>Compatibility Domain Filtering</string>
+	<key>settings.compatibility_domains_saved</key>
+	<string>Compatibility domains saved</string>
+	<key>settings.configuration_export_failed</key>
+	<string>Configuration export failed</string>
+	<key>settings.configuration_exported</key>
+	<string>Configuration exported</string>
+	<key>settings.configuration_import_failed</key>
+	<string>Configuration import failed</string>
+	<key>settings.configuration_imported_and_applied</key>
+	<string>Configuration imported and applied</string>
+	<key>settings.configuration_save_location_updated</key>
+	<string>Configuration save location updated</string>
+	<key>settings.control_app_launch_dock_and_menu_bar_behavior</key>
+	<string>Control app launch, Dock, and menu bar behavior.</string>
+	<key>settings.copy_whistle_install_command</key>
+	<string>Copy Whistle Install Command</string>
+	<key>settings.custom_save_location</key>
+	<string>Custom Save Location</string>
+	<key>settings.default_configuration_save_location_restored</key>
+	<string>Default configuration save location restored</string>
+	<key>settings.default_save_location</key>
+	<string>Default Save Location</string>
+	<key>settings.disable_system_proxy_before_changing_network_services_help</key>
+	<string>Disable the system proxy before changing network services.</string>
+	<key>settings.disable_the_system_proxy_before_changing_network_services</key>
+	<string>Disable the system proxy before changing network services</string>
+	<key>settings.discard_unsaved_changes</key>
+	<string>Discard Unsaved Changes?</string>
+	<key>settings.enable_global_system_proxy</key>
+	<string>Enable Global System Proxy</string>
+	<key>settings.enter_one_domain_per_line_and_wildcard_forms_are_supported_saving_immedi</key>
+	<string>Enter one domain per line. * and *** wildcard forms are supported. Saving immediately updates the running Whistle rules.</string>
+	<key>settings.export</key>
+	<string>Export</string>
+	<key>settings.export_configuration</key>
+	<string>Export Configuration…</string>
+	<key>settings.export_whistleyoo_configuration</key>
+	<string>Export WhistleYoo Configuration</string>
+	<key>settings.general</key>
+	<string>General</string>
+	<key>settings.global_system_proxy</key>
+	<string>Global System Proxy</string>
+	<key>settings.https_capture_is_ready</key>
+	<string>HTTPS capture is ready</string>
+	<key>settings.import</key>
+	<string>Import</string>
+	<key>settings.import_configuration</key>
+	<string>Import Configuration…</string>
+	<key>settings.import_whistleyoo_configuration</key>
+	<string>Import WhistleYoo Configuration</string>
+	<key>settings.keep_all_settings_and_rule_configuration_in_one_file_with_cloud_drive_sy</key>
+	<string>Keep all settings and rule configuration in one file with cloud-drive sync support.</string>
+	<key>settings.launch_whistleyoo_at_login</key>
+	<string>Launch WhistleYoo at Login</string>
+	<key>settings.listen_on_0_0_0_0</key>
+	<string>Listen on 0.0.0.0</string>
+	<key>settings.listen_on_127_0_0_1_only</key>
+	<string>Listen on 127.0.0.1 only</string>
+	<key>settings.more_settings</key>
+	<string>More Settings</string>
+	<key>settings.network_services_using_the_system_proxy</key>
+	<string>Network Services Using the System Proxy</string>
+	<key>settings.no_available_network_services_detected</key>
+	<string>No available network services detected</string>
+	<key>settings.open_whistle_console</key>
+	<string>Open Whistle Console</string>
+	<key>settings.proxy_engine_is_not_running</key>
+	<string>Proxy engine is not running</string>
+	<key>settings.proxy_engine_is_running</key>
+	<string>Proxy engine is running</string>
+	<key>settings.quit</key>
+	<string>Quit</string>
+	<key>settings.reinstall_certificate_action</key>
+	<string>Reinstall Certificate…</string>
+	<key>settings.restore_default_location</key>
+	<string>Restore Default Location</string>
+	<key>settings.restore_defaults</key>
+	<string>Restore Defaults</string>
+	<key>settings.root_certificate_not_installed</key>
+	<string>Root certificate not installed</string>
+	<key>settings.running</key>
+	<string>Running</string>
+	<key>settings.runtime_environment</key>
+	<string>Runtime Environment</string>
+	<key>settings.runtime_environment_is_ready</key>
+	<string>Runtime environment is ready</string>
+	<key>settings.runtime_environment_needs_attention</key>
+	<string>Runtime environment needs attention</string>
+	<key>settings.save_domains</key>
+	<string>Save Domains</string>
+	<key>settings.show_whistleyoo_in_the_dock</key>
+	<string>Show WhistleYoo in the Dock</string>
+	<key>settings.shut_down_and_quit</key>
+	<string>Shut Down and Quit</string>
+	<key>settings.start_the_proxy_engine_to_use_the_whistle_console</key>
+	<string>Start the proxy engine to use the Whistle console.</string>
+	<key>settings.stop_proxy_engine</key>
+	<string>Stop Proxy Engine</string>
+	<key>settings.switching_pages_will_discard_the_unsaved_changes_in_the_current_rule</key>
+	<string>Switching pages will discard the unsaved changes in the current rule.</string>
+	<key>settings.system_proxy</key>
+	<string>System Proxy</string>
+	<key>settings.the_proxy_engine_is_not_running</key>
+	<string>The proxy engine is not running</string>
+	<key>settings.the_system_proxy_is_changing_please_wait</key>
+	<string>The system proxy is changing. Please wait.</string>
+	<key>settings.this_mac</key>
+	<string>This Mac</string>
+	<key>settings.unable_to_restore_the_default_configuration_save_location</key>
+	<string>Unable to restore the default configuration save location</string>
+	<key>settings.unable_to_update_the_configuration_save_location</key>
+	<string>Unable to update the configuration save location</string>
+	<key>settings.use_this_location</key>
+	<string>Use This Location</string>
+	<key>settings.when_disabled_whistle_continues_listening_for_mobile_devices_and_manuall</key>
+	<string>When disabled, Whistle continues listening for mobile devices and manually configured proxies.</string>
+	<key>settings.when_the_app_quits_it_restores_the_system_proxy_settings_changed_by_whis</key>
+	<string>When the app quits, it restores the system proxy settings changed by WhistleYoo and stops its dedicated Whistle instance.</string>
+	<key>settings.whistle_is_ready_you_can_control_the_proxy_from_the_menu_bar_at_any_time</key>
+	<string>Whistle is ready. You can control the proxy from the menu bar at any time.</string>
+	<key>settings.whistleyoo_configuration_file</key>
+	<string>WhistleYoo Configuration File</string>
+	<key>settings.with_a_custom_location_the_app_reads_this_file_at_launch_and_atomically</key>
+	<string>With a custom location, the app reads this file at launch and atomically writes back after settings or rules are saved.</string>
+	<key>settings.you_can_skip_this_for_now_but_https_capture_will_not_work</key>
+	<string>You can skip this for now, but HTTPS capture will not work</string>
+	<key>status.a_rule_with_this_name_already_exists</key>
+	<string>A rule with this name already exists</string>
+	<key>status.another_proxy_configuration_exists_whistleyoo_has_not_taken_control</key>
+	<string>Another proxy configuration exists; WhistleYoo has not taken control</string>
+	<key>status.another_proxy_detected</key>
+	<string>Another Proxy Detected</string>
+	<key>status.available_after_starting_the_proxy_engine</key>
+	<string>Available after starting the proxy engine</string>
+	<key>status.checking</key>
+	<string>Checking…</string>
+	<key>status.checking_node_js_and_whistle</key>
+	<string>Checking Node.js and Whistle…</string>
+	<key>status.configuration_import_failed_value_restoring_the_previous_configuration_a</key>
+	<string>Configuration import failed: %@; restoring the previous configuration also failed: %@</string>
+	<key>status.connected</key>
+	<string>Connected</string>
+	<key>status.environment_check_failed</key>
+	<string>Environment check failed</string>
+	<key>status.environment_not_ready</key>
+	<string>Environment Not Ready</string>
+	<key>status.keep_at_least_one_allowlisted_domain</key>
+	<string>Keep at least one allowlisted domain</string>
+	<key>status.local_proxy</key>
+	<string>Local Proxy</string>
+	<key>status.mac_traffic_is_not_connected_mobile_and_manual_proxies_are_still_availab</key>
+	<string>Mac traffic is not connected; mobile and manual proxies are still available</string>
+	<key>status.no_network_services_are_available</key>
+	<string>No network services are available</string>
+	<key>status.node_js_and_whistle_are_ready</key>
+	<string>Node.js and Whistle are ready</string>
+	<key>status.not_enabled</key>
+	<string>Not Enabled</string>
+	<key>status.only_some_network_services_are_using_this_proxy</key>
+	<string>Only some network services are using this proxy</string>
+	<key>status.partially_connected</key>
+	<string>Partially Connected</string>
+	<key>status.port_update_failed_value_restoring_the_previous_configuration_also_faile</key>
+	<string>Port update failed: %@; restoring the previous configuration also failed: %@</string>
+	<key>status.port_update_failed_value_stopping_the_new_configuration_also_failed_valu</key>
+	<string>Port update failed: %@; stopping the new configuration also failed: %@</string>
+	<key>status.ports_must_be_between_1_and_65535_and_the_proxy_and_web_ui_ports_must_di</key>
+	<string>Ports must be between 1 and 65535, and the proxy and Web UI ports must differ</string>
+	<key>status.proxy_engine_stopped</key>
+	<string>Proxy Engine Stopped</string>
+	<key>status.proxy_listening_only</key>
+	<string>Proxy Listening Only</string>
+	<key>status.proxy_status_needs_attention</key>
+	<string>Proxy Status Needs Attention</string>
+	<key>status.select_at_least_one_network_service</key>
+	<string>Select at least one network service</string>
+	<key>status.selected_network_services_are_using_the_local_proxy</key>
+	<string>Selected network services are using the local proxy</string>
+	<key>status.start_the_proxy_engine_first</key>
+	<string>Start the proxy engine first</string>
+	<key>status.starting</key>
+	<string>Starting</string>
+	<key>status.starting_proxy_engine</key>
+	<string>Starting Proxy Engine</string>
+	<key>status.starting_whistle</key>
+	<string>Starting Whistle…</string>
+	<key>status.status_unavailable</key>
+	<string>Status Unavailable</string>
+	<key>status.stopped</key>
+	<string>Stopped</string>
+	<key>status.stopping</key>
+	<string>Stopping</string>
+	<key>status.stopping_proxy_engine</key>
+	<string>Stopping Proxy Engine</string>
+	<key>status.stopping_whistle</key>
+	<string>Stopping Whistle…</string>
+	<key>status.system_proxy_enabled</key>
+	<string>System Proxy Enabled</string>
+	<key>status.the_configuration_was_imported_but_the_system_proxy_could_not_be_re_enab</key>
+	<string>The configuration was imported, but the system proxy could not be re-enabled</string>
+	<key>status.the_current_rules_are_missing_default_so_the_configuration_cannot_be_imp</key>
+	<string>The current rules are missing Default, so the configuration cannot be imported</string>
+	<key>status.the_current_rules_could_not_be_read_so_the_configuration_was_not_importe</key>
+	<string>The current rules could not be read, so the configuration was not imported</string>
+	<key>status.the_node_js_or_whistle_environment_is_not_ready</key>
+	<string>The Node.js or Whistle environment is not ready</string>
+	<key>status.the_ports_were_updated_but_the_system_proxy_could_not_be_re_enabled</key>
+	<string>The ports were updated, but the system proxy could not be re-enabled.</string>
+	<key>status.the_previous_ports_were_restored_but_the_system_proxy_could_not_be_re_en</key>
+	<string>The previous ports were restored, but the system proxy could not be re-enabled.</string>
+	<key>status.the_proxy_engine_is_not_ready_so_the_rule_configuration_cannot_be_applie</key>
+	<string>The proxy engine is not ready, so the rule configuration cannot be applied</string>
+	<key>status.the_rule_to_update_could_not_be_found</key>
+	<string>The rule to update could not be found</string>
+	<key>status.unable_to_read_system_proxy_settings_value</key>
+	<string>Unable to read system proxy settings: %@</string>
+	<key>status.unable_to_update_dock_visibility</key>
+	<string>Unable to update Dock visibility</string>
+	<key>status.wait_for_the_current_operation_to_finish_before_importing_a_configuratio</key>
+	<string>Wait for the current operation to finish before importing a configuration</string>
+	<key>status.wait_for_the_current_proxy_operation_to_finish_before_quitting</key>
+	<string>Wait for the current proxy operation to finish before quitting.</string>
+	<key>status.wait_for_the_current_proxy_operation_to_finish_then_try_again</key>
+	<string>Wait for the current proxy operation to finish, then try again.</string>
+	<key>status.whistle_value_127_0_0_1_value</key>
+	<string>Whistle %@ · 127.0.0.1:%@</string>
+</dict>
+</plist>

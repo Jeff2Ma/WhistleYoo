@@ -101,7 +101,7 @@ public struct WhistleRulesManager: Sendable {
     ) async throws {
         try Self.validateRuleName(name)
         guard name != "Default" else {
-            throw WhistleYooError.commandFailed(coreLocalized("默认规则不能修改"))
+            throw WhistleYooError.commandFailed(Localization.string(.rulesTheDefaultRuleCannotBeModified))
         }
 
         try await enableMultipleChoice(baseURL: baseURL)
@@ -121,7 +121,7 @@ public struct WhistleRulesManager: Sendable {
     ) async throws {
         try Self.validateRuleName(name)
         guard name != "Default" else {
-            throw WhistleYooError.commandFailed(coreLocalized("默认规则启用状态不能修改"))
+            throw WhistleYooError.commandFailed(Localization.string(.rulesTheDefaultRuleSEnabledStateCannotBeChanged))
         }
         try await enableMultipleChoice(baseURL: baseURL)
         try await persistEnabled(enabled, name: name, value: value, baseURL: baseURL)
@@ -194,7 +194,7 @@ public struct WhistleRulesManager: Sendable {
     public func delete(name: String, baseURL: URL) async throws {
         try Self.validateRuleName(name)
         guard name != "Default" else {
-            throw WhistleYooError.commandFailed(coreLocalized("默认规则不能删除"))
+            throw WhistleYooError.commandFailed(Localization.string(.rulesTheDefaultRuleCannotBeDeleted))
         }
         try await post("cgi-bin/rules/remove", form: ["name": name], baseURL: baseURL)
     }
@@ -203,7 +203,7 @@ public struct WhistleRulesManager: Sendable {
         try Self.validateRuleName(name)
         try Self.validateRuleName(newName)
         guard name != "Default", newName != "Default" else {
-            throw WhistleYooError.commandFailed(coreLocalized("默认规则不能重命名或覆盖"))
+            throw WhistleYooError.commandFailed(Localization.string(.rulesTheDefaultRuleCannotBeRenamedOrOverwritten))
         }
         try await post(
             "cgi-bin/rules/rename",
@@ -215,7 +215,7 @@ public struct WhistleRulesManager: Sendable {
     public static func validateRuleName(_ name: String) throws {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, trimmed == name, !name.contains("\n"), !name.contains("\r") else {
-            throw WhistleYooError.commandFailed(coreLocalized("规则名称不能为空或包含首尾空白"))
+            throw WhistleYooError.commandFailed(Localization.string(.rulesTheRuleNameCannotBeEmptyOrContainLeadingOrTrailingWhitespace))
         }
     }
 
@@ -228,20 +228,20 @@ public struct WhistleRulesManager: Sendable {
               let defaultDocument = defaults.first,
               defaultDocument.name == "Default",
               defaultDocument.isEnabled else {
-            throw WhistleYooError.commandFailed(coreLocalized("默认规则必须保留且保持启用"))
+            throw WhistleYooError.commandFailed(Localization.string(.rulesTheDefaultRuleMustRemainPresentAndEnabled))
         }
         if let referenceDefault, defaultDocument.value != referenceDefault.value {
-            throw WhistleYooError.commandFailed(coreLocalized("默认规则不能修改"))
+            throw WhistleYooError.commandFailed(Localization.string(.rulesTheDefaultRuleCannotBeModified))
         }
 
         var names = Set<String>()
         for document in snapshot.documents {
             try validateRuleName(document.name)
             guard names.insert(document.name).inserted else {
-                throw WhistleYooError.commandFailed(coreLocalized("规则名称不能重复"))
+                throw WhistleYooError.commandFailed(Localization.string(.rulesRuleNamesMustBeUnique))
             }
             guard document.isDefault || document.name != "Default" else {
-                throw WhistleYooError.commandFailed(coreLocalized("默认规则名称已保留"))
+                throw WhistleYooError.commandFailed(Localization.string(.rulesTheDefaultRuleNameIsReserved))
             }
         }
     }
@@ -314,14 +314,14 @@ public struct WhistleRulesManager: Sendable {
 
     private func validate(response: URLResponse, data: Data) throws {
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            let message = String(data: data, encoding: .utf8) ?? coreLocalized("Whistle 规则接口响应异常")
+            let message = String(data: data, encoding: .utf8) ?? Localization.string(.rulesTheWhistleRulesApiReturnedAnInvalidResponse)
             throw WhistleYooError.invalidResponse(message)
         }
     }
 
     private func validate(result: ActionResponse) throws {
         guard result.ec == 0 else {
-            throw WhistleYooError.invalidResponse(result.em ?? coreLocalized("Whistle 规则操作失败"))
+            throw WhistleYooError.invalidResponse(result.em ?? Localization.string(.rulesTheWhistleRuleOperationFailed))
         }
     }
 }
