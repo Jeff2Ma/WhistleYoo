@@ -367,6 +367,14 @@ SHA-256: %@</string>
 	<string>WhistleYoo Setup Assistant</string>
 	<key>onboarding.whistleyoo_uses_the_locally_installed_node_js_and_global_whistle_package</key>
 	<string>WhistleYoo uses the locally installed Node.js and global Whistle package.</string>
+	<key>plugins.failed_to_load_whistle_plugins</key>
+	<string>Failed to load Whistle plugins</string>
+	<key>plugins.loading_whistle_plugins</key>
+	<string>Loading Whistle plugins…</string>
+	<key>plugins.start_the_proxy_engine_to_use_whistle_plugins</key>
+	<string>Start the proxy engine to use Whistle plugins.</string>
+	<key>plugins.whistle_plugins</key>
+	<string>Whistle Plugins</string>
 	<key>rules.apply</key>
 	<string>Apply</string>
 	<key>rules.built_in_compatibility_rules_are_disabled_manage_them_in_settings</key>

@@ -3078,6 +3078,74 @@
       },
       "comment": "中文：WhistleYoo 使用本机安装的 Node.js 和全局 Whistle。"
     },
+    "plugins.failed_to_load_whistle_plugins": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to load Whistle plugins"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whistle 插件加载失败"
+          }
+        }
+      },
+      "comment": "中文：Whistle 插件加载失败"
+    },
+    "plugins.loading_whistle_plugins": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading Whistle plugins…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载 Whistle 插件…"
+          }
+        }
+      },
+      "comment": "中文：正在加载 Whistle 插件…"
+    },
+    "plugins.start_the_proxy_engine_to_use_whistle_plugins": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start the proxy engine to use Whistle plugins."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启动代理引擎以使用 Whistle 插件。"
+          }
+        }
+      },
+      "comment": "中文：启动代理引擎以使用 Whistle 插件。"
+    },
+    "plugins.whistle_plugins": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whistle Plugins"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whistle插件"
+          }
+        }
+      },
+      "comment": "中文：Whistle插件"
+    },
     "rules.apply": {
       "localizations": {
         "en": {
