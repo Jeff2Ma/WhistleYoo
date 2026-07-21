@@ -241,14 +241,14 @@ public enum ApplicationStatus: Equatable, Sendable {
     }
 
     /// A platform-neutral description of the status-bar icon composition.
-    /// The app target renders both SF Symbols into one monochrome template image.
+    /// The app target overlays the brand W and the state badge on this base symbol.
     public var statusBarIcon: StatusBarIconDescriptor {
         let badgeSymbolName: String
         switch self {
         case .systemProxyEnabled:
             badgeSymbolName = "bolt.fill"
         case .listeningOnly:
-            badgeSymbolName = "waveform"
+            badgeSymbolName = "checkmark.circle.fill"
         case .transitioning:
             badgeSymbolName = "ellipsis.circle.fill"
         case .stopped:
@@ -259,7 +259,7 @@ public enum ApplicationStatus: Equatable, Sendable {
             badgeSymbolName = "xmark.circle.fill"
         }
         return StatusBarIconDescriptor(
-            baseSymbolName: "globe",
+            baseSymbolName: "circle",
             badgeSymbolName: badgeSymbolName
         )
     }
