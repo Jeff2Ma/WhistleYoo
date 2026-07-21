@@ -464,14 +464,14 @@ struct MainWorkspaceView: View {
                     tab: .console
                 )
                 sidebarButton(
-                    title: Localization.string(.pluginsWhistlePlugins),
-                    symbol: "puzzlepiece.extension",
-                    tab: .plugins
-                )
-                sidebarButton(
                     title: Localization.string(.rulesConfiguration),
                     symbol: "doc.text",
                     tab: .rules
+                )
+                sidebarButton(
+                    title: Localization.string(.pluginsWhistlePlugins),
+                    symbol: "puzzlepiece.extension",
+                    tab: .plugins
                 )
                 sidebarButton(
                     title: Localization.string(.mobileMobileProxy),
