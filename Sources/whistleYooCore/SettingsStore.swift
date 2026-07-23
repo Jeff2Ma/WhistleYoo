@@ -141,23 +141,45 @@ public final class SettingsStore: @unchecked Sendable {
     }
 }
 
-/// Portable WhistleYoo configuration containing both native preferences and
-/// the complete Whistle Rules snapshot.
+/// Portable WhistleYoo configuration containing native preferences plus the
+/// complete Whistle Rules and Values snapshots.
 public struct WhistleYooConfigurationFile: Codable, Equatable, Sendable {
     public static let currentFormatVersion = 1
 
     public let formatVersion: Int
     public let settings: PersistedSettings
     public let rules: WhistleRulesSnapshot
+    public let values: WhistleValuesSnapshot
 
     public init(
         formatVersion: Int = currentFormatVersion,
         settings: PersistedSettings,
-        rules: WhistleRulesSnapshot
+        rules: WhistleRulesSnapshot,
+        values: WhistleValuesSnapshot = WhistleValuesSnapshot()
     ) {
         self.formatVersion = formatVersion
         self.settings = settings
         self.rules = rules
+        self.values = values
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case formatVersion
+        case settings
+        case rules
+        case values
+    }
+
+    /// Values was added after the initial portable-file release. Treat a
+    /// missing field as an empty snapshot so existing custom configuration
+    /// files remain readable and are upgraded on their next atomic save.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        formatVersion = try container.decode(Int.self, forKey: .formatVersion)
+        settings = try container.decode(PersistedSettings.self, forKey: .settings)
+        rules = try container.decode(WhistleRulesSnapshot.self, forKey: .rules)
+        values = try container.decodeIfPresent(WhistleValuesSnapshot.self, forKey: .values)
+            ?? WhistleValuesSnapshot()
     }
 }
 

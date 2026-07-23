@@ -155,6 +155,33 @@ final class ModelAndSettingsTests: XCTestCase {
         )
     }
 
+    func testPortableConfigurationPersistsValuesAndReadsOlderFilesWithoutThem() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let url = root.appendingPathComponent("WhistleYoo.json")
+        let rules = WhistleRulesSnapshot(documents: [
+            WhistleRuleDocument(name: "Default", value: "", isEnabled: true, isDefault: true)
+        ])
+        let values = WhistleValuesSnapshot(documents: [
+            WhistleValueDocument(name: "API", value: "{\\\"enabled\\\":true}")
+        ])
+        let store = WhistleYooConfigurationStore(defaultFileURL: url)
+        let configuration = WhistleYooConfigurationFile(
+            settings: PersistedSettings(), rules: rules, values: values
+        )
+
+        try store.save(configuration, to: url)
+        XCTAssertEqual(try store.load(from: url).values, values)
+
+        let olderConfiguration = WhistleYooConfigurationFile(settings: PersistedSettings(), rules: rules)
+        let encoded = try JSONEncoder().encode(olderConfiguration)
+        var object = try XCTUnwrap(try JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object.removeValue(forKey: "values")
+        try JSONSerialization.data(withJSONObject: object).write(to: url)
+
+        XCTAssertEqual(try store.load(from: url).values, WhistleValuesSnapshot())
+    }
+
     func testLegacyPortableConfigurationMigratesToJSONFilename() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
