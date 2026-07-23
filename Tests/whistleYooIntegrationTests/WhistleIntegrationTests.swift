@@ -91,6 +91,21 @@ final class WhistleIntegrationTests: XCTestCase {
             XCTAssertTrue(enabledRuleNames.allSatisfy { name in
                 coexistRules.documents.first(where: { $0.name == name })?.isEnabled == true
             })
+
+            let valuesManager = WhistleValuesManager()
+            let originalValues = try await valuesManager.load(baseURL: configuration.uiURL)
+            let persistedValue = WhistleValueDocument(
+                name: "WhistleYoo native value",
+                value: #"{"message":"persisted"}"#
+            )
+            try await valuesManager.applyChanges(
+                from: originalValues,
+                to: WhistleValuesSnapshot(
+                    documents: originalValues.documents + [persistedValue]
+                ),
+                baseURL: configuration.uiURL
+            )
+
             try await controller.stop()
             try await controller.start()
             let restartedRules = try await rulesManager.load(baseURL: configuration.uiURL)
@@ -101,10 +116,24 @@ final class WhistleIntegrationTests: XCTestCase {
             XCTAssertTrue(enabledRuleNames.allSatisfy { name in
                 restartedRules.documents.first(where: { $0.name == name })?.isEnabled == true
             })
+            let restartedValues = try await valuesManager.load(baseURL: configuration.uiURL)
+            XCTAssertEqual(
+                restartedValues.documents.first(where: {
+                    $0.name == persistedValue.name
+                })?.value,
+                persistedValue.value
+            )
             try await rulesManager.delete(name: persistedRuleName, baseURL: configuration.uiURL)
             for name in enabledRuleNames {
                 try await rulesManager.delete(name: name, baseURL: configuration.uiURL)
             }
+            try await valuesManager.applyChanges(
+                from: restartedValues,
+                to: WhistleValuesSnapshot(documents: restartedValues.documents.filter {
+                    $0.name != persistedValue.name
+                }),
+                baseURL: configuration.uiURL
+            )
 
             let proxyResult = try FoundationProcessRunner().run(
                 executableURL: URL(fileURLWithPath: "/usr/bin/curl"),

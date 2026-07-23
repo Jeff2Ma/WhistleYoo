@@ -304,6 +304,95 @@ final class WhistleRulesManagerTests: XCTestCase {
         XCTAssertEqual(captured[2].1["name"], "Two")
     }
 
+    func testLoadValuesReturnsWhistleValueDocumentsInStorageOrder() async throws {
+        var capturedRequests = [URLRequest]()
+        RulesURLProtocol.handler = { request in
+            capturedRequests.append(request)
+            return (200, """
+            {
+              "ec": 0,
+              "list": [
+                {"name": "Tokens", "data": "{\\"apiToken\\":\\"test\\"}"},
+                {"name": "Template", "data": "hello {{name}}"}
+              ]
+            }
+            """.data(using: .utf8)!)
+        }
+
+        let snapshot = try await makeValuesManager().load(
+            baseURL: URL(string: "http://127.0.0.1:8900/")!
+        )
+
+        XCTAssertEqual(snapshot.documents.map(\.name), ["Tokens", "Template"])
+        XCTAssertEqual(snapshot.documents[0].value, #"{"apiToken":"test"}"#)
+        XCTAssertEqual(
+            capturedRequests.map { $0.url?.path },
+            ["/cgi-bin/values/list"]
+        )
+    }
+
+    func testApplyValueChangesWritesContentAndPersistsOrder() async throws {
+        var captured = [(String, [String: String])]()
+        RulesURLProtocol.handler = { request in
+            captured.append((request.url!.path, Self.formFields(request)))
+            return (200, #"{"ec":0}"#.data(using: .utf8)!)
+        }
+        let original = WhistleValuesSnapshot(documents: [
+            WhistleValueDocument(name: "First", value: "one"),
+            WhistleValueDocument(name: "Second", value: "two")
+        ])
+        let updated = WhistleValuesSnapshot(documents: [
+            WhistleValueDocument(name: "Second", value: "two edited"),
+            WhistleValueDocument(name: "Created", value: "three"),
+            WhistleValueDocument(name: "First", value: "one")
+        ])
+
+        try await makeValuesManager().applyChanges(
+            from: original,
+            to: updated,
+            baseURL: URL(string: "http://127.0.0.1:8900/")!
+        )
+
+        XCTAssertEqual(captured.map(\.0), [
+            "/cgi-bin/values/add",
+            "/cgi-bin/values/add",
+            "/cgi-bin/values/move-to",
+            "/cgi-bin/values/move-to"
+        ])
+        XCTAssertEqual(captured[0].1["name"], "Second")
+        XCTAssertEqual(captured[0].1["value"], "two edited")
+        XCTAssertEqual(captured[1].1["name"], "Created")
+        XCTAssertEqual(captured[2].1["from"], "Second")
+        XCTAssertEqual(captured[2].1["to"], "First")
+        XCTAssertEqual(captured[3].1["from"], "Created")
+        XCTAssertEqual(captured[3].1["to"], "First")
+        XCTAssertTrue(captured.allSatisfy {
+            $0.1["clientId"] == "whistleyoo-native-values"
+        })
+    }
+
+    func testApplyValueChangesRemovesDeletedDocuments() async throws {
+        var captured = [(String, [String: String])]()
+        RulesURLProtocol.handler = { request in
+            captured.append((request.url!.path, Self.formFields(request)))
+            return (200, #"{"ec":0}"#.data(using: .utf8)!)
+        }
+
+        try await makeValuesManager().applyChanges(
+            from: WhistleValuesSnapshot(documents: [
+                WhistleValueDocument(name: "Keep", value: "one"),
+                WhistleValueDocument(name: "Delete", value: "two")
+            ]),
+            to: WhistleValuesSnapshot(documents: [
+                WhistleValueDocument(name: "Keep", value: "one")
+            ]),
+            baseURL: URL(string: "http://127.0.0.1:8900/")!
+        )
+
+        XCTAssertEqual(captured.map(\.0), ["/cgi-bin/values/remove"])
+        XCTAssertEqual(captured[0].1["name"], "Delete")
+    }
+
     func testNativeDefaultRuleEditingPreservesManagedWhitelistBlock() {
         let userRules = "api.example.com file://mock.json\nwww.example.com host://127.0.0.1"
         let persisted = SoftwareDomainWhitelistManager.mergingManagedRules(
@@ -329,6 +418,12 @@ final class WhistleRulesManagerTests: XCTestCase {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [RulesURLProtocol.self]
         return WhistleRulesManager(session: URLSession(configuration: configuration))
+    }
+
+    private func makeValuesManager() -> WhistleValuesManager {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [RulesURLProtocol.self]
+        return WhistleValuesManager(session: URLSession(configuration: configuration))
     }
 
     private static func formFields(_ request: URLRequest) -> [String: String] {

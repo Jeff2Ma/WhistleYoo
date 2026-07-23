@@ -139,7 +139,7 @@ struct StatusPopoverView: View {
             } else {
                 HStack(spacing: 8) {
                     Button(action: openConsole) {
-                        Label(Localization.string(.consoleWhistleConsole), systemImage: "rectangle.on.rectangle")
+                        Label(Localization.string(.consoleWhistleConsole), systemImage: "network")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(PopoverButtonStyle(emphasis: .standard))
@@ -460,18 +460,18 @@ struct MainWorkspaceView: View {
             VStack(spacing: 10) {
                 sidebarButton(
                     title: Localization.string(.consoleWhistleConsole),
-                    symbol: "rectangle.on.rectangle",
+                    symbol: "network",
                     tab: .console
-                )
-                sidebarButton(
-                    title: Localization.string(.rulesConfiguration),
-                    symbol: "doc.text",
-                    tab: .rules
                 )
                 sidebarButton(
                     title: Localization.string(.pluginsWhistlePlugins),
                     symbol: "puzzlepiece.extension",
                     tab: .plugins
+                )
+                sidebarButton(
+                    title: Localization.string(.rulesConfiguration),
+                    symbol: "doc.text",
+                    tab: .rules
                 )
                 sidebarButton(
                     title: Localization.string(.mobileMobileProxy),
@@ -636,7 +636,9 @@ struct MainWorkspaceView: View {
 
     private func requestTabSelection(_ tab: MainWorkspaceTab) {
         guard tab != selection.selected else { return }
-        if selection.selected == .rules, state.isLoadingRules || state.isSavingRules {
+        if selection.selected == .rules,
+           state.isLoadingRules || state.isSavingRules
+            || state.isLoadingValues || state.isSavingValues {
             selection.selected = tab
             return
         }

@@ -27,15 +27,15 @@
 	<key>about.view_the_source_code_or_contact_the_author_on_github</key>
 	<string>View the source code or contact the author on GitHub.</string>
 	<key>console.failed_to_load_the_whistle_console</key>
-	<string>Failed to load the Whistle console</string>
+	<string>Failed to load the Network Panel</string>
 	<key>console.loading_the_whistle_console</key>
-	<string>Loading the Whistle console…</string>
+	<string>Loading the Network Panel…</string>
 	<key>console.open_in_browser</key>
 	<string>Open in Browser</string>
 	<key>console.reload</key>
 	<string>Reload</string>
 	<key>console.whistle_console</key>
-	<string>Whistle Console</string>
+	<string>Network Panel</string>
 	<key>core.a_global_whistle_installation_was_not_found_run_npm_install_g_whistle</key>
 	<string>A global Whistle installation was not found. Run npm install -g whistle.</string>
 	<key>core.a_matching_fingerprint_was_found_in_the_login_keychain</key>
@@ -176,11 +176,11 @@ SHA-256: %@</string>
 	<key>menu.quit_whistleyoo</key>
 	<string>Quit WhistleYoo</string>
 	<key>menu.quitting_whistleyoo_will_discard_the_unsaved_changes_in_the_current_rule</key>
-	<string>Quitting WhistleYoo will discard the unsaved changes in the current rule.</string>
+	<string>Quitting WhistleYoo will discard unsaved Rules or Values changes.</string>
 	<key>menu.redo</key>
 	<string>Redo</string>
 	<key>menu.rule_operation_in_progress</key>
-	<string>Rule Operation in Progress</string>
+	<string>Rules or Values Operation in Progress</string>
 	<key>menu.select_all</key>
 	<string>Select All</string>
 	<key>menu.unable_to_quit_whistleyoo_safely</key>
@@ -188,9 +188,9 @@ SHA-256: %@</string>
 	<key>menu.undo</key>
 	<string>Undo</string>
 	<key>menu.unsaved_rule_changes</key>
-	<string>Unsaved Rule Changes</string>
+	<string>Unsaved Rules or Values Changes</string>
 	<key>menu.wait_for_the_current_rule_operation_to_finish_before_quitting_whistleyoo</key>
-	<string>Wait for the current rule operation to finish before quitting WhistleYoo.</string>
+	<string>Wait for the current Rules or Values operation to finish before quitting WhistleYoo.</string>
 	<key>mobile.connect_the_phone_to_the_same_wi_fi</key>
 	<string>Connect the phone to the same Wi-Fi</string>
 	<key>mobile.copied</key>
@@ -384,9 +384,9 @@ SHA-256: %@</string>
 	<key>rules.clear_search</key>
 	<string>Clear Search</string>
 	<key>rules.combine_and_apply_rule_sets_from_whistle_in_list_order</key>
-	<string>Combine and apply rule sets from Whistle in list order</string>
+	<string>Edit Whistle Rules and Values without leaving the native workspace</string>
 	<key>rules.configuration</key>
-	<string>Rules</string>
+	<string>Rules &amp; Values</string>
 	<key>rules.confirm_delete_rule</key>
 	<string>Delete Rule?</string>
 	<key>rules.continue</key>
@@ -568,7 +568,7 @@ SHA-256: %@</string>
 	<key>settings.no_available_network_services_detected</key>
 	<string>No available network services detected</string>
 	<key>settings.open_whistle_console</key>
-	<string>Open Whistle Console</string>
+	<string>Open Network Panel</string>
 	<key>settings.proxy_engine_is_not_running</key>
 	<string>Proxy engine is not running</string>
 	<key>settings.proxy_engine_is_running</key>
@@ -598,11 +598,11 @@ SHA-256: %@</string>
 	<key>settings.shut_down_and_quit</key>
 	<string>Shut Down and Quit</string>
 	<key>settings.start_the_proxy_engine_to_use_the_whistle_console</key>
-	<string>Start the proxy engine to use the Whistle console.</string>
+	<string>Start the proxy engine to use the Network Panel.</string>
 	<key>settings.stop_proxy_engine</key>
 	<string>Stop Proxy Engine</string>
 	<key>settings.switching_pages_will_discard_the_unsaved_changes_in_the_current_rule</key>
-	<string>Switching pages will discard the unsaved changes in the current rule.</string>
+	<string>Switching pages will discard unsaved Rules or Values changes.</string>
 	<key>settings.system_proxy</key>
 	<string>System Proxy</string>
 	<key>settings.the_proxy_engine_is_not_running</key>
@@ -729,5 +729,47 @@ SHA-256: %@</string>
 	<string>Wait for the current proxy operation to finish, then try again.</string>
 	<key>status.whistle_value_127_0_0_1_value</key>
 	<string>Whistle %@ · 127.0.0.1:%@</string>
+	<key>values.clear_search_to_reorder_values</key>
+	<string>Clear search to reorder Values</string>
+	<key>values.confirm_delete_value</key>
+	<string>Delete Value?</string>
+	<key>values.create_a_value_file_to_reuse_content_across_rules</key>
+	<string>Create a Value file to reuse content across Rules.</string>
+	<key>values.create_value</key>
+	<string>Create Value</string>
+	<key>values.delete_value</key>
+	<string>Delete Value</string>
+	<key>values.edit_the_new_value_on_the_right_then_save_your_changes</key>
+	<string>Edit the new Value on the right, then save your changes.</string>
+	<key>values.no_matching_values</key>
+	<string>No matching Values</string>
+	<key>values.no_values_yet</key>
+	<string>No Values Yet</string>
+	<key>values.reference_values_from_rules_with_the_values_syntax</key>
+	<string>Reference this content from Rules with Whistle's Values syntax</string>
+	<key>values.refresh_values_or_create_a_new_value_file</key>
+	<string>Refresh Values or create a new Value file.</string>
+	<key>values.reload_values_from_whistle</key>
+	<string>Reload Values from Whistle</string>
+	<key>values.rename_value</key>
+	<string>Rename Value</string>
+	<key>values.search_names_or_content</key>
+	<string>Search Value names or content</string>
+	<key>values.the_value_name_cannot_be_empty_or_contain_leading_or_trailing_whitespace</key>
+	<string>The Value name cannot be empty or contain leading or trailing whitespace</string>
+	<key>values.the_whistle_values_api_returned_an_invalid_response</key>
+	<string>The Whistle Values API returned an invalid response</string>
+	<key>values.the_whistle_values_operation_failed</key>
+	<string>The Whistle Values operation failed</string>
+	<key>values.this_removes_value_from_whistleyoo_s_dedicated_whistle_values_storage</key>
+	<string>This removes “%@” from WhistleYoo's dedicated Whistle Values storage after you save.</string>
+	<key>values.value_files</key>
+	<string>Value Files</string>
+	<key>values.value_name</key>
+	<string>Value name</string>
+	<key>values.value_names_must_be_unique</key>
+	<string>Value names must be unique</string>
+	<key>values.values</key>
+	<string>Values</string>
 </dict>
 </plist>

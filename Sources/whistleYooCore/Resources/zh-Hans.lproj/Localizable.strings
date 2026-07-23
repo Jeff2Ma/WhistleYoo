@@ -27,15 +27,15 @@
 	<key>about.view_the_source_code_or_contact_the_author_on_github</key>
 	<string>查看项目源码，或通过 GitHub 联系作者。</string>
 	<key>console.failed_to_load_the_whistle_console</key>
-	<string>Whistle 面板加载失败</string>
+	<string>网络面板加载失败</string>
 	<key>console.loading_the_whistle_console</key>
-	<string>正在加载 Whistle 面板…</string>
+	<string>正在加载网络面板…</string>
 	<key>console.open_in_browser</key>
 	<string>在浏览器中打开</string>
 	<key>console.reload</key>
 	<string>重新加载</string>
 	<key>console.whistle_console</key>
-	<string>Whistle 面板</string>
+	<string>网络面板</string>
 	<key>core.a_global_whistle_installation_was_not_found_run_npm_install_g_whistle</key>
 	<string>未找到全局 Whistle，请执行 npm install -g whistle</string>
 	<key>core.a_matching_fingerprint_was_found_in_the_login_keychain</key>
@@ -176,11 +176,11 @@ SHA-256：%@</string>
 	<key>menu.quit_whistleyoo</key>
 	<string>退出 WhistleYoo</string>
 	<key>menu.quitting_whistleyoo_will_discard_the_unsaved_changes_in_the_current_rule</key>
-	<string>退出 WhistleYoo 将放弃当前规则中未保存的修改。</string>
+	<string>退出 WhistleYoo 将放弃 Rules 或 Values 中未保存的修改。</string>
 	<key>menu.redo</key>
 	<string>重做</string>
 	<key>menu.rule_operation_in_progress</key>
-	<string>规则操作仍在进行</string>
+	<string>Rules 或 Values 操作仍在进行</string>
 	<key>menu.select_all</key>
 	<string>全选</string>
 	<key>menu.unable_to_quit_whistleyoo_safely</key>
@@ -188,9 +188,9 @@ SHA-256：%@</string>
 	<key>menu.undo</key>
 	<string>撤销</string>
 	<key>menu.unsaved_rule_changes</key>
-	<string>存在未保存的规则修改</string>
+	<string>Rules 或 Values 存在未保存的修改</string>
 	<key>menu.wait_for_the_current_rule_operation_to_finish_before_quitting_whistleyoo</key>
-	<string>请等待当前规则操作完成后再退出 WhistleYoo。</string>
+	<string>请等待当前 Rules 或 Values 操作完成后再退出 WhistleYoo。</string>
 	<key>mobile.connect_the_phone_to_the_same_wi_fi</key>
 	<string>手机连接相同 Wi-Fi</string>
 	<key>mobile.copied</key>
@@ -384,9 +384,9 @@ SHA-256：%@</string>
 	<key>rules.clear_search</key>
 	<string>清除搜索</string>
 	<key>rules.combine_and_apply_rule_sets_from_whistle_in_list_order</key>
-	<string>按列表顺序组合并应用 Whistle 中的规则集</string>
+	<string>在原生工作区中直接编辑 Whistle 的 Rules 与 Values</string>
 	<key>rules.configuration</key>
-	<string>规则配置</string>
+	<string>Rules &amp; Values</string>
 	<key>rules.confirm_delete_rule</key>
 	<string>删除规则？</string>
 	<key>rules.continue</key>
@@ -446,9 +446,9 @@ SHA-256：%@</string>
 	<key>rules.rule_names_must_be_unique</key>
 	<string>规则名称不能重复</string>
 	<key>rules.rule_sets</key>
-	<string>规则集</string>
+	<string>Rules</string>
 	<key>rules.rules</key>
-	<string>规则</string>
+	<string>Rules</string>
 	<key>rules.save</key>
 	<string>保存</string>
 	<key>rules.saved</key>
@@ -568,7 +568,7 @@ SHA-256：%@</string>
 	<key>settings.no_available_network_services_detected</key>
 	<string>没有检测到可用的网络服务</string>
 	<key>settings.open_whistle_console</key>
-	<string>打开 Whistle 面板</string>
+	<string>打开网络面板</string>
 	<key>settings.proxy_engine_is_not_running</key>
 	<string>代理引擎未运行</string>
 	<key>settings.proxy_engine_is_running</key>
@@ -598,11 +598,11 @@ SHA-256：%@</string>
 	<key>settings.shut_down_and_quit</key>
 	<string>关闭并退出</string>
 	<key>settings.start_the_proxy_engine_to_use_the_whistle_console</key>
-	<string>启动代理引擎后即可使用 Whistle 面板。</string>
+	<string>启动代理引擎后即可使用网络面板。</string>
 	<key>settings.stop_proxy_engine</key>
 	<string>停止代理引擎</string>
 	<key>settings.switching_pages_will_discard_the_unsaved_changes_in_the_current_rule</key>
-	<string>切换页面将放弃当前规则中未保存的修改。</string>
+	<string>切换页面将放弃 Rules 或 Values 中未保存的修改。</string>
 	<key>settings.system_proxy</key>
 	<string>系统代理</string>
 	<key>settings.the_proxy_engine_is_not_running</key>
@@ -729,5 +729,47 @@ SHA-256：%@</string>
 	<string>请等待当前代理操作完成后再试</string>
 	<key>status.whistle_value_127_0_0_1_value</key>
 	<string>Whistle %@ · 127.0.0.1:%@</string>
+	<key>values.clear_search_to_reorder_values</key>
+	<string>清除搜索后可调整 Values 顺序</string>
+	<key>values.confirm_delete_value</key>
+	<string>确认删除 Value？</string>
+	<key>values.create_a_value_file_to_reuse_content_across_rules</key>
+	<string>创建 Value 文件，在 Rules 中复用内容。</string>
+	<key>values.create_value</key>
+	<string>新建 Value</string>
+	<key>values.delete_value</key>
+	<string>删除 Value</string>
+	<key>values.edit_the_new_value_on_the_right_then_save_your_changes</key>
+	<string>在右侧编辑新的 Value，完成后保存更改。</string>
+	<key>values.no_matching_values</key>
+	<string>没有匹配的 Values</string>
+	<key>values.no_values_yet</key>
+	<string>暂无 Values</string>
+	<key>values.reference_values_from_rules_with_the_values_syntax</key>
+	<string>可通过 Whistle 的 Values 语法在 Rules 中引用此内容</string>
+	<key>values.refresh_values_or_create_a_new_value_file</key>
+	<string>刷新 Values，或新建一个 Value 文件。</string>
+	<key>values.reload_values_from_whistle</key>
+	<string>从 Whistle 重新加载 Values</string>
+	<key>values.rename_value</key>
+	<string>重命名 Value</string>
+	<key>values.search_names_or_content</key>
+	<string>搜索 Value 名称或内容</string>
+	<key>values.the_value_name_cannot_be_empty_or_contain_leading_or_trailing_whitespace</key>
+	<string>Value 名称不能为空，且首尾不能包含空白字符</string>
+	<key>values.the_whistle_values_api_returned_an_invalid_response</key>
+	<string>Whistle Values API 返回了无效响应</string>
+	<key>values.the_whistle_values_operation_failed</key>
+	<string>Whistle Values 操作失败</string>
+	<key>values.this_removes_value_from_whistleyoo_s_dedicated_whistle_values_storage</key>
+	<string>保存后会从 WhistleYoo 专属 Whistle 的 Values 存储中移除“%@”。</string>
+	<key>values.value_files</key>
+	<string>Value 文件</string>
+	<key>values.value_name</key>
+	<string>Value 名称</string>
+	<key>values.value_names_must_be_unique</key>
+	<string>Value 名称不能重复</string>
+	<key>values.values</key>
+	<string>Values</string>
 </dict>
 </plist>

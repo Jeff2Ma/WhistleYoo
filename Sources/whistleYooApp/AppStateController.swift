@@ -34,6 +34,9 @@ final class AppStateController: ObservableObject {
     @Published private(set) var rulesSnapshot = WhistleRulesSnapshot()
     @Published private(set) var isLoadingRules = false
     @Published private(set) var isSavingRules = false
+    @Published private(set) var valuesSnapshot = WhistleValuesSnapshot()
+    @Published private(set) var isLoadingValues = false
+    @Published private(set) var isSavingValues = false
     @Published private(set) var isChangingSystemProxy = false
     @Published private(set) var isPerformingEngineOperation = false
     @Published private(set) var isImportingConfiguration = false
@@ -50,6 +53,7 @@ final class AppStateController: ObservableObject {
     private let certificateManager: CertificateManager
     private let softwareWhitelistManager: SoftwareDomainWhitelistManager
     private let rulesManager: WhistleRulesManager
+    private let valuesManager: WhistleValuesManager
     private let interfaceManager: NetworkInterfaceManager
     private let portChecker: PortAvailabilityChecking
     private let configurationStore: WhistleYooConfigurationStore
@@ -68,6 +72,7 @@ final class AppStateController: ObservableObject {
         certificateManager: CertificateManager = CertificateManager(),
         softwareWhitelistManager: SoftwareDomainWhitelistManager = SoftwareDomainWhitelistManager(),
         rulesManager: WhistleRulesManager = WhistleRulesManager(),
+        valuesManager: WhistleValuesManager = WhistleValuesManager(),
         interfaceManager: NetworkInterfaceManager = NetworkInterfaceManager(),
         portChecker: PortAvailabilityChecking = PortChecker(),
         configurationStore: WhistleYooConfigurationStore = WhistleYooConfigurationStore(),
@@ -79,6 +84,7 @@ final class AppStateController: ObservableObject {
         self.certificateManager = certificateManager
         self.softwareWhitelistManager = softwareWhitelistManager
         self.rulesManager = rulesManager
+        self.valuesManager = valuesManager
         self.interfaceManager = interfaceManager
         self.portChecker = portChecker
         self.configurationStore = configurationStore
@@ -836,6 +842,41 @@ final class AppStateController: ObservableObject {
             )
             try await reloadRules(baseURL: baseURL)
             await synchronizeConfigurationFile()
+            return true
+        } catch {
+            report(error)
+            return false
+        }
+    }
+
+    @discardableResult
+    func loadValues() async -> Bool {
+        guard !isLoadingValues else { return false }
+        isLoadingValues = true
+        defer { isLoadingValues = false }
+        guard await startEngine(), let baseURL = uiURL else { return false }
+        do {
+            valuesSnapshot = try await valuesManager.load(baseURL: baseURL)
+            return true
+        } catch {
+            report(error)
+            return false
+        }
+    }
+
+    @discardableResult
+    func saveValuesSnapshot(_ updated: WhistleValuesSnapshot) async -> Bool {
+        guard !isSavingValues else { return false }
+        isSavingValues = true
+        defer { isSavingValues = false }
+        guard await startEngine(), let baseURL = uiURL else { return false }
+        do {
+            try await valuesManager.applyChanges(
+                from: valuesSnapshot,
+                to: updated,
+                baseURL: baseURL
+            )
+            valuesSnapshot = try await valuesManager.load(baseURL: baseURL)
             return true
         } catch {
             report(error)

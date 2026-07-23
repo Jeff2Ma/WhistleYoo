@@ -35,6 +35,26 @@ public struct WhistleRulesSnapshot: Codable, Equatable, Sendable {
     }
 }
 
+public struct WhistleValueDocument: Codable, Equatable, Sendable, Identifiable {
+    public let name: String
+    public let value: String
+
+    public var id: String { name }
+
+    public init(name: String, value: String) {
+        self.name = name
+        self.value = value
+    }
+}
+
+public struct WhistleValuesSnapshot: Codable, Equatable, Sendable {
+    public let documents: [WhistleValueDocument]
+
+    public init(documents: [WhistleValueDocument] = []) {
+        self.documents = documents
+    }
+}
+
 /// Reads and writes the same Rules storage used by Whistle's Web UI.
 ///
 /// The App starts Whistle with its own `-D` and `-S` arguments, so these CGI
@@ -343,6 +363,185 @@ private extension WhistleRulesManager {
         let name: String
         let data: String?
         let selected: Bool?
+    }
+
+    struct ActionResponse: Decodable {
+        let ec: Int
+        let em: String?
+    }
+}
+
+/// Reads and writes the same Values storage used by Whistle's Web UI.
+public struct WhistleValuesManager: Sendable {
+    private static let clientID = "whistleyoo-native-values"
+    private let session: URLSession
+
+    public init(session: URLSession = .shared) {
+        self.session = session
+    }
+
+    public func load(baseURL: URL) async throws -> WhistleValuesSnapshot {
+        var request = URLRequest(
+            url: endpoint("cgi-bin/values/list", baseURL: baseURL),
+            timeoutInterval: 8
+        )
+        request.setValue("WhistleYoo/1.0", forHTTPHeaderField: "User-Agent")
+        let (data, response) = try await session.data(for: request)
+        try validate(response: response, data: data)
+        let result = try JSONDecoder().decode(ListResponse.self, from: data)
+        try validate(result: result.result)
+        return WhistleValuesSnapshot(documents: (result.list ?? []).map {
+            WhistleValueDocument(name: $0.name, value: $0.data ?? "")
+        })
+    }
+
+    /// Applies all Values edits in one explicit save operation.
+    ///
+    /// Whistle does not expose a transactional Values endpoint, so only
+    /// removed, changed, newly created, or reordered documents are sent.
+    public func applyChanges(
+        from original: WhistleValuesSnapshot,
+        to updated: WhistleValuesSnapshot,
+        baseURL: URL
+    ) async throws {
+        try Self.validateDraft(original)
+        try Self.validateDraft(updated)
+
+        let originalByName = Dictionary(uniqueKeysWithValues: original.documents.map {
+            ($0.name, $0)
+        })
+        let updatedByName = Dictionary(uniqueKeysWithValues: updated.documents.map {
+            ($0.name, $0)
+        })
+
+        for name in originalByName.keys.sorted() where updatedByName[name] == nil {
+            try await post(
+                "cgi-bin/values/remove",
+                form: ["name": name],
+                baseURL: baseURL
+            )
+        }
+
+        for document in updated.documents
+        where originalByName[document.name]?.value != document.value {
+            try await post(
+                "cgi-bin/values/add",
+                form: ["name": document.name, "value": document.value],
+                baseURL: baseURL
+            )
+        }
+
+        try await reconcileOrder(
+            original: original.documents.map(\.name),
+            updated: updated.documents.map(\.name),
+            baseURL: baseURL
+        )
+    }
+
+    public static func validateValueName(_ name: String) throws {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty,
+              trimmed == name,
+              !name.contains("\n"),
+              !name.contains("\r") else {
+            throw WhistleYooError.commandFailed(
+                Localization.string(.valuesTheValueNameCannotBeEmptyOrContainLeadingOrTrailingWhitespace)
+            )
+        }
+    }
+
+    private static func validateDraft(_ snapshot: WhistleValuesSnapshot) throws {
+        var names = Set<String>()
+        for document in snapshot.documents {
+            try validateValueName(document.name)
+            guard names.insert(document.name).inserted else {
+                throw WhistleYooError.commandFailed(
+                    Localization.string(.valuesValueNamesMustBeUnique)
+                )
+            }
+        }
+    }
+
+    private func reconcileOrder(
+        original: [String],
+        updated: [String],
+        baseURL: URL
+    ) async throws {
+        let updatedNames = Set(updated)
+        var current = original.filter(updatedNames.contains)
+        current.append(contentsOf: updated.filter { !current.contains($0) })
+
+        for targetIndex in updated.indices where current[targetIndex] != updated[targetIndex] {
+            let name = updated[targetIndex]
+            guard let sourceIndex = current.firstIndex(of: name) else { continue }
+            let anchor = current[targetIndex]
+            try await post(
+                "cgi-bin/values/move-to",
+                form: ["from": name, "to": anchor],
+                baseURL: baseURL
+            )
+            current.remove(at: sourceIndex)
+            current.insert(name, at: targetIndex)
+        }
+    }
+
+    private func post(_ path: String, form: [String: String], baseURL: URL) async throws {
+        var request = URLRequest(url: endpoint(path, baseURL: baseURL), timeoutInterval: 8)
+        request.httpMethod = "POST"
+        request.setValue(
+            "application/x-www-form-urlencoded; charset=utf-8",
+            forHTTPHeaderField: "Content-Type"
+        )
+        request.setValue("WhistleYoo/1.0", forHTTPHeaderField: "User-Agent")
+        var fields = form
+        fields["clientId"] = Self.clientID
+        var components = URLComponents()
+        components.queryItems = fields.keys.sorted().map {
+            URLQueryItem(name: $0, value: fields[$0])
+        }
+        request.httpBody = components.percentEncodedQuery?.data(using: .utf8)
+        let (data, response) = try await session.data(for: request)
+        try validate(response: response, data: data)
+        if !data.isEmpty,
+           let result = try? JSONDecoder().decode(ActionResponse.self, from: data) {
+            try validate(result: result)
+        }
+    }
+
+    private func endpoint(_ path: String, baseURL: URL) -> URL {
+        baseURL.appendingPathComponent(path)
+    }
+
+    private func validate(response: URLResponse, data: Data) throws {
+        guard let http = response as? HTTPURLResponse,
+              (200..<300).contains(http.statusCode) else {
+            let message = String(data: data, encoding: .utf8)
+                ?? Localization.string(.valuesTheWhistleValuesApiReturnedAnInvalidResponse)
+            throw WhistleYooError.invalidResponse(message)
+        }
+    }
+
+    private func validate(result: ActionResponse) throws {
+        guard result.ec == 0 else {
+            throw WhistleYooError.invalidResponse(
+                result.em ?? Localization.string(.valuesTheWhistleValuesOperationFailed)
+            )
+        }
+    }
+}
+
+private extension WhistleValuesManager {
+    struct ListResponse: Decodable {
+        let ec: Int
+        let em: String?
+        let list: [ListItem]?
+
+        var result: ActionResponse { ActionResponse(ec: ec, em: em) }
+    }
+
+    struct ListItem: Decodable {
+        let name: String
+        let data: String?
     }
 
     struct ActionResponse: Decodable {
