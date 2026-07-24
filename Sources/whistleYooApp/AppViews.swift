@@ -139,7 +139,7 @@ struct StatusPopoverView: View {
             } else {
                 HStack(spacing: 8) {
                     Button(action: openConsole) {
-                        Label(Localization.string(.consoleWhistleConsole), systemImage: "rectangle.on.rectangle")
+                        Label(Localization.string(.consoleWhistleConsole), systemImage: "network")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(PopoverButtonStyle(emphasis: .standard))
@@ -428,6 +428,7 @@ private struct PopoverButtonStyle: ButtonStyle {
 
 enum MainWorkspaceTab: Hashable {
     case console
+    case plugins
     case mobile
     case rules
     case settings
@@ -459,8 +460,13 @@ struct MainWorkspaceView: View {
             VStack(spacing: 10) {
                 sidebarButton(
                     title: Localization.string(.consoleWhistleConsole),
-                    symbol: "rectangle.on.rectangle",
+                    symbol: "network",
                     tab: .console
+                )
+                sidebarButton(
+                    title: Localization.string(.pluginsWhistlePlugins),
+                    symbol: "puzzlepiece.extension",
+                    tab: .plugins
                 )
                 sidebarButton(
                     title: Localization.string(.rulesConfiguration),
@@ -574,7 +580,9 @@ struct MainWorkspaceView: View {
     private var mainContent: some View {
         switch selection.selected {
         case .console:
-            consolePage
+            whistlePage(workspace: .network)
+        case .plugins:
+            whistlePage(workspace: .plugins)
         case .mobile:
             MobileSetupView(model: mobileModel, isActive: true)
         case .rules:
@@ -628,7 +636,9 @@ struct MainWorkspaceView: View {
 
     private func requestTabSelection(_ tab: MainWorkspaceTab) {
         guard tab != selection.selected else { return }
-        if selection.selected == .rules, state.isLoadingRules || state.isSavingRules {
+        if selection.selected == .rules,
+           state.isLoadingRules || state.isSavingRules
+            || state.isLoadingValues || state.isSavingValues {
             selection.selected = tab
             return
         }
@@ -641,9 +651,13 @@ struct MainWorkspaceView: View {
     }
 
     @ViewBuilder
-    private var consolePage: some View {
+    private func whistlePage(workspace: WhistleConsoleSession.Workspace) -> some View {
         if state.isEngineRunning, let url = state.uiURL {
-            WhistleConsoleView(session: consoleSession, baseURL: url)
+            WhistleWorkspaceView(
+                session: consoleSession,
+                baseURL: url,
+                workspace: workspace
+            )
         } else {
             VStack(spacing: 14) {
                 Image(systemName: "rectangle.slash")
@@ -651,7 +665,7 @@ struct MainWorkspaceView: View {
                     .foregroundStyle(.secondary)
                 Text(Localization.string(.settingsProxyEngineIsNotRunning))
                     .font(.title3.weight(.semibold))
-                Text(Localization.string(.settingsStartTheProxyEngineToUseTheWhistleConsole))
+                Text(Localization.string(workspace.engineUnavailableMessageKey))
                     .foregroundStyle(.secondary)
                 Button(Localization.string(.mobileStartProxyEngine)) {
                     Task { await state.startEngine() }

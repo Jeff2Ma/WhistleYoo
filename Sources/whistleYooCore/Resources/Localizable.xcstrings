@@ -210,34 +210,34 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Failed to load the Whistle console"
+            "value": "Failed to load the Network Panel"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Whistle 面板加载失败"
+            "value": "网络面板加载失败"
           }
         }
       },
-      "comment": "中文：Whistle 面板加载失败"
+      "comment": "中文：网络面板加载失败"
     },
     "console.loading_the_whistle_console": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading the Whistle console…"
+            "value": "Loading the Network Panel…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载 Whistle 面板…"
+            "value": "正在加载网络面板…"
           }
         }
       },
-      "comment": "中文：正在加载 Whistle 面板…"
+      "comment": "中文：正在加载网络面板…"
     },
     "console.open_in_browser": {
       "localizations": {
@@ -278,17 +278,17 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Whistle Console"
+            "value": "Network Panel"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Whistle 面板"
+            "value": "网络面板"
           }
         }
       },
-      "comment": "中文：Whistle 面板"
+      "comment": "中文：网络面板"
     },
     "core.a_global_whistle_installation_was_not_found_run_npm_install_g_whistle": {
       "localizations": {
@@ -1451,17 +1451,17 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quitting WhistleYoo will discard the unsaved changes in the current rule."
+            "value": "Quitting WhistleYoo will discard unsaved Rules or Values changes."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "退出 WhistleYoo 将放弃当前规则中未保存的修改。"
+            "value": "退出 WhistleYoo 将放弃 Rules 或 Values 中未保存的修改。"
           }
         }
       },
-      "comment": "中文：退出 WhistleYoo 将放弃当前规则中未保存的修改。"
+      "comment": "中文：退出 WhistleYoo 将放弃 Rules 或 Values 中未保存的修改。"
     },
     "menu.redo": {
       "localizations": {
@@ -1485,17 +1485,17 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rule Operation in Progress"
+            "value": "Rules or Values Operation in Progress"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "规则操作仍在进行"
+            "value": "Rules 或 Values 操作仍在进行"
           }
         }
       },
-      "comment": "中文：规则操作仍在进行"
+      "comment": "中文：Rules 或 Values 操作仍在进行"
     },
     "menu.select_all": {
       "localizations": {
@@ -1553,34 +1553,34 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unsaved Rule Changes"
+            "value": "Unsaved Rules or Values Changes"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "存在未保存的规则修改"
+            "value": "Rules 或 Values 存在未保存的修改"
           }
         }
       },
-      "comment": "中文：存在未保存的规则修改"
+      "comment": "中文：Rules 或 Values 存在未保存的修改"
     },
     "menu.wait_for_the_current_rule_operation_to_finish_before_quitting_whistleyoo": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wait for the current rule operation to finish before quitting WhistleYoo."
+            "value": "Wait for the current Rules or Values operation to finish before quitting WhistleYoo."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请等待当前规则操作完成后再退出 WhistleYoo。"
+            "value": "请等待当前 Rules 或 Values 操作完成后再退出 WhistleYoo。"
           }
         }
       },
-      "comment": "中文：请等待当前规则操作完成后再退出 WhistleYoo。"
+      "comment": "中文：请等待当前 Rules 或 Values 操作完成后再退出 WhistleYoo。"
     },
     "mobile.connect_the_phone_to_the_same_wi_fi": {
       "localizations": {
@@ -3078,6 +3078,74 @@
       },
       "comment": "中文：WhistleYoo 使用本机安装的 Node.js 和全局 Whistle。"
     },
+    "plugins.failed_to_load_whistle_plugins": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to load Whistle plugins"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whistle 插件加载失败"
+          }
+        }
+      },
+      "comment": "中文：Whistle 插件加载失败"
+    },
+    "plugins.loading_whistle_plugins": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading Whistle plugins…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载 Whistle 插件…"
+          }
+        }
+      },
+      "comment": "中文：正在加载 Whistle 插件…"
+    },
+    "plugins.start_the_proxy_engine_to_use_whistle_plugins": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start the proxy engine to use Whistle plugins."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启动代理引擎以使用 Whistle 插件。"
+          }
+        }
+      },
+      "comment": "中文：启动代理引擎以使用 Whistle 插件。"
+    },
+    "plugins.whistle_plugins": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whistle Plugins"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whistle插件"
+          }
+        }
+      },
+      "comment": "中文：Whistle插件"
+    },
     "rules.apply": {
       "localizations": {
         "en": {
@@ -3192,34 +3260,34 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Combine and apply rule sets from Whistle in list order"
+            "value": "Edit Whistle Rules and Values without leaving the native workspace"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "按列表顺序组合并应用 Whistle 中的规则集"
+            "value": "在原生工作区中直接编辑 Whistle 的 Rules 与 Values"
           }
         }
       },
-      "comment": "中文：按列表顺序组合并应用 Whistle 中的规则集"
+      "comment": "中文：在原生工作区中直接编辑 Whistle 的 Rules 与 Values"
     },
     "rules.configuration": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rules"
+            "value": "Rules & Values"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "规则配置"
+            "value": "Rules & Values"
           }
         }
       },
-      "comment": "中文：规则配置"
+      "comment": "中文：Rules & Values"
     },
     "rules.confirm_delete_rule": {
       "localizations": {
@@ -3725,11 +3793,11 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "规则集"
+            "value": "Rules"
           }
         }
       },
-      "comment": "中文：规则集"
+      "comment": "中文：Rules"
     },
     "rules.rules": {
       "localizations": {
@@ -3742,11 +3810,11 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "规则"
+            "value": "Rules"
           }
         }
       },
-      "comment": "中文：规则"
+      "comment": "中文：Rules"
     },
     "rules.save": {
       "localizations": {
@@ -4961,17 +5029,17 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open Whistle Console"
+            "value": "Open Network Panel"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "打开 Whistle 面板"
+            "value": "打开网络面板"
           }
         }
       },
-      "comment": "中文：打开 Whistle 面板"
+      "comment": "中文：打开网络面板"
     },
     "settings.proxy_engine_is_not_running": {
       "localizations": {
@@ -5216,17 +5284,17 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start the proxy engine to use the Whistle console."
+            "value": "Start the proxy engine to use the Network Panel."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "启动代理引擎后即可使用 Whistle 面板。"
+            "value": "启动代理引擎后即可使用网络面板。"
           }
         }
       },
-      "comment": "中文：启动代理引擎后即可使用 Whistle 面板。"
+      "comment": "中文：启动代理引擎后即可使用网络面板。"
     },
     "settings.stop_proxy_engine": {
       "localizations": {
@@ -5250,17 +5318,17 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Switching pages will discard the unsaved changes in the current rule."
+            "value": "Switching pages will discard unsaved Rules or Values changes."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "切换页面将放弃当前规则中未保存的修改。"
+            "value": "切换页面将放弃 Rules 或 Values 中未保存的修改。"
           }
         }
       },
-      "comment": "中文：切换页面将放弃当前规则中未保存的修改。"
+      "comment": "中文：切换页面将放弃 Rules 或 Values 中未保存的修改。"
     },
     "settings.system_proxy": {
       "localizations": {
@@ -6332,6 +6400,342 @@
         }
       },
       "comment": "中文：Whistle %@ · 127.0.0.1:%@"
+    },
+    "values.clear_search_to_reorder_values": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear search to reorder Values"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除搜索后可调整 Values 顺序"
+          }
+        }
+      }
+    },
+    "values.confirm_delete_value": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Value?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认删除 Value？"
+          }
+        }
+      }
+    },
+    "values.create_a_value_file_to_reuse_content_across_rules": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a Value file to reuse content across Rules."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建 Value 文件，在 Rules 中复用内容。"
+          }
+        }
+      }
+    },
+    "values.create_value": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create Value"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建 Value"
+          }
+        }
+      }
+    },
+    "values.delete_value": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Value"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除 Value"
+          }
+        }
+      }
+    },
+    "values.edit_the_new_value_on_the_right_then_save_your_changes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit the new Value on the right, then save your changes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在右侧编辑新的 Value，完成后保存更改。"
+          }
+        }
+      }
+    },
+    "values.no_matching_values": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching Values"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有匹配的 Values"
+          }
+        }
+      }
+    },
+    "values.no_values_yet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Values Yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无 Values"
+          }
+        }
+      }
+    },
+    "values.reference_values_from_rules_with_the_values_syntax": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference this content from Rules with Whistle's Values syntax"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可通过 Whistle 的 Values 语法在 Rules 中引用此内容"
+          }
+        }
+      }
+    },
+    "values.refresh_values_or_create_a_new_value_file": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh Values or create a new Value file."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新 Values，或新建一个 Value 文件。"
+          }
+        }
+      }
+    },
+    "values.reload_values_from_whistle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload Values from Whistle"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从 Whistle 重新加载 Values"
+          }
+        }
+      }
+    },
+    "values.rename_value": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename Value"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重命名 Value"
+          }
+        }
+      }
+    },
+    "values.search_names_or_content": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search Value names or content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索 Value 名称或内容"
+          }
+        }
+      }
+    },
+    "values.the_value_name_cannot_be_empty_or_contain_leading_or_trailing_whitespace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Value name cannot be empty or contain leading or trailing whitespace"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Value 名称不能为空，且首尾不能包含空白字符"
+          }
+        }
+      }
+    },
+    "values.the_whistle_values_api_returned_an_invalid_response": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Whistle Values API returned an invalid response"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whistle Values API 返回了无效响应"
+          }
+        }
+      }
+    },
+    "values.the_whistle_values_operation_failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Whistle Values operation failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whistle Values 操作失败"
+          }
+        }
+      }
+    },
+    "values.this_removes_value_from_whistleyoo_s_dedicated_whistle_values_storage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This removes “%@” from WhistleYoo's dedicated Whistle Values storage after you save."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存后会从 WhistleYoo 专属 Whistle 的 Values 存储中移除“%@”。"
+          }
+        }
+      }
+    },
+    "values.value_files": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Value Files"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Value 文件"
+          }
+        }
+      }
+    },
+    "values.value_name": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Value name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Value 名称"
+          }
+        }
+      }
+    },
+    "values.value_names_must_be_unique": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Value names must be unique"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Value 名称不能重复"
+          }
+        }
+      }
+    },
+    "values.values": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Values"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Values"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

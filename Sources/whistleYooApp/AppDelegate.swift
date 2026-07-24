@@ -43,7 +43,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard !terminationInProgress else { return .terminateLater }
-        guard !state.isLoadingRules, !state.isSavingRules else {
+        guard !state.isLoadingRules, !state.isSavingRules,
+              !state.isLoadingValues, !state.isSavingValues else {
             showRuleOperationInProgressAlert()
             openMainWindow(tab: .rules)
             return .terminateCancel

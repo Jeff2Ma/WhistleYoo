@@ -34,6 +34,9 @@ final class AppStateController: ObservableObject {
     @Published private(set) var rulesSnapshot = WhistleRulesSnapshot()
     @Published private(set) var isLoadingRules = false
     @Published private(set) var isSavingRules = false
+    @Published private(set) var valuesSnapshot = WhistleValuesSnapshot()
+    @Published private(set) var isLoadingValues = false
+    @Published private(set) var isSavingValues = false
     @Published private(set) var isChangingSystemProxy = false
     @Published private(set) var isPerformingEngineOperation = false
     @Published private(set) var isImportingConfiguration = false
@@ -50,6 +53,7 @@ final class AppStateController: ObservableObject {
     private let certificateManager: CertificateManager
     private let softwareWhitelistManager: SoftwareDomainWhitelistManager
     private let rulesManager: WhistleRulesManager
+    private let valuesManager: WhistleValuesManager
     private let interfaceManager: NetworkInterfaceManager
     private let portChecker: PortAvailabilityChecking
     private let configurationStore: WhistleYooConfigurationStore
@@ -60,6 +64,8 @@ final class AppStateController: ObservableObject {
     private var monitorTask: Task<Void, Never>?
     private var configurationSyncTask: Task<Void, Never>?
     private var pendingStartupRules: WhistleRulesSnapshot?
+    private var pendingStartupValues: WhistleValuesSnapshot?
+    private var hasLoadedValuesSnapshot = false
     private static let configurationLocationKey = "WhistleYooConfigurationFilePath"
 
     init(
@@ -68,6 +74,7 @@ final class AppStateController: ObservableObject {
         certificateManager: CertificateManager = CertificateManager(),
         softwareWhitelistManager: SoftwareDomainWhitelistManager = SoftwareDomainWhitelistManager(),
         rulesManager: WhistleRulesManager = WhistleRulesManager(),
+        valuesManager: WhistleValuesManager = WhistleValuesManager(),
         interfaceManager: NetworkInterfaceManager = NetworkInterfaceManager(),
         portChecker: PortAvailabilityChecking = PortChecker(),
         configurationStore: WhistleYooConfigurationStore = WhistleYooConfigurationStore(),
@@ -79,6 +86,7 @@ final class AppStateController: ObservableObject {
         self.certificateManager = certificateManager
         self.softwareWhitelistManager = softwareWhitelistManager
         self.rulesManager = rulesManager
+        self.valuesManager = valuesManager
         self.interfaceManager = interfaceManager
         self.portChecker = portChecker
         self.configurationStore = configurationStore
@@ -238,6 +246,7 @@ final class AppStateController: ObservableObject {
                 let configuration = try configurationStore.load(from: configurationFileURL)
                 settings = configuration.settings
                 pendingStartupRules = configuration.rules
+                pendingStartupValues = configuration.values
                 try settingsStore.save(settings)
             } else {
                 settings = try settingsStore.load()
@@ -574,9 +583,13 @@ final class AppStateController: ObservableObject {
             if !hasCompleteRulesSnapshot {
                 guard await loadRules() else { return false }
             }
+            if !hasLoadedValuesSnapshot {
+                guard await loadValues() else { return false }
+            }
             let configuration = WhistleYooConfigurationFile(
                 settings: settings,
-                rules: rulesSnapshot
+                rules: rulesSnapshot,
+                values: valuesSnapshot
             )
             try configurationStore.save(configuration, to: url.standardizedFileURL)
             return true
@@ -628,8 +641,11 @@ final class AppStateController: ObservableObject {
         let originalSettings = settings
         let originalLaunchAtLogin = launchAtLoginEnabled
         let originalPendingStartupRules = pendingStartupRules
+        let originalPendingStartupValues = pendingStartupValues
         var originalRules: WhistleRulesSnapshot?
+        var originalValues: WhistleValuesSnapshot?
         pendingStartupRules = nil
+        pendingStartupValues = nil
         isImportingConfiguration = true
 
         do {
@@ -639,6 +655,12 @@ final class AppStateController: ObservableObject {
                 }
             }
             originalRules = rulesSnapshot
+            if !hasLoadedValuesSnapshot {
+                guard await loadValues() else {
+                    throw WhistleYooError.commandFailed(Localization.string(.statusTheCurrentRulesCouldNotBeReadSoTheConfigurationWasNotImporte))
+                }
+            }
+            originalValues = valuesSnapshot
 
             if isEngineRunning {
                 try await stopEngineThrowing()
@@ -649,6 +671,7 @@ final class AppStateController: ObservableObject {
             }
             try await startEngineThrowing()
             try await applyImportedRulesThrowing(imported.rules)
+            try await applyImportedValuesThrowing(imported.values)
 
             try settingsStore.save(settings)
             try AutoLaunchManager().setEnabled(settings.launchAtLogin)
@@ -683,6 +706,9 @@ final class AppStateController: ObservableObject {
                     if let originalRules {
                         try await applyImportedRulesThrowing(originalRules)
                     }
+                    if let originalValues {
+                        try await applyImportedValuesThrowing(originalValues)
+                    }
                     if shouldRestoreProxy {
                         _ = await setSystemProxyEnabled(true)
                     }
@@ -691,6 +717,7 @@ final class AppStateController: ObservableObject {
                     }
                 } catch {
                     pendingStartupRules = originalPendingStartupRules
+                    pendingStartupValues = originalPendingStartupValues
                     isImportingConfiguration = false
                     report(WhistleYooError.commandFailed(Localization.format(
                         .statusConfigurationImportFailedValueRestoringThePreviousConfigurationA,
@@ -701,6 +728,7 @@ final class AppStateController: ObservableObject {
                 }
             }
             pendingStartupRules = originalPendingStartupRules
+            pendingStartupValues = originalPendingStartupValues
             isImportingConfiguration = false
             report(importError)
             return false
@@ -835,6 +863,44 @@ final class AppStateController: ObservableObject {
                 baseURL: baseURL
             )
             try await reloadRules(baseURL: baseURL)
+            await synchronizeConfigurationFile()
+            return true
+        } catch {
+            report(error)
+            return false
+        }
+    }
+
+    @discardableResult
+    func loadValues() async -> Bool {
+        guard !isLoadingValues else { return false }
+        isLoadingValues = true
+        defer { isLoadingValues = false }
+        guard await startEngine(), let baseURL = uiURL else { return false }
+        do {
+            valuesSnapshot = try await valuesManager.load(baseURL: baseURL)
+            hasLoadedValuesSnapshot = true
+            return true
+        } catch {
+            report(error)
+            return false
+        }
+    }
+
+    @discardableResult
+    func saveValuesSnapshot(_ updated: WhistleValuesSnapshot) async -> Bool {
+        guard !isSavingValues else { return false }
+        isSavingValues = true
+        defer { isSavingValues = false }
+        guard await startEngine(), let baseURL = uiURL else { return false }
+        do {
+            try await valuesManager.applyChanges(
+                from: valuesSnapshot,
+                to: updated,
+                baseURL: baseURL
+            )
+            valuesSnapshot = try await valuesManager.load(baseURL: baseURL)
+            hasLoadedValuesSnapshot = true
             await synchronizeConfigurationFile()
             return true
         } catch {
@@ -1047,13 +1113,20 @@ final class AppStateController: ObservableObject {
            await applyImportedRules(pendingStartupRules) {
             self.pendingStartupRules = nil
         }
-        if pendingStartupRules == nil {
+        if let pendingStartupValues,
+           await applyImportedValues(pendingStartupValues) {
+            self.pendingStartupValues = nil
+        }
+        if pendingStartupRules == nil, pendingStartupValues == nil {
             if !hasCompleteRulesSnapshot {
                 do {
                     try await reloadRules(baseURL: engine.uiURL)
                 } catch {
                     report(error)
                 }
+            }
+            if !hasLoadedValuesSnapshot {
+                _ = await loadValues()
             }
             await synchronizeConfigurationFile()
         }
@@ -1145,6 +1218,30 @@ final class AppStateController: ObservableObject {
         try await reloadRules(baseURL: baseURL)
     }
 
+    private func applyImportedValues(_ imported: WhistleValuesSnapshot) async -> Bool {
+        guard let baseURL = uiURL else { return false }
+        do {
+            let original = try await valuesManager.load(baseURL: baseURL)
+            try await valuesManager.applyChanges(from: original, to: imported, baseURL: baseURL)
+            valuesSnapshot = try await valuesManager.load(baseURL: baseURL)
+            hasLoadedValuesSnapshot = true
+            return true
+        } catch {
+            report(error)
+            return false
+        }
+    }
+
+    private func applyImportedValuesThrowing(_ imported: WhistleValuesSnapshot) async throws {
+        guard let baseURL = uiURL else {
+            throw WhistleYooError.commandFailed(Localization.string(.statusTheProxyEngineIsNotReadySoTheRuleConfigurationCannotBeApplie))
+        }
+        let current = try await valuesManager.load(baseURL: baseURL)
+        try await valuesManager.applyChanges(from: current, to: imported, baseURL: baseURL)
+        valuesSnapshot = try await valuesManager.load(baseURL: baseURL)
+        hasLoadedValuesSnapshot = true
+    }
+
     private func persistSettings() throws {
         try settingsStore.save(settings)
         scheduleConfigurationSynchronization()
@@ -1154,7 +1251,9 @@ final class AppStateController: ObservableObject {
         // Do not overwrite a cloud-synced startup snapshot before its rules
         // have been applied. On first launch, onboarding delays engine startup
         // until after `launch()` has returned.
-        guard !isImportingConfiguration, pendingStartupRules == nil else { return }
+        guard !isImportingConfiguration,
+              pendingStartupRules == nil,
+              pendingStartupValues == nil else { return }
         configurationSyncTask?.cancel()
         configurationSyncTask = Task { [weak self] in
             await Task.yield()
@@ -1173,9 +1272,17 @@ final class AppStateController: ObservableObject {
         } else {
             return
         }
+        let values: WhistleValuesSnapshot
+        if hasLoadedValuesSnapshot {
+            values = valuesSnapshot
+        } else if let existing = try? configurationStore.load(from: configurationFileURL) {
+            values = existing.values
+        } else {
+            return
+        }
         do {
             try configurationStore.save(
-                WhistleYooConfigurationFile(settings: settings, rules: rules),
+                WhistleYooConfigurationFile(settings: settings, rules: rules, values: values),
                 to: configurationFileURL
             )
         } catch {
