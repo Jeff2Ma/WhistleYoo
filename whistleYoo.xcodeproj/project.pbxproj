@@ -36,6 +36,7 @@
 		1129 /* RuleConfigurationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0134 /* RuleConfigurationView.swift */; };
 		1130 /* WhistleRulesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0135 /* WhistleRulesManager.swift */; };
 		1131 /* LocalizationKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0136 /* LocalizationKey.swift */; };
+		1132 /* WhistleCodeEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0137 /* WhistleCodeEditor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -72,6 +73,7 @@
 		0134 /* RuleConfigurationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleConfigurationView.swift; sourceTree = "<group>"; };
 		0135 /* WhistleRulesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhistleRulesManager.swift; sourceTree = "<group>"; };
 		0136 /* LocalizationKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationKey.swift; sourceTree = "<group>"; };
+		0137 /* WhistleCodeEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhistleCodeEditor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,7 +114,7 @@
 		};
 		0006 /* whistleYooApp */ = {
 			isa = PBXGroup;
-			children = (0112, 0119, 0120, 0121, 0122, 0113, 0132, 0133, 0134, 0114, 0007 /* Resources */);
+			children = (0112, 0119, 0120, 0121, 0122, 0113, 0132, 0133, 0134, 0137, 0114, 0007 /* Resources */);
 			path = whistleYooApp;
 			sourceTree = "<group>";
 		};
@@ -175,7 +177,7 @@
 		2001 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
-			files = (1101, 1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1121, 1123, 1131, 1130, 1112, 1117, 1118, 1119, 1120, 1113, 1126, 1128, 1129, 1114, 1116);
+			files = (1101, 1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1121, 1123, 1131, 1130, 1112, 1117, 1118, 1119, 1120, 1113, 1126, 1128, 1129, 1132, 1114, 1116);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */

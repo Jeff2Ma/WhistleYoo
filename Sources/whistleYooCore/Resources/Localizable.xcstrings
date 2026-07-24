@@ -1344,6 +1344,23 @@
       },
       "comment": "中文：Wi-Fi HTTP 代理"
     },
+    "editor.line_and_column": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ln %lld, Col %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 行，第 %lld 列"
+          }
+        }
+      },
+      "comment": "中文：第 %lld 行，第 %lld 列"
+    },
     "menu.check_for_updates": {
       "localizations": {
         "en": {

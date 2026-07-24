@@ -38,6 +38,7 @@ let package = Package(
             ]
         ),
         .testTarget(name: "whistleYooCoreTests", dependencies: ["whistleYooCore"]),
+        .testTarget(name: "whistleYooAppTests", dependencies: ["whistleYooApp"]),
         .testTarget(name: "whistleYooIntegrationTests", dependencies: ["whistleYooCore"])
     ],
     swiftLanguageVersions: [.v5]

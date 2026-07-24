@@ -163,6 +163,8 @@ SHA-256：%@</string>
 	<string>Whistle 连续异常退出，已停止自动重启</string>
 	<key>core.wi_fi_http_proxy</key>
 	<string>Wi-Fi HTTP 代理</string>
+	<key>editor.line_and_column</key>
+	<string>第 %lld 行，第 %lld 列</string>
 	<key>menu.check_for_updates</key>
 	<string>检查更新…</string>
 	<key>menu.cut</key>
