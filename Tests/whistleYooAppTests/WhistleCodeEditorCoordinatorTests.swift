@@ -142,6 +142,82 @@ final class WhistleCodeEditorCoordinatorTests: XCTestCase {
         XCTAssertEqual(editor.textView.selectedRange(), NSRange(location: 5, length: 0))
     }
 
+    func testRuleCommentLinesDoNotReceiveCodeTokenHighlights() {
+        var text = """
+        # unknown://127.0.0.1:8080 {commentValue}
+        unknown://127.0.0.1:8080 {codeValue}
+        """
+        let editor = makeEditor()
+
+        update(
+            editor,
+            binding: Binding(get: { text }, set: { text = $0 }),
+            documentID: "test:highlight:rule-comment:\(UUID())",
+            text: text,
+            isEditable: true
+        )
+
+        let source = text as NSString
+        let commentSchemeRange = source.range(of: "unknown")
+        let codeSchemeRange = source.range(
+            of: "unknown",
+            options: [],
+            range: NSRange(
+                location: NSMaxRange(commentSchemeRange),
+                length: source.length - NSMaxRange(commentSchemeRange)
+            )
+        )
+        let commentIPRange = source.range(of: "127.0.0.1")
+        let commentValueRange = source.range(of: "{commentValue}")
+
+        XCTAssertEqual(
+            editor.layoutManager.temporaryAttribute(
+                .foregroundColor,
+                atCharacterIndex: commentSchemeRange.location,
+                effectiveRange: nil
+            ) as? NSColor,
+            .systemGreen
+        )
+        XCTAssertEqual(
+            editor.layoutManager.temporaryAttribute(
+                .foregroundColor,
+                atCharacterIndex: commentIPRange.location,
+                effectiveRange: nil
+            ) as? NSColor,
+            .systemGreen
+        )
+        XCTAssertEqual(
+            editor.layoutManager.temporaryAttribute(
+                .foregroundColor,
+                atCharacterIndex: commentValueRange.location,
+                effectiveRange: nil
+            ) as? NSColor,
+            .systemGreen
+        )
+        XCTAssertNil(
+            editor.layoutManager.temporaryAttribute(
+                .underlineStyle,
+                atCharacterIndex: commentSchemeRange.location,
+                effectiveRange: nil
+            )
+        )
+        XCTAssertEqual(
+            editor.layoutManager.temporaryAttribute(
+                .foregroundColor,
+                atCharacterIndex: codeSchemeRange.location,
+                effectiveRange: nil
+            ) as? NSColor,
+            .systemPurple
+        )
+        XCTAssertNotNil(
+            editor.layoutManager.temporaryAttribute(
+                .underlineStyle,
+                atCharacterIndex: codeSchemeRange.location,
+                effectiveRange: nil
+            )
+        )
+    }
+
     private typealias Editor = (
         coordinator: WhistleCodeEditor.Coordinator,
         scrollView: NSScrollView,

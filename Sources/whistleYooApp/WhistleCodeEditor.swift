@@ -826,12 +826,42 @@ private enum WhistleSyntaxHighlighter {
 
         switch language {
         case .rules:
-            add(.systemGreen, matches: ruleComment, source: source, to: layoutManager)
-            add(.systemPurple, matches: ruleScheme, source: source, group: 1, to: layoutManager)
-            add(.linkColor, matches: ruleURL, source: source, to: layoutManager)
-            add(.systemOrange, matches: ruleValueReference, source: source, to: layoutManager)
-            add(.systemTeal, matches: ipAddress, source: source, to: layoutManager)
-            underlineUnknownSchemes(in: source, layoutManager: layoutManager)
+            let commentRanges = ranges(matching: ruleComment, in: source)
+            add(
+                .systemPurple,
+                matches: ruleScheme,
+                source: source,
+                group: 1,
+                excluding: commentRanges,
+                to: layoutManager
+            )
+            add(
+                .linkColor,
+                matches: ruleURL,
+                source: source,
+                excluding: commentRanges,
+                to: layoutManager
+            )
+            add(
+                .systemOrange,
+                matches: ruleValueReference,
+                source: source,
+                excluding: commentRanges,
+                to: layoutManager
+            )
+            add(
+                .systemTeal,
+                matches: ipAddress,
+                source: source,
+                excluding: commentRanges,
+                to: layoutManager
+            )
+            underlineUnknownSchemes(
+                in: source,
+                excluding: commentRanges,
+                layoutManager: layoutManager
+            )
+            add(.systemGreen, ranges: commentRanges, to: layoutManager)
         case let .value(documentName):
             switch WhistleValueLanguage(documentName: documentName, contents: source) {
             case .json:
@@ -880,12 +910,14 @@ private enum WhistleSyntaxHighlighter {
 
     private static func underlineUnknownSchemes(
         in source: String,
+        excluding excludedRanges: [NSRange],
         layoutManager: NSLayoutManager
     ) {
         let range = NSRange(location: 0, length: (source as NSString).length)
         for match in ruleScheme.matches(in: source, range: range) {
             guard match.numberOfRanges > 1 else { continue }
             let schemeRange = match.range(at: 1)
+            guard !overlapsAny(schemeRange, ranges: excludedRanges) else { continue }
             let scheme = (source as NSString).substring(with: schemeRange)
             guard !WhistleRuleSyntax.isKnownProtocol(scheme) else { continue }
             layoutManager.addTemporaryAttributes(
@@ -932,17 +964,60 @@ private enum WhistleSyntaxHighlighter {
         matches expression: NSRegularExpression,
         source: String,
         group: Int = 0,
+        excluding excludedRanges: [NSRange] = [],
         to layoutManager: NSLayoutManager
     ) {
         let range = NSRange(location: 0, length: (source as NSString).length)
         for match in expression.matches(in: source, range: range) {
             guard match.numberOfRanges > group else { continue }
+            let matchRange = match.range(at: group)
+            guard !overlapsAny(matchRange, ranges: excludedRanges) else { continue }
             layoutManager.addTemporaryAttribute(
                 .foregroundColor,
                 value: color,
-                forCharacterRange: match.range(at: group)
+                forCharacterRange: matchRange
             )
         }
+    }
+
+    private static func add(
+        _ color: NSColor,
+        ranges: [NSRange],
+        to layoutManager: NSLayoutManager
+    ) {
+        for range in ranges {
+            layoutManager.addTemporaryAttribute(
+                .foregroundColor,
+                value: color,
+                forCharacterRange: range
+            )
+        }
+    }
+
+    private static func ranges(
+        matching expression: NSRegularExpression,
+        in source: String
+    ) -> [NSRange] {
+        let range = NSRange(location: 0, length: (source as NSString).length)
+        return expression.matches(in: source, range: range).map(\.range)
+    }
+
+    private static func overlapsAny(_ range: NSRange, ranges: [NSRange]) -> Bool {
+        guard range.length > 0, !ranges.isEmpty else { return false }
+
+        var lowerBound = 0
+        var upperBound = ranges.count
+        while lowerBound < upperBound {
+            let middle = lowerBound + (upperBound - lowerBound) / 2
+            if NSMaxRange(ranges[middle]) <= range.location {
+                lowerBound = middle + 1
+            } else {
+                upperBound = middle
+            }
+        }
+
+        guard lowerBound < ranges.count else { return false }
+        return ranges[lowerBound].location < NSMaxRange(range)
     }
 
     private static func expression(_ pattern: String) -> NSRegularExpression {
