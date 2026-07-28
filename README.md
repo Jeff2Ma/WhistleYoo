@@ -157,10 +157,11 @@ Whistle's official API vocabulary—for example,
 `api.network.getSessions()` maps to `network_get_sessions`—while WhistleYoo
 extensions stay under `app_*`.
 
-The HTTP endpoint listens only on `127.0.0.1` and requires a generated Bearer
-token. Sensitive headers are redacted and large bodies are truncated by
-default. See the [MCP guide](docs/mcp.md) for transports, access rules, the
-naming contract, and the complete tool list.
+The HTTP endpoint listens only on `127.0.0.1`. Bearer token authentication is
+enabled by default and can be disabled explicitly in Settings; when disabled,
+the server ignores the `Authorization` header. Sensitive headers are redacted
+and large bodies are truncated by default. See the [MCP guide](docs/mcp.md) for
+transports, access rules, the naming contract, and the complete tool list.
 
 ## Troubleshooting
 

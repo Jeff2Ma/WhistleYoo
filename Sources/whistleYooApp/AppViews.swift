@@ -1067,6 +1067,7 @@ struct SettingsView: View {
     @State private var configurationFileStatus: String?
     @State private var configurationFileStatusIsSuccess = false
     @State private var mcpEnabled: Bool
+    @State private var mcpAuthenticationEnabled: Bool
     @State private var mcpPort: String
     @State private var mcpAccessMode: MCPAccessMode
     @State private var mcpStatus: String?
@@ -1082,6 +1083,9 @@ struct SettingsView: View {
         _proxyPort = State(initialValue: String(state.settings.engine.proxyPort))
         _uiPort = State(initialValue: String(state.settings.engine.uiPort))
         _mcpEnabled = State(initialValue: state.settings.mcp.enabled)
+        _mcpAuthenticationEnabled = State(
+            initialValue: state.settings.mcp.authenticationEnabled
+        )
         _mcpPort = State(initialValue: String(state.settings.mcp.port))
         _mcpAccessMode = State(initialValue: state.settings.mcp.accessMode)
         _whitelistDomainsText = State(
@@ -1348,6 +1352,7 @@ struct SettingsView: View {
             GroupBox {
                 VStack(alignment: .leading, spacing: 12) {
                     Toggle("Enable local MCP server", isOn: $mcpEnabled)
+                    Toggle("Enable HTTP authentication", isOn: $mcpAuthenticationEnabled)
                     HStack {
                         Text("Access")
                             .frame(width: 120, alignment: .leading)
@@ -1365,9 +1370,11 @@ struct SettingsView: View {
                         .font(.system(.caption, design: .monospaced))
                         .foregroundStyle(.secondary)
                         .textSelection(.enabled)
-                    Text("The server only listens on localhost. HTTP clients must use the generated Bearer token; stdio clients can launch the bundled whistleyoo-mcp helper.")
+                    Text(mcpAuthenticationEnabled
+                        ? "The server only listens on localhost. HTTP clients must use the generated Bearer token; stdio clients can launch the bundled whistleyoo-mcp helper."
+                        : "Authentication is disabled. Any process on this Mac can call the localhost MCP endpoint without a token.")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(mcpAuthenticationEnabled ? Color.secondary : Color.orange)
 
                     if let mcpStatus {
                         Label(mcpStatus, systemImage: "checkmark.circle.fill")
@@ -1382,6 +1389,7 @@ struct SettingsView: View {
                                 mcpStatus = "Bearer token rotated."
                             }
                         }
+                        .disabled(!mcpAuthenticationEnabled)
                         Spacer()
                         Button("Apply") { applyMCPSettings() }
                             .buttonStyle(.borderedProminent)
@@ -1417,6 +1425,7 @@ struct SettingsView: View {
         guard let port = Int(mcpPort) else { return }
         if state.updateMCPSettings(
             enabled: mcpEnabled,
+            authenticationEnabled: mcpAuthenticationEnabled,
             port: port,
             accessMode: mcpAccessMode
         ) {
@@ -1425,6 +1434,17 @@ struct SettingsView: View {
     }
 
     private func copyMCPHTTPConfiguration() {
+        guard mcpAuthenticationEnabled else {
+            copyToPasteboard(
+                """
+                {
+                  "url": "http://127.0.0.1:\(mcpPort)/mcp"
+                }
+                """
+            )
+            mcpStatus = "HTTP configuration copied."
+            return
+        }
         guard let token = try? MCPTokenStore().loadOrCreate() else { return }
         copyToPasteboard(
             """

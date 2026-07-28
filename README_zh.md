@@ -155,9 +155,11 @@ HTTP 或 stdio 连接配置。工具名与 Whistle 官方 API 的基本用词保
 `api.network.getSessions()` 对应 `network_get_sessions`；WhistleYoo 自有能力则
 统一放在 `app_*` 命名空间。
 
-HTTP 服务仅监听 `127.0.0.1`，并要求使用自动生成的 Bearer Token。敏感请求头
-默认会脱敏，过大的正文默认会截断。完整的传输方式、权限规则、命名约定和工具
-清单请参阅 [MCP 使用指南](docs/mcp.md)。
+HTTP 服务仅监听 `127.0.0.1`。Bearer Token 鉴权默认开启，也可以在设置中明确
+关闭；关闭后服务端会忽略 `Authorization` 请求头。敏感请求头默认会脱敏，过大
+的正文默认会截断。完整的传输方式、权限规则、命名约定和工具清单请参阅
+[MCP 使用指南](docs/mcp-usage.zh-CN.md)；完整接口清单见
+[MCP 接口说明](docs/mcp.md)。
 
 ## 常见问题
 

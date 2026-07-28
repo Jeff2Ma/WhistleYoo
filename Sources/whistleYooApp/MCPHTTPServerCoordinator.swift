@@ -29,7 +29,9 @@ final class MCPHTTPServerCoordinator {
         guard settings.enabled else { return }
 
         do {
-            let token = try tokenStore.loadOrCreate()
+            let token = settings.authenticationEnabled
+                ? try tokenStore.loadOrCreate()
+                : nil
             let backend = MCPToolBackend(state: state)
             let server = await backend.makeServer()
             let transport = StatelessHTTPServerTransport()
@@ -91,11 +93,11 @@ private final class MCPHTTPHandler: ChannelInboundHandler, @unchecked Sendable {
     typealias OutboundOut = HTTPServerResponsePart
 
     private let transport: StatelessHTTPServerTransport
-    private let bearerToken: String
+    private let bearerToken: String?
     private var requestHead: HTTPRequestHead?
     private var requestBody: ByteBuffer?
 
-    init(transport: StatelessHTTPServerTransport, bearerToken: String) {
+    init(transport: StatelessHTTPServerTransport, bearerToken: String?) {
         self.transport = transport
         self.bearerToken = bearerToken
     }
@@ -126,7 +128,8 @@ private final class MCPHTTPHandler: ChannelInboundHandler, @unchecked Sendable {
             write(status: .notFound, headers: [:], body: nil, context: context)
             return
         }
-        guard head.headers.first(name: "Authorization") == "Bearer \(bearerToken)" else {
+        if let bearerToken,
+           head.headers.first(name: "Authorization") != "Bearer \(bearerToken)" {
             let data = Data(#"{"error":"unauthorized"}"#.utf8)
             write(
                 status: .unauthorized,

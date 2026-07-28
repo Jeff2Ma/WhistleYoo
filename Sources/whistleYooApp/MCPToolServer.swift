@@ -335,6 +335,7 @@ final class MCPToolBackend {
             "proxyPort": .number(Double(state.settings.engine.proxyPort)),
             "uiPort": .number(Double(state.settings.engine.uiPort)),
             "mcpPort": .number(Double(state.settings.mcp.port)),
+            "mcpAuthenticationEnabled": .bool(state.settings.mcp.authenticationEnabled),
             "mcpAccessMode": .string(state.settings.mcp.accessMode.rawValue)
         ])
     }

@@ -192,17 +192,38 @@ public enum MCPAccessMode: String, Codable, CaseIterable, Sendable {
 
 public struct MCPSettings: Codable, Equatable, Sendable {
     public var enabled: Bool
+    public var authenticationEnabled: Bool
     public var port: Int
     public var accessMode: MCPAccessMode
 
     public init(
         enabled: Bool = false,
+        authenticationEnabled: Bool = true,
         port: Int = 8_901,
         accessMode: MCPAccessMode = .readOnly
     ) {
         self.enabled = enabled
+        self.authenticationEnabled = authenticationEnabled
         self.port = port
         self.accessMode = accessMode
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case enabled
+        case authenticationEnabled
+        case port
+        case accessMode
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        enabled = try container.decode(Bool.self, forKey: .enabled)
+        authenticationEnabled = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .authenticationEnabled
+        ) ?? true
+        port = try container.decode(Int.self, forKey: .port)
+        accessMode = try container.decode(MCPAccessMode.self, forKey: .accessMode)
     }
 }
 

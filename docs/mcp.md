@@ -4,6 +4,9 @@ WhistleYoo exposes its dedicated Whistle instance to local AI agents through
 the Model Context Protocol. MCP is disabled by default and the HTTP server only
 binds to `127.0.0.1`.
 
+For a step-by-step Chinese setup and usage guide, see
+[WhistleYoo MCP 使用指南](mcp-usage.zh-CN.md).
+
 ## Requirements
 
 - WhistleYoo's ordinary app features require Whistle 2.9 or later.
@@ -15,7 +18,8 @@ access mode, and copy a ready-to-use connection configuration.
 
 ## Transports and authentication
 
-The HTTP transport uses:
+Bearer token authentication is enabled by default. With authentication enabled,
+the HTTP transport uses:
 
 ```text
 http://127.0.0.1:8901/mcp
@@ -25,6 +29,12 @@ Authorization: Bearer <generated-token>
 The token is generated locally, stored separately from the portable app
 configuration, and protected with owner-only (`0600`) permissions. Rotating it
 immediately restarts the HTTP server and invalidates the previous token.
+
+Authentication can be disabled explicitly in Settings. In that mode the server
+continues to bind only to `127.0.0.1`, skips authorization checks entirely, and
+accepts requests whether the `Authorization` header is missing, valid, invalid,
+or contains an arbitrary string. Any process on the Mac can then call the MCP
+endpoint, so Bearer token authentication remains the recommended default.
 
 The app bundle also includes a stdio helper:
 

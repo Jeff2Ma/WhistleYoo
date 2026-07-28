@@ -89,6 +89,81 @@ final class MCPHTTPServerTests: XCTestCase {
         await coordinator.stop()
     }
 
+    @MainActor
+    func testLocalHTTPTransportSkipsAuthorizationWhenAuthenticationIsDisabled() async throws {
+        let port = 18_902
+        guard PortChecker().isAvailable(port: port, host: "127.0.0.1") else {
+            throw XCTSkip("Port \(port) is in use.")
+        }
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let state = AppStateController(
+            settingsStore: SettingsStore(fileURL: directory.appendingPathComponent("settings.json"))
+        )
+        let coordinator = MCPHTTPServerCoordinator(
+            state: state,
+            tokenStore: MCPTokenStore(fileURL: directory.appendingPathComponent("token"))
+        )
+        await coordinator.apply(MCPSettings(
+            enabled: true,
+            authenticationEnabled: false,
+            port: port
+        ))
+
+        do {
+            let (withoutHeaderData, withoutHeaderResponse) = try await URLSession.shared.data(
+                for: request(
+                    port: port,
+                    token: nil,
+                    id: 1,
+                    method: "initialize",
+                    params: [
+                        "protocolVersion": "2025-06-18",
+                        "capabilities": [:],
+                        "clientInfo": ["name": "test", "version": "1"]
+                    ]
+                )
+            )
+            XCTAssertEqual((withoutHeaderResponse as? HTTPURLResponse)?.statusCode, 200)
+            XCTAssertNotNil(try JSONSerialization.jsonObject(with: withoutHeaderData))
+
+            var arbitraryHeaderRequest = try request(
+                port: port,
+                token: nil,
+                id: 2,
+                method: "tools/list",
+                params: [:]
+            )
+            arbitraryHeaderRequest.setValue(
+                "any authentication string",
+                forHTTPHeaderField: "Authorization"
+            )
+            let (arbitraryHeaderData, arbitraryHeaderResponse) = try await URLSession.shared.data(
+                for: arbitraryHeaderRequest
+            )
+            XCTAssertEqual((arbitraryHeaderResponse as? HTTPURLResponse)?.statusCode, 200)
+            XCTAssertNotNil(try JSONSerialization.jsonObject(with: arbitraryHeaderData))
+
+            let (_, wrongBearerResponse) = try await URLSession.shared.data(
+                for: request(
+                    port: port,
+                    token: "wrong-token",
+                    id: 3,
+                    method: "tools/list",
+                    params: [:]
+                )
+            )
+            XCTAssertEqual((wrongBearerResponse as? HTTPURLResponse)?.statusCode, 200)
+        } catch {
+            await coordinator.stop()
+            throw error
+        }
+        await coordinator.stop()
+    }
+
     private func request(
         port: Int,
         token: String?,

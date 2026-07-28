@@ -564,7 +564,12 @@ final class AppStateController: ObservableObject {
     }
 
     @discardableResult
-    func updateMCPSettings(enabled: Bool, port: Int, accessMode: MCPAccessMode) -> Bool {
+    func updateMCPSettings(
+        enabled: Bool,
+        authenticationEnabled: Bool,
+        port: Int,
+        accessMode: MCPAccessMode
+    ) -> Bool {
         guard (1...65_535).contains(port),
               port != settings.engine.proxyPort,
               port != settings.engine.uiPort else {
@@ -574,7 +579,13 @@ final class AppStateController: ObservableObject {
             return false
         }
         let previous = settings.mcp
-        guard previous != MCPSettings(enabled: enabled, port: port, accessMode: accessMode) else {
+        let updated = MCPSettings(
+            enabled: enabled,
+            authenticationEnabled: authenticationEnabled,
+            port: port,
+            accessMode: accessMode
+        )
+        guard previous != updated else {
             return true
         }
         if enabled, (!previous.enabled || previous.port != port),
@@ -582,7 +593,7 @@ final class AppStateController: ObservableObject {
             report(WhistleYooError.portInUse(port))
             return false
         }
-        settings.mcp = MCPSettings(enabled: enabled, port: port, accessMode: accessMode)
+        settings.mcp = updated
         do {
             try persistSettings()
             onMCPSettingsChange?(settings.mcp)

@@ -182,6 +182,36 @@ final class ModelAndSettingsTests: XCTestCase {
         XCTAssertEqual(try store.load(from: url).values, WhistleValuesSnapshot())
     }
 
+    func testPortableConfigurationDefaultsMissingMCPAuthenticationToEnabled() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let url = root.appendingPathComponent("WhistleYoo.json")
+        let configuration = WhistleYooConfigurationFile(
+            settings: PersistedSettings(),
+            rules: WhistleRulesSnapshot(documents: [
+                WhistleRuleDocument(
+                    name: "Default",
+                    value: "",
+                    isEnabled: true,
+                    isDefault: true
+                )
+            ])
+        )
+        let encoded = try JSONEncoder().encode(configuration)
+        var object = try XCTUnwrap(try JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        var settings = try XCTUnwrap(object["settings"] as? [String: Any])
+        var mcp = try XCTUnwrap(settings["mcp"] as? [String: Any])
+        mcp.removeValue(forKey: "authenticationEnabled")
+        settings["mcp"] = mcp
+        object["settings"] = settings
+        try JSONSerialization.data(withJSONObject: object).write(to: url)
+
+        let loaded = try WhistleYooConfigurationStore(defaultFileURL: url).load(from: url)
+
+        XCTAssertTrue(loaded.settings.mcp.authenticationEnabled)
+    }
+
     func testLegacyPortableConfigurationMigratesToJSONFilename() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
@@ -269,6 +299,26 @@ final class ModelAndSettingsTests: XCTestCase {
         XCTAssertTrue(migrated.softwareDomainWhitelistEnabled)
         XCTAssertEqual(migrated.softwareDomainWhitelistDomains, SoftwareDomainWhitelistManager.domains)
         XCTAssertEqual(migrated.mcp, MCPSettings())
+        XCTAssertTrue(migrated.mcp.authenticationEnabled)
+    }
+
+    func testVersionFiveSettingsWithoutAuthenticationFieldDefaultToEnabled() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let url = root.appendingPathComponent("settings.json")
+        let encoded = try JSONEncoder().encode(PersistedSettings())
+        var object = try XCTUnwrap(try JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["schemaVersion"] = 5
+        var mcp = try XCTUnwrap(object["mcp"] as? [String: Any])
+        mcp.removeValue(forKey: "authenticationEnabled")
+        object["mcp"] = mcp
+        try JSONSerialization.data(withJSONObject: object).write(to: url)
+
+        let migrated = try SettingsStore(fileURL: url).load()
+
+        XCTAssertEqual(migrated.schemaVersion, 5)
+        XCTAssertTrue(migrated.mcp.authenticationEnabled)
     }
 
     func testSoftwareWhitelistManagedRulesPreserveUserDefaultRules() {
