@@ -10,6 +10,15 @@ enum AppEnvironmentStatus: Equatable {
     case unavailable(String)
 }
 
+struct MCPAuditEvent: Identifiable {
+    let id = UUID()
+    let date: Date
+    let tool: String
+    let succeeded: Bool
+    let durationMilliseconds: Int
+    let message: String?
+}
+
 @MainActor
 final class AppStateController: ObservableObject {
     @Published private(set) var settings = PersistedSettings() {
@@ -41,12 +50,14 @@ final class AppStateController: ObservableObject {
     @Published private(set) var isPerformingEngineOperation = false
     @Published private(set) var isImportingConfiguration = false
     @Published private(set) var configurationFileURL: URL
+    @Published private(set) var mcpAuditEvents: [MCPAuditEvent] = []
 
     var onStatusChange: (() -> Void)?
     var onError: ((Error) -> Void)?
     var onMessage: ((String) -> Void)?
     var onEngineReady: ((URL) -> Void)?
     var onDockVisibilityChange: ((Bool) -> Bool)?
+    var onMCPSettingsChange: ((MCPSettings) -> Void)?
 
     private let settingsStore: SettingsStore
     private let proxyManager: SystemProxyManager
@@ -444,7 +455,10 @@ final class AppStateController: ObservableObject {
             report(WhistleYooError.commandFailed(Localization.string(.statusWaitForTheCurrentProxyOperationToFinishThenTryAgain)))
             return false
         }
-        guard (1...65535).contains(proxyPort), (1...65535).contains(uiPort), proxyPort != uiPort else {
+        guard (1...65535).contains(proxyPort), (1...65535).contains(uiPort),
+              proxyPort != uiPort,
+              proxyPort != settings.mcp.port,
+              uiPort != settings.mcp.port else {
             report(WhistleYooError.commandFailed(Localization.string(.statusPortsMustBeBetween1And65535AndTheProxyAndWebUiPortsMustDi)))
             return false
         }
@@ -547,6 +561,70 @@ final class AppStateController: ObservableObject {
             conflicts.append(settings.engine.uiPort)
         }
         return conflicts
+    }
+
+    @discardableResult
+    func updateMCPSettings(enabled: Bool, port: Int, accessMode: MCPAccessMode) -> Bool {
+        guard (1...65_535).contains(port),
+              port != settings.engine.proxyPort,
+              port != settings.engine.uiPort else {
+            report(WhistleYooError.commandFailed(
+                "The MCP port must be valid and different from the proxy and Web UI ports."
+            ))
+            return false
+        }
+        let previous = settings.mcp
+        guard previous != MCPSettings(enabled: enabled, port: port, accessMode: accessMode) else {
+            return true
+        }
+        if enabled, (!previous.enabled || previous.port != port),
+           !portChecker.isAvailable(port: port, host: "127.0.0.1") {
+            report(WhistleYooError.portInUse(port))
+            return false
+        }
+        settings.mcp = MCPSettings(enabled: enabled, port: port, accessMode: accessMode)
+        do {
+            try persistSettings()
+            onMCPSettingsChange?(settings.mcp)
+            return true
+        } catch {
+            settings.mcp = previous
+            report(error)
+            return false
+        }
+    }
+
+    @discardableResult
+    func rotateMCPToken() -> Bool {
+        do {
+            _ = try MCPTokenStore().rotate()
+            onMCPSettingsChange?(settings.mcp)
+            return true
+        } catch {
+            report(error)
+            return false
+        }
+    }
+
+    func recordMCPAudit(
+        tool: String,
+        succeeded: Bool,
+        startedAt: Date,
+        message: String? = nil
+    ) {
+        mcpAuditEvents.insert(
+            MCPAuditEvent(
+                date: Date(),
+                tool: tool,
+                succeeded: succeeded,
+                durationMilliseconds: max(0, Int(Date().timeIntervalSince(startedAt) * 1_000)),
+                message: message
+            ),
+            at: 0
+        )
+        if mcpAuditEvents.count > 100 {
+            mcpAuditEvents.removeLast(mcpAuditEvents.count - 100)
+        }
     }
 
     @discardableResult

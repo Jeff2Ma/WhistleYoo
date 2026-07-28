@@ -8,6 +8,7 @@ import whistleYooCore
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let state = AppStateController()
+    private lazy var mcpServer = MCPHTTPServerCoordinator(state: state)
     private let consoleSession = WhistleConsoleSession()
     private var statusItem: NSStatusItem!
     private let statusMenu = NSMenu()
@@ -34,6 +35,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         Task {
             let shouldShowOnboarding = await state.launch()
+            await mcpServer.apply(state.settings.mcp)
             updateStatusIcon()
             if shouldShowOnboarding {
                 showOnboarding(reset: false)
@@ -67,6 +69,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         terminationInProgress = true
         Task {
             do {
+                await mcpServer.stop()
                 try await state.shutdown()
                 sender.reply(toApplicationShouldTerminate: true)
             } catch {
@@ -132,6 +135,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         state.onDockVisibilityChange = { [weak self] isVisible in
             self?.applyDockVisibility(isVisible) == true
+        }
+        state.onMCPSettingsChange = { [weak self] settings in
+            Task { @MainActor in
+                await self?.mcpServer.apply(settings)
+            }
         }
     }
 

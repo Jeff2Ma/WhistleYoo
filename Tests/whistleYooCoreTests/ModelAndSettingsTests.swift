@@ -263,11 +263,12 @@ final class ModelAndSettingsTests: XCTestCase {
 
         let migrated = try SettingsStore(fileURL: url).load()
 
-        XCTAssertEqual(migrated.schemaVersion, 4)
+        XCTAssertEqual(migrated.schemaVersion, 5)
         XCTAssertNil(migrated.completedOnboardingVersion)
         XCTAssertFalse(migrated.certificateStepSkipped)
         XCTAssertTrue(migrated.softwareDomainWhitelistEnabled)
         XCTAssertEqual(migrated.softwareDomainWhitelistDomains, SoftwareDomainWhitelistManager.domains)
+        XCTAssertEqual(migrated.mcp, MCPSettings())
     }
 
     func testSoftwareWhitelistManagedRulesPreserveUserDefaultRules() {

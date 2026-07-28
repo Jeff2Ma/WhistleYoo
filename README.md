@@ -46,6 +46,9 @@ WhistleYoo requires:
 | Node.js | 18 or later |
 | Whistle | 2.9 or later, installed globally |
 
+MCP integration uses Whistle's official Local Agent API and therefore requires
+Whistle 2.10.7 or later.
+
 If Whistle is not installed yet:
 
 ```bash
@@ -144,6 +147,20 @@ The default configuration file is:
 ```
 
 This JSON file contains both app settings and the complete rules snapshot. You can move it to iCloud Drive or another synchronized directory from Settings to reuse the configuration across Macs. Because it may contain local paths, domains, and complete rules, do not upload it to a public location without reviewing it first.
+
+## AI Agent Integration (MCP)
+
+WhistleYoo includes an optional local MCP server for AI agents. Open
+**Settings → Model Context Protocol (MCP)** to enable it, select **Read Only** or
+**Full Access**, and copy an HTTP or stdio configuration. Tool names follow
+Whistle's official API vocabulary—for example,
+`api.network.getSessions()` maps to `network_get_sessions`—while WhistleYoo
+extensions stay under `app_*`.
+
+The HTTP endpoint listens only on `127.0.0.1` and requires a generated Bearer
+token. Sensitive headers are redacted and large bodies are truncated by
+default. See the [MCP guide](docs/mcp.md) for transports, access rules, the
+naming contract, and the complete tool list.
 
 ## Troubleshooting
 

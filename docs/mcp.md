@@ -1,0 +1,91 @@
+# WhistleYoo MCP
+
+WhistleYoo exposes its dedicated Whistle instance to local AI agents through
+the Model Context Protocol. MCP is disabled by default and the HTTP server only
+binds to `127.0.0.1`.
+
+## Requirements
+
+- WhistleYoo's ordinary app features require Whistle 2.9 or later.
+- MCP tools require Whistle 2.10.7 or later because they use Whistle's official
+  Local Agent API.
+
+Open **Settings → Model Context Protocol (MCP)** to enable the server, choose an
+access mode, and copy a ready-to-use connection configuration.
+
+## Transports and authentication
+
+The HTTP transport uses:
+
+```text
+http://127.0.0.1:8901/mcp
+Authorization: Bearer <generated-token>
+```
+
+The token is generated locally, stored separately from the portable app
+configuration, and protected with owner-only (`0600`) permissions. Rotating it
+immediately restarts the HTTP server and invalidates the previous token.
+
+The app bundle also includes a stdio helper:
+
+```text
+/Applications/WhistleYoo.app/Contents/MacOS/whistleyoo-mcp --mcp-stdio
+```
+
+The Settings page can copy both connection formats as JSON.
+
+## Access modes
+
+- **Read Only** allows inspection tools and safe app status/start operations.
+- **Full Access** additionally allows requests, rule/value/plugin mutations,
+  system proxy changes, engine stop/restart, and other tools marked as
+  destructive.
+
+Network results redact authorization, cookie, and token-like fields by default.
+Large strings are truncated to 32 KiB by default and can be raised to at most
+256 KiB with `maxBodyBytes`. In Full Access mode, a caller can explicitly pass
+`includeSensitive: true`.
+
+## Naming contract
+
+Tool names are mechanically derived from Whistle's official JavaScript API,
+while argument names retain Whistle's camelCase spelling:
+
+| Whistle API | MCP tool |
+| --- | --- |
+| `api.getRootCA()` | `get_root_ca` |
+| `api.network.getSessions(options)` | `network_get_sessions` |
+| `api.rules.setMultiSelect(multiSelect)` | `rules_set_multi_select` |
+| `api.values.add(name, value)` | `values_add` |
+| `api.plugins.getList()` | `plugins_get_list` |
+
+WhistleYoo-only capabilities use the separate `app_*` namespace, including
+`app_get_status`, `app_start_engine`, `app_stop_engine`,
+`app_restart_engine`, `app_get_system_proxy_status`, and
+`app_set_system_proxy`.
+
+The complete exposed official surface follows Whistle's namespaces:
+
+- top level: `get_root_ca`, `is_enabled_https`, `set_enable_https`,
+  `create_file`, `get_file`
+- network: `network_get_status`, `network_get_sessions`,
+  `network_save_sessions`, `network_get_saved_sessions`,
+  `network_get_frames`, `network_request`, `network_abort`
+- rules: `rules_get_status`, `rules_turn_off`, `rules_turn_on`,
+  `rules_is_multi_select`, `rules_set_multi_select`,
+  `rules_set_later_first`, `rules_get_list`, `rules_add`, `rules_get`,
+  `rules_select`, `rules_unselect`, `rules_move_to_top`
+- values: `values_get_list`, `values_get`, `values_add`
+- plugins: `plugins_get_status`, `plugins_turn_off`, `plugins_turn_on`,
+  `plugins_get_list`, `plugins_get`, `plugins_select`, `plugins_unselect`
+
+WhistleYoo intentionally does not invent `delete` or `rename` tools when the
+official Local Agent API does not expose corresponding methods.
+
+## Resources
+
+- `whistle://network/status`
+- `whistle://root-ca`
+- `whistle://network/sessions/{id}`
+- `whistle://rules/{name}`
+- `whistle://values/{name}`

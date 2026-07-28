@@ -75,12 +75,33 @@ public struct SettingsV3ToV4Migration: SettingsMigrating {
     }
 }
 
+public struct SettingsV4ToV5Migration: SettingsMigrating {
+    public let fromVersion = 4
+    public let toVersion = 5
+
+    public init() {}
+
+    public func migrate(_ data: Data) throws -> Data {
+        guard var object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw WhistleYooError.settingsCorrupted("The v4 settings file format is invalid.")
+        }
+        object["schemaVersion"] = toVersion
+        object["mcp"] = [
+            "enabled": false,
+            "port": 8_901,
+            "accessMode": MCPAccessMode.readOnly.rawValue
+        ]
+        return try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys])
+    }
+}
+
 public extension MigrationManager {
     static var applicationDefault: MigrationManager {
         MigrationManager(migrations: [
             SettingsV1ToV2Migration(),
             SettingsV2ToV3Migration(),
-            SettingsV3ToV4Migration()
+            SettingsV3ToV4Migration(),
+            SettingsV4ToV5Migration()
         ])
     }
 }

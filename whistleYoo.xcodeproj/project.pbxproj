@@ -37,6 +37,14 @@
 		1130 /* WhistleRulesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0135 /* WhistleRulesManager.swift */; };
 		1131 /* LocalizationKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0136 /* LocalizationKey.swift */; };
 		1132 /* WhistleCodeEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0137 /* WhistleCodeEditor.swift */; };
+		1133 /* MCPTokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0138 /* MCPTokenStore.swift */; };
+		1134 /* WhistleAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0139 /* WhistleAPIClient.swift */; };
+		1135 /* MCPToolServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0140 /* MCPToolServer.swift */; };
+		1136 /* MCPHTTPServerCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0141 /* MCPHTTPServerCoordinator.swift */; };
+		1137 /* MCP in Frameworks */ = {isa = PBXBuildFile; productRef = 6004 /* MCP */; };
+		1138 /* NIOCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6006 /* NIOCore */; };
+		1139 /* NIOPosix in Frameworks */ = {isa = PBXBuildFile; productRef = 6007 /* NIOPosix */; };
+		1140 /* NIOHTTP1 in Frameworks */ = {isa = PBXBuildFile; productRef = 6008 /* NIOHTTP1 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -74,13 +82,17 @@
 		0135 /* WhistleRulesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhistleRulesManager.swift; sourceTree = "<group>"; };
 		0136 /* LocalizationKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationKey.swift; sourceTree = "<group>"; };
 		0137 /* WhistleCodeEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhistleCodeEditor.swift; sourceTree = "<group>"; };
+		0138 /* MCPTokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPTokenStore.swift; sourceTree = "<group>"; };
+		0139 /* WhistleAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhistleAPIClient.swift; sourceTree = "<group>"; };
+		0140 /* MCPToolServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPToolServer.swift; sourceTree = "<group>"; };
+		0141 /* MCPHTTPServerCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPHTTPServerCoordinator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		2002 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
-			files = (1127 /* Sparkle in Frameworks */);
+			files = (1127 /* Sparkle in Frameworks */, 1137 /* MCP in Frameworks */, 1138 /* NIOCore in Frameworks */, 1139 /* NIOPosix in Frameworks */, 1140 /* NIOHTTP1 in Frameworks */);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -108,13 +120,13 @@
 		};
 		0005 /* whistleYooCore */ = {
 			isa = PBXGroup;
-			children = (0101, 0102, 0103, 0104, 0105, 0106, 0107, 0108, 0109, 0110, 0111, 0123, 0125, 0136, 0128 /* Localizable.xcstrings */, 0135, 0118);
+			children = (0101, 0102, 0103, 0104, 0105, 0106, 0107, 0108, 0109, 0110, 0111, 0123, 0125, 0136, 0128 /* Localizable.xcstrings */, 0135, 0138, 0139, 0118);
 			path = whistleYooCore;
 			sourceTree = "<group>";
 		};
 		0006 /* whistleYooApp */ = {
 			isa = PBXGroup;
-			children = (0112, 0119, 0120, 0121, 0122, 0113, 0132, 0133, 0134, 0137, 0114, 0007 /* Resources */);
+			children = (0112, 0119, 0120, 0121, 0122, 0113, 0132, 0133, 0134, 0137, 0140, 0141, 0114, 0007 /* Resources */);
 			path = whistleYooApp;
 			sourceTree = "<group>";
 		};
@@ -134,7 +146,7 @@
 			buildRules = ();
 			dependencies = ();
 			name = whistleYoo;
-			packageProductDependencies = (6002 /* Sparkle */);
+			packageProductDependencies = (6002 /* Sparkle */, 6004 /* MCP */, 6006 /* NIOCore */, 6007 /* NIOPosix */, 6008 /* NIOHTTP1 */);
 			productName = WhistleYoo;
 			productReference = 0010 /* WhistleYoo.app */;
 			productType = "com.apple.product-type.application";
@@ -159,7 +171,7 @@
 			productRefGroup = 0003 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
-			packageReferences = (6001 /* XCRemoteSwiftPackageReference "Sparkle" */);
+			packageReferences = (6001 /* XCRemoteSwiftPackageReference "Sparkle" */, 6003 /* XCRemoteSwiftPackageReference "swift-sdk" */, 6005 /* XCRemoteSwiftPackageReference "swift-nio" */);
 			targets = (3001 /* whistleYoo */);
 		};
 /* End PBXProject section */
@@ -177,7 +189,7 @@
 		2001 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
-			files = (1101, 1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1121, 1123, 1131, 1130, 1112, 1117, 1118, 1119, 1120, 1113, 1126, 1128, 1129, 1132, 1114, 1116);
+			files = (1101, 1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1121, 1123, 1131, 1130, 1133, 1134, 1112, 1117, 1118, 1119, 1120, 1113, 1126, 1128, 1129, 1132, 1135, 1136, 1114, 1116);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
@@ -280,6 +292,22 @@
 				version = 2.9.2;
 			};
 		};
+		6003 /* XCRemoteSwiftPackageReference "swift-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/modelcontextprotocol/swift-sdk";
+			requirement = {
+				kind = exactVersion;
+				version = 0.12.1;
+			};
+		};
+		6005 /* XCRemoteSwiftPackageReference "swift-nio" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-nio.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.65.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -287,6 +315,26 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6001 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		6004 /* MCP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6003 /* XCRemoteSwiftPackageReference "swift-sdk" */;
+			productName = MCP;
+		};
+		6006 /* NIOCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6005 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOCore;
+		};
+		6007 /* NIOPosix */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6005 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOPosix;
+		};
+		6008 /* NIOHTTP1 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6005 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOHTTP1;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

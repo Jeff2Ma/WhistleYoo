@@ -46,6 +46,8 @@ WhistleYoo 是面向 [Whistle](https://github.com/avwo/whistle) 用户的开源 
 | Node.js | 18 或更高版本 |
 | Whistle | 2.9 或更高版本，需全局安装 |
 
+MCP 集成使用 Whistle 官方 Local Agent API，因此需要 Whistle 2.10.7 或更高版本。
+
 如果尚未安装 Whistle：
 
 ```bash
@@ -144,6 +146,18 @@ WhistleYoo 会自动查找 Homebrew、NVM、FNM、Volta 以及常见本地安装
 ```
 
 该 JSON 同时包含应用设置和完整规则快照。你可以在设置中改到 iCloud Drive 或其他同步目录，在多台 Mac 间复用配置；配置中可能包含本地路径、域名和完整规则，请不要直接上传到公开位置。
+
+## AI Agent 集成（MCP）
+
+WhistleYoo 内置了默认关闭的本机 MCP 服务。进入“设置 → Model Context
+Protocol (MCP)”后，可以启用服务、选择“只读”或“完全访问”，并直接复制
+HTTP 或 stdio 连接配置。工具名与 Whistle 官方 API 的基本用词保持对齐，例如
+`api.network.getSessions()` 对应 `network_get_sessions`；WhistleYoo 自有能力则
+统一放在 `app_*` 命名空间。
+
+HTTP 服务仅监听 `127.0.0.1`，并要求使用自动生成的 Bearer Token。敏感请求头
+默认会脱敏，过大的正文默认会截断。完整的传输方式、权限规则、命名约定和工具
+清单请参阅 [MCP 使用指南](docs/mcp.md)。
 
 ## 常见问题
 
