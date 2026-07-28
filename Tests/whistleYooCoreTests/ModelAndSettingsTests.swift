@@ -212,6 +212,54 @@ final class ModelAndSettingsTests: XCTestCase {
         XCTAssertTrue(loaded.settings.mcp.authenticationEnabled)
     }
 
+    func testPortableConfigurationMigratesVersionFourSettingsBeforeDecoding() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let url = root.appendingPathComponent("WhistleYoo.json")
+        let store = WhistleYooConfigurationStore(defaultFileURL: url)
+        var settings = PersistedSettings()
+        settings.engine.proxyPort = 10_080
+        let configuration = WhistleYooConfigurationFile(
+            settings: settings,
+            rules: WhistleRulesSnapshot(documents: [
+                WhistleRuleDocument(
+                    name: "Default",
+                    value: "example.com host://127.0.0.1",
+                    isEnabled: true,
+                    isDefault: true
+                )
+            ])
+        )
+        let encoded = try JSONEncoder().encode(configuration)
+        var object = try XCTUnwrap(try JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        var legacySettings = try XCTUnwrap(object["settings"] as? [String: Any])
+        legacySettings["schemaVersion"] = 4
+        legacySettings.removeValue(forKey: "mcp")
+        object["settings"] = legacySettings
+        object.removeValue(forKey: "values")
+        try JSONSerialization.data(withJSONObject: object).write(to: url)
+
+        let loaded = try store.load(from: url)
+
+        XCTAssertEqual(loaded.settings.schemaVersion, PersistedSettings.currentSchemaVersion)
+        XCTAssertEqual(loaded.settings.engine.proxyPort, 10_080)
+        XCTAssertEqual(loaded.settings.mcp, MCPSettings())
+        XCTAssertEqual(loaded.values, WhistleValuesSnapshot())
+        XCTAssertEqual(loaded.rules, configuration.rules)
+
+        let persisted = try XCTUnwrap(
+            try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any]
+        )
+        let persistedSettings = try XCTUnwrap(persisted["settings"] as? [String: Any])
+        XCTAssertEqual(
+            persistedSettings["schemaVersion"] as? Int,
+            PersistedSettings.currentSchemaVersion
+        )
+        XCTAssertNotNil(persistedSettings["mcp"])
+        XCTAssertNotNil(persisted["values"])
+    }
+
     func testLegacyPortableConfigurationMigratesToJSONFilename() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }

@@ -4,6 +4,41 @@ import XCTest
 @testable import whistleYooCore
 
 final class MCPHTTPServerTests: XCTestCase {
+    func testHTTPConfigurationIncludesServerNameAndAuthentication() throws {
+        let configuration = MCPHTTPConfigurationFormatter.render(
+            port: "8901",
+            authenticationEnabled: true,
+            bearerToken: "example-token"
+        )
+
+        let object = try XCTUnwrap(
+            try JSONSerialization.jsonObject(with: Data(configuration.utf8)) as? [String: Any]
+        )
+        XCTAssertNil(object["mcpServers"])
+        let whistleYoo = try XCTUnwrap(object["whistleyoo"] as? [String: Any])
+        let headers = try XCTUnwrap(whistleYoo["headers"] as? [String: String])
+
+        XCTAssertEqual(whistleYoo["url"] as? String, "http://127.0.0.1:8901/mcp")
+        XCTAssertEqual(headers["Authorization"], "Bearer example-token")
+    }
+
+    func testHTTPConfigurationKeepsServerNameWithoutAuthentication() throws {
+        let configuration = MCPHTTPConfigurationFormatter.render(
+            port: "9001",
+            authenticationEnabled: false,
+            bearerToken: "unused-token"
+        )
+
+        let object = try XCTUnwrap(
+            try JSONSerialization.jsonObject(with: Data(configuration.utf8)) as? [String: Any]
+        )
+        XCTAssertNil(object["mcpServers"])
+        let whistleYoo = try XCTUnwrap(object["whistleyoo"] as? [String: Any])
+
+        XCTAssertEqual(whistleYoo["url"] as? String, "http://127.0.0.1:9001/mcp")
+        XCTAssertNil(whistleYoo["headers"])
+    }
+
     func testMCPEnvironmentDetailsIncludeDetectedVersionsAndExecutablePaths() throws {
         let environment = EnvironmentInfo(
             nodeURL: URL(fileURLWithPath: "/opt/example/bin/node"),

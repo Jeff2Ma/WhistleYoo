@@ -36,9 +36,9 @@ accepts requests whether the `Authorization` header is missing, valid, invalid,
 or contains an arbitrary string. Any process on the Mac can then call the MCP
 endpoint, so Bearer token authentication remains the recommended default.
 
-The MCP tab displays the active HTTP connection configuration as JSON. When
-authentication is enabled it includes the current Bearer token; use the Copy
-button beside the configuration to copy it.
+The MCP tab displays a ready-to-paste JSON configuration keyed by
+`whistleyoo`. When authentication is enabled it includes the current Bearer
+token; use the Copy button beside the configuration to copy it.
 
 ## Access modes
 

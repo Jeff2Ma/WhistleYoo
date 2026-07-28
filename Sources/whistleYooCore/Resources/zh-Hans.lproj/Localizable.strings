@@ -165,6 +165,42 @@ SHA-256：%@</string>
 	<string>Wi-Fi HTTP 代理</string>
 	<key>editor.line_and_column</key>
 	<string>第 %lld 行，第 %lld 列</string>
+	<key>mcp.access</key>
+	<string>访问权限</string>
+	<key>mcp.authentication_disabled</key>
+	<string>鉴权已关闭。本机任意进程无需 Token 即可调用 localhost MCP 端点。</string>
+	<key>mcp.bearer_token_rotated</key>
+	<string>Bearer Token 已更新。</string>
+	<key>mcp.enable_http_authentication</key>
+	<string>启用 HTTP 鉴权</string>
+	<key>mcp.enable_local_server</key>
+	<string>启用本地 MCP 服务</string>
+	<key>mcp.full_access</key>
+	<string>完全访问</string>
+	<key>mcp.http_configuration</key>
+	<string>HTTP MCP 配置</string>
+	<key>mcp.http_configuration_copied</key>
+	<string>HTTP 配置已复制。</string>
+	<key>mcp.http_endpoint_value</key>
+	<string>HTTP 端点：%@</string>
+	<key>mcp.http_port</key>
+	<string>MCP HTTP 端口</string>
+	<key>mcp.let_local_ai_agents_call_whistle_apis_with_whistle_compatible_names</key>
+	<string>允许本机 AI Agent 使用与 Whistle 对齐的名称调用 Whistle API。</string>
+	<key>mcp.model_context_protocol</key>
+	<string>模型上下文协议（MCP）</string>
+	<key>mcp.read_only</key>
+	<string>只读</string>
+	<key>mcp.recent_activity</key>
+	<string>最近的 MCP 活动</string>
+	<key>mcp.rotate_token</key>
+	<string>更新 Token</string>
+	<key>mcp.server_disabled</key>
+	<string>MCP 服务已关闭。</string>
+	<key>mcp.server_only_listens_on_localhost</key>
+	<string>服务仅监听本机地址。HTTP 客户端必须使用生成的 Bearer Token。</string>
+	<key>mcp.server_settings_applied</key>
+	<string>MCP 服务设置已应用。</string>
 	<key>menu.check_for_updates</key>
 	<string>检查更新…</string>
 	<key>menu.cut</key>

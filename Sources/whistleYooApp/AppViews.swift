@@ -1241,21 +1241,11 @@ struct MCPSettingsView: View {
     }
 
     private var httpConfiguration: String {
-        guard authenticationEnabled else {
-            return """
-            {
-              "url": "http://127.0.0.1:\(port)/mcp"
-            }
-            """
-        }
-        return """
-        {
-          "url": "http://127.0.0.1:\(port)/mcp",
-          "headers": {
-            "Authorization": "Bearer \(bearerToken ?? "")"
-          }
-        }
-        """
+        MCPHTTPConfigurationFormatter.render(
+            port: port,
+            authenticationEnabled: authenticationEnabled,
+            bearerToken: bearerToken
+        )
     }
 
     private func copyHTTPConfiguration() {
@@ -1266,6 +1256,34 @@ struct MCPSettingsView: View {
     private func copyToPasteboard(_ value: String) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(value, forType: .string)
+    }
+}
+
+enum MCPHTTPConfigurationFormatter {
+    static func render(
+        port: String,
+        authenticationEnabled: Bool,
+        bearerToken: String?
+    ) -> String {
+        guard authenticationEnabled else {
+            return """
+            {
+              "whistleyoo": {
+                "url": "http://127.0.0.1:\(port)/mcp"
+              }
+            }
+            """
+        }
+        return """
+        {
+          "whistleyoo": {
+            "url": "http://127.0.0.1:\(port)/mcp",
+            "headers": {
+              "Authorization": "Bearer \(bearerToken ?? "")"
+            }
+          }
+        }
+        """
     }
 }
 
