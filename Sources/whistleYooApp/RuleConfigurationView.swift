@@ -251,6 +251,7 @@ struct RuleConfigurationView: View {
     @State private var createName = ""
     @State private var saveFeedbackWorkspaces: Set<RulesValuesWorkspace> = []
     @State private var saveFeedbackIDs: [RulesValuesWorkspace: UUID] = [:]
+    @State private var editorPosition = WhistleEditorPosition()
 
     private var selectedName: String? {
         get { draft.selectedName }
@@ -650,13 +651,17 @@ struct RuleConfigurationView: View {
 
                 Divider()
 
-                RuleTextEditor(
+                WhistleCodeEditor(
                     text: Binding(
                         get: { displayedEditorValue },
                         set: { editorValue = $0 }
                     ),
+                    documentID: "rules:\(document.name)",
+                    language: .rules,
                     isEditable: !document.isDefault && !rulesOperationInProgress,
-                    searchQuery: filter
+                    sidebarSearchQuery: filter,
+                    valueNames: draft.valueDocuments.map(\.name),
+                    onPositionChange: { editorPosition = $0 }
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(nsColor: .windowBackgroundColor))
@@ -674,6 +679,12 @@ struct RuleConfigurationView: View {
                         Text("·")
                     }
                     Text(Localization.format(.rulesValueLines, Int64(lineCount)))
+                    Text("·")
+                    Text(Localization.format(
+                        .editorLineAndColumn,
+                        Int64(editorPosition.line),
+                        Int64(editorPosition.column)
+                    ))
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -927,7 +938,7 @@ struct RuleConfigurationView: View {
 
     private func presentRenameAlert(for document: WhistleRuleDocument) {
         guard !rulesOperationInProgress else { return }
-        let dialog = RuleNameAlertController(
+        let dialog = WhistleRuleNameAlertController(
             title: Localization.string(.rulesRenameRule),
             placeholder: Localization.string(.rulesRuleName),
             initialName: document.name,
@@ -987,6 +998,7 @@ private struct ValuesConfigurationContent: View {
     @State private var isCreating = false
     @State private var isDeleting = false
     @State private var createName = ""
+    @State private var editorPosition = WhistleEditorPosition()
 
     private var selectedName: String? {
         get { draft.selectedValueName }
@@ -1219,13 +1231,17 @@ private struct ValuesConfigurationContent: View {
 
                 Divider()
 
-                RuleTextEditor(
+                WhistleCodeEditor(
                     text: Binding(
                         get: { editorValue },
                         set: { editorValue = $0 }
                     ),
+                    documentID: "values:\(document.name)",
+                    language: .value(documentName: document.name),
                     isEditable: !isOperationInProgress,
-                    searchQuery: filter
+                    sidebarSearchQuery: filter,
+                    valueNames: [],
+                    onPositionChange: { editorPosition = $0 }
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(nsColor: .windowBackgroundColor))
@@ -1241,6 +1257,12 @@ private struct ValuesConfigurationContent: View {
                         Text("·")
                     }
                     Text(Localization.format(.rulesValueLines, Int64(lineCount)))
+                    Text("·")
+                    Text(Localization.format(
+                        .editorLineAndColumn,
+                        Int64(editorPosition.line),
+                        Int64(editorPosition.column)
+                    ))
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -1321,7 +1343,7 @@ private struct ValuesConfigurationContent: View {
 
     private func presentRenameAlert(for document: WhistleValueDocument) {
         guard !isOperationInProgress else { return }
-        let dialog = RuleNameAlertController(
+        let dialog = WhistleRuleNameAlertController(
             title: Localization.string(.valuesRenameValue),
             placeholder: Localization.string(.valuesValueName),
             initialName: document.name,
@@ -1604,362 +1626,5 @@ private struct HoverIconButtonStyle: ButtonStyle {
             }
             return .clear
         }
-    }
-}
-
-/// AppKit's native text system provides the standard editing responder chain
-/// even though WhistleYoo builds its main menu manually instead of using a
-/// SwiftUI `App`. The explicit key-equivalent handling keeps the expected
-/// Command-C/V/A behavior available in that setup.
-private struct RuleTextEditor: NSViewRepresentable {
-    @Binding var text: String
-    let isEditable: Bool
-    let searchQuery: String
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(text: $text)
-    }
-
-    func makeNSView(context: Context) -> NSScrollView {
-        let scrollView = NSScrollView()
-        scrollView.borderType = .noBorder
-        scrollView.drawsBackground = true
-        scrollView.backgroundColor = .windowBackgroundColor
-        scrollView.clipsToBounds = true
-        scrollView.hasVerticalScroller = true
-        scrollView.hasHorizontalScroller = false
-        scrollView.autohidesScrollers = true
-        scrollView.contentView.postsBoundsChangedNotifications = true
-
-        let textView = StandardRuleTextView(frame: scrollView.contentView.bounds)
-        textView.delegate = context.coordinator
-        textView.string = text
-        textView.isRichText = false
-        textView.importsGraphics = false
-        textView.allowsUndo = true
-        textView.isAutomaticQuoteSubstitutionEnabled = false
-        textView.isAutomaticDashSubstitutionEnabled = false
-        textView.isAutomaticTextReplacementEnabled = false
-        textView.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
-        textView.textColor = .textColor
-        textView.backgroundColor = .windowBackgroundColor
-        textView.textContainerInset = NSSize(width: 14, height: 12)
-        textView.minSize = NSSize(width: 0, height: scrollView.contentSize.height)
-        textView.maxSize = NSSize(
-            width: CGFloat.greatestFiniteMagnitude,
-            height: CGFloat.greatestFiniteMagnitude
-        )
-        textView.isVerticallyResizable = true
-        textView.isHorizontallyResizable = false
-        textView.autoresizingMask = [.width]
-        textView.textContainer?.widthTracksTextView = true
-        textView.textContainer?.containerSize = NSSize(
-            width: 0,
-            height: CGFloat.greatestFiniteMagnitude
-        )
-        scrollView.documentView = textView
-
-        let lineNumberRuler = RuleLineNumberRulerView(textView: textView)
-        lineNumberRuler.clipsToBounds = true
-        scrollView.verticalRulerView = lineNumberRuler
-        scrollView.hasVerticalRuler = true
-        scrollView.rulersVisible = true
-        context.coordinator.attach(
-            scrollView: scrollView,
-            lineNumberRuler: lineNumberRuler
-        )
-        context.coordinator.updateHighlights(in: textView, query: searchQuery)
-        return scrollView
-    }
-
-    func updateNSView(_ scrollView: NSScrollView, context: Context) {
-        guard let textView = scrollView.documentView as? StandardRuleTextView else { return }
-        if textView.string != text {
-            let selection = textView.selectedRange()
-            textView.string = text
-            textView.setSelectedRange(NSRange(
-                location: min(selection.location, (text as NSString).length),
-                length: 0
-            ))
-        }
-        textView.isEditable = isEditable
-        textView.isSelectable = true
-        context.coordinator.updateHighlights(in: textView, query: searchQuery)
-        context.coordinator.invalidateLineNumbers()
-    }
-
-    final class Coordinator: NSObject, NSTextViewDelegate {
-        private static let commentPattern = try! NSRegularExpression(
-            pattern: #"(?m)^[\t ]*#.*$"#
-        )
-
-        @Binding private var text: String
-        private weak var textView: NSTextView?
-        private weak var lineNumberRuler: RuleLineNumberRulerView?
-        private var boundsObserver: NSObjectProtocol?
-        private var searchQuery = ""
-
-        init(text: Binding<String>) {
-            _text = text
-        }
-
-        deinit {
-            if let boundsObserver {
-                NotificationCenter.default.removeObserver(boundsObserver)
-            }
-        }
-
-        func attach(scrollView: NSScrollView, lineNumberRuler: RuleLineNumberRulerView) {
-            self.textView = scrollView.documentView as? NSTextView
-            self.lineNumberRuler = lineNumberRuler
-            boundsObserver = NotificationCenter.default.addObserver(
-                forName: NSView.boundsDidChangeNotification,
-                object: scrollView.contentView,
-                queue: .main
-            ) { [weak lineNumberRuler] _ in
-                lineNumberRuler?.needsDisplay = true
-            }
-        }
-
-        func textDidChange(_ notification: Notification) {
-            guard let textView = notification.object as? NSTextView else { return }
-            text = textView.string
-            updateHighlights(in: textView, query: searchQuery)
-            invalidateLineNumbers()
-        }
-
-        func updateHighlights(in textView: NSTextView, query: String) {
-            self.textView = textView
-            searchQuery = query
-            guard let layoutManager = textView.layoutManager else { return }
-            let fullRange = NSRange(location: 0, length: (textView.string as NSString).length)
-            layoutManager.removeTemporaryAttribute(.foregroundColor, forCharacterRange: fullRange)
-            layoutManager.removeTemporaryAttribute(.backgroundColor, forCharacterRange: fullRange)
-            layoutManager.removeTemporaryAttribute(.underlineStyle, forCharacterRange: fullRange)
-
-            if fullRange.length > 0 {
-                for match in Self.commentPattern.matches(
-                    in: textView.string,
-                    range: fullRange
-                ) {
-                    layoutManager.addTemporaryAttribute(
-                        .foregroundColor,
-                        value: NSColor.systemGreen,
-                        forCharacterRange: match.range
-                    )
-                }
-            }
-
-            guard !query.isEmpty, fullRange.length > 0 else { return }
-
-            let source = textView.string as NSString
-            var searchRange = fullRange
-            while searchRange.length > 0 {
-                let match = source.range(
-                    of: query,
-                    options: [.caseInsensitive, .diacriticInsensitive],
-                    range: searchRange
-                )
-                guard match.location != NSNotFound else { break }
-                layoutManager.addTemporaryAttributes(
-                    [
-                        .backgroundColor: NSColor.systemYellow.withAlphaComponent(0.38),
-                        .underlineStyle: NSUnderlineStyle.single.rawValue
-                    ],
-                    forCharacterRange: match
-                )
-                let nextLocation = NSMaxRange(match)
-                searchRange = NSRange(location: nextLocation, length: source.length - nextLocation)
-            }
-        }
-
-        func invalidateLineNumbers() {
-            lineNumberRuler?.needsDisplay = true
-        }
-    }
-}
-
-@MainActor
-private final class RuleNameAlertController: NSObject, NSTextFieldDelegate {
-    private let alert = NSAlert()
-    private let nameField: NSTextField
-    private let isValid: (String) -> Bool
-
-    init(
-        title: String,
-        placeholder: String,
-        initialName: String,
-        confirmTitle: String,
-        cancelTitle: String,
-        isValid: @escaping (String) -> Bool
-    ) {
-        nameField = NSTextField(string: initialName)
-        self.isValid = isValid
-        super.init()
-
-        alert.messageText = title
-        alert.addButton(withTitle: confirmTitle)
-        let cancelButton = alert.addButton(withTitle: cancelTitle)
-        cancelButton.keyEquivalent = "\u{1b}"
-
-        nameField.placeholderString = placeholder
-        nameField.usesSingleLineMode = true
-        nameField.lineBreakMode = .byTruncatingTail
-        nameField.frame = NSRect(x: 0, y: 0, width: 400, height: 24)
-        nameField.delegate = self
-        alert.accessoryView = nameField
-        alert.window.initialFirstResponder = nameField
-        updateConfirmButton()
-    }
-
-    func present(attachedTo window: NSWindow?, completion: @escaping (String?) -> Void) {
-        if let window {
-            alert.beginSheetModal(for: window) { [self] response in
-                completion(result(for: response))
-            }
-            nameField.selectText(nil)
-            return
-        }
-
-        nameField.selectText(nil)
-        completion(result(for: alert.runModal()))
-    }
-
-    func controlTextDidChange(_ notification: Notification) {
-        updateConfirmButton()
-    }
-
-    private func updateConfirmButton() {
-        alert.buttons.first?.isEnabled = isValid(nameField.stringValue)
-    }
-
-    private func result(for response: NSApplication.ModalResponse) -> String? {
-        response == .alertFirstButtonReturn ? nameField.stringValue : nil
-    }
-}
-
-private final class RuleLineNumberRulerView: NSRulerView {
-    private weak var textView: NSTextView?
-    private let numberFont = NSFont.monospacedDigitSystemFont(ofSize: 10.5, weight: .regular)
-
-    init(textView: NSTextView) {
-        self.textView = textView
-        super.init(scrollView: textView.enclosingScrollView, orientation: .verticalRuler)
-        clientView = textView
-        ruleThickness = 44
-    }
-
-    required init(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func drawHashMarksAndLabels(in rect: NSRect) {
-        guard let textView,
-              let scrollView = textView.enclosingScrollView,
-              let layoutManager = textView.layoutManager,
-              let textContainer = textView.textContainer
-        else { return }
-
-        NSColor.windowBackgroundColor.setFill()
-        bounds.fill()
-        NSColor.separatorColor.withAlphaComponent(0.12).setFill()
-        let displayScale = window?.backingScaleFactor ?? NSScreen.main?.backingScaleFactor ?? 1
-        let hairlineWidth = 1 / max(displayScale, 1)
-        NSRect(
-            x: bounds.maxX - hairlineWidth,
-            y: bounds.minY,
-            width: hairlineWidth,
-            height: bounds.height
-        ).fill()
-
-        let visibleRect = scrollView.contentView.bounds
-        layoutManager.ensureLayout(for: textContainer)
-        let glyphRange = layoutManager.glyphRange(forBoundingRect: visibleRect, in: textContainer)
-        let characterRange = layoutManager.characterRange(
-            forGlyphRange: glyphRange,
-            actualGlyphRange: nil
-        )
-        let source = textView.string as NSString
-        let safeLocation = min(characterRange.location, source.length)
-        let firstLineRange = source.lineRange(for: NSRange(location: safeLocation, length: 0))
-        var characterIndex = firstLineRange.location
-        var lineNumber = 1 + newlineCount(in: source, before: characterIndex)
-        let attributes: [NSAttributedString.Key: Any] = [
-            .font: numberFont,
-            .foregroundColor: NSColor.secondaryLabelColor
-        ]
-
-        while characterIndex <= source.length {
-            let lineRect: NSRect
-            if characterIndex == source.length {
-                guard source.length == 0 || source.character(at: source.length - 1) == 10 else { break }
-                lineRect = layoutManager.extraLineFragmentRect
-            } else {
-                let glyphIndex = layoutManager.glyphIndexForCharacter(at: characterIndex)
-                lineRect = layoutManager.lineFragmentRect(
-                    forGlyphAt: glyphIndex,
-                    effectiveRange: nil
-                )
-            }
-
-            let drawingY = lineRect.minY
-                + textView.textContainerOrigin.y
-                - visibleRect.minY
-            if drawingY > bounds.maxY { break }
-            if drawingY + lineRect.height >= bounds.minY {
-                let label = "\(lineNumber)" as NSString
-                let labelSize = label.size(withAttributes: attributes)
-                label.draw(
-                    at: NSPoint(
-                        x: ruleThickness - labelSize.width - 9,
-                        y: drawingY + max(0, (lineRect.height - labelSize.height) / 2)
-                    ),
-                    withAttributes: attributes
-                )
-            }
-
-            guard characterIndex < source.length else { break }
-            let lineRange = source.lineRange(for: NSRange(location: characterIndex, length: 0))
-            let nextIndex = NSMaxRange(lineRange)
-            guard nextIndex > characterIndex else { break }
-            characterIndex = nextIndex
-            lineNumber += 1
-        }
-    }
-
-    private func newlineCount(in source: NSString, before location: Int) -> Int {
-        guard location > 0 else { return 0 }
-        var count = 0
-        for index in 0..<min(location, source.length) where source.character(at: index) == 10 {
-            count += 1
-        }
-        return count
-    }
-}
-
-private final class StandardRuleTextView: NSTextView {
-    override func performKeyEquivalent(with event: NSEvent) -> Bool {
-        let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-        guard modifiers.contains(.command),
-              !modifiers.contains(.control),
-              !modifiers.contains(.option),
-              !modifiers.contains(.shift),
-              let key = event.charactersIgnoringModifiers?.lowercased()
-        else {
-            return super.performKeyEquivalent(with: event)
-        }
-        switch key {
-        case "a":
-            selectAll(nil)
-        case "c":
-            copy(nil)
-        case "v":
-            paste(nil)
-        case "x":
-            cut(nil)
-        default:
-            return super.performKeyEquivalent(with: event)
-        }
-        return true
     }
 }

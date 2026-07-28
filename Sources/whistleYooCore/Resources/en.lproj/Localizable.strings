@@ -163,6 +163,8 @@ SHA-256: %@</string>
 	<string>Whistle repeatedly exited unexpectedly; automatic restart has stopped</string>
 	<key>core.wi_fi_http_proxy</key>
 	<string>Wi-Fi HTTP Proxy</string>
+	<key>editor.line_and_column</key>
+	<string>Ln %lld, Col %lld</string>
 	<key>menu.check_for_updates</key>
 	<string>Check for Updates…</string>
 	<key>menu.cut</key>
