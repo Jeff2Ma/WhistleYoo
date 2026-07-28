@@ -13,8 +13,8 @@ For a step-by-step Chinese setup and usage guide, see
 - MCP tools require Whistle 2.10.7 or later because they use Whistle's official
   Local Agent API.
 
-Open **Settings → Model Context Protocol (MCP)** to enable the server, choose an
-access mode, and copy a ready-to-use connection configuration.
+Open the **MCP** tab to enable the server, choose an access mode, and copy a
+ready-to-use connection configuration.
 
 ## Transports and authentication
 

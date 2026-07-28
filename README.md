@@ -150,8 +150,8 @@ This JSON file contains both app settings and the complete rules snapshot. You c
 
 ## AI Agent Integration (MCP)
 
-WhistleYoo includes an optional local MCP server for AI agents. Open
-**Settings → Model Context Protocol (MCP)** to enable it, select **Read Only** or
+WhistleYoo includes an optional local MCP server for AI agents. Open the
+**MCP** tab to enable it, select **Read Only** or
 **Full Access**, and copy an HTTP or stdio configuration. Tool names follow
 Whistle's official API vocabulary—for example,
 `api.network.getSessions()` maps to `network_get_sessions`—while WhistleYoo

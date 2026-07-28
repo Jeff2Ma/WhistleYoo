@@ -149,8 +149,8 @@ WhistleYoo 会自动查找 Homebrew、NVM、FNM、Volta 以及常见本地安装
 
 ## AI Agent 集成（MCP）
 
-WhistleYoo 内置了默认关闭的本机 MCP 服务。进入“设置 → Model Context
-Protocol (MCP)”后，可以启用服务、选择“只读”或“完全访问”，并直接复制
+WhistleYoo 内置了默认关闭的本机 MCP 服务。进入独立的“MCP”标签页后，
+可以启用服务、选择“只读”或“完全访问”，并直接复制
 HTTP 或 stdio 连接配置。工具名与 Whistle 官方 API 的基本用词保持对齐，例如
 `api.network.getSessions()` 对应 `network_get_sessions`；WhistleYoo 自有能力则
 统一放在 `app_*` 命名空间。

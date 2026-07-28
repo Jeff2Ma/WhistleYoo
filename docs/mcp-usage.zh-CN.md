@@ -10,7 +10,7 @@ Agent API，因此需要 Whistle 2.10.7 或更高版本。
 ## 1. 开启 MCP
 
 1. 打开 WhistleYoo。
-2. 进入“设置 → Model Context Protocol (MCP)”。
+2. 点击主窗口左侧、位于“更多设置”之前的 **MCP** 标签页。
 3. 勾选 **Enable local MCP server**。
 4. 保持 **Enable HTTP authentication** 开启，或按需关闭鉴权。
 5. 选择访问权限：
