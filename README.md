@@ -152,7 +152,7 @@ This JSON file contains both app settings and the complete rules snapshot. You c
 
 WhistleYoo includes an optional local MCP server for AI agents. Open the
 **MCP** tab to enable it, select **Read Only** or
-**Full Access**, and copy an HTTP or stdio configuration. Tool names follow
+**Full Access**, and copy the displayed HTTP configuration. Tool names follow
 Whistle's official API vocabulary—for example,
 `api.network.getSessions()` maps to `network_get_sessions`—while WhistleYoo
 extensions stay under `app_*`.

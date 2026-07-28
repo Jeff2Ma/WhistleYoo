@@ -1058,45 +1058,60 @@ struct MCPSettingsView: View {
     @State private var authenticationEnabled: Bool
     @State private var port: String
     @State private var accessMode: MCPAccessMode
+    @State private var bearerToken: String?
     @State private var status: String?
 
     init(state: AppStateController) {
         self.state = state
+        let authenticationEnabled = state.settings.mcp.authenticationEnabled
         _mcpEnabled = State(initialValue: state.settings.mcp.enabled)
-        _authenticationEnabled = State(
-            initialValue: state.settings.mcp.authenticationEnabled
-        )
+        _authenticationEnabled = State(initialValue: authenticationEnabled)
         _port = State(initialValue: String(state.settings.mcp.port))
         _accessMode = State(initialValue: state.settings.mcp.accessMode)
+        _bearerToken = State(
+            initialValue: authenticationEnabled
+                ? (try? MCPTokenStore().loadOrCreate())
+                : nil
+        )
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Model Context Protocol (MCP)")
+                    Text(Localization.string(.mcpModelContextProtocol))
                         .font(.title3.weight(.semibold))
-                    Text("Let local AI agents call Whistle APIs with Whistle-compatible names.")
+                    Text(Localization.string(
+                        .mcpLetLocalAiAgentsCallWhistleApisWithWhistleCompatibleNames
+                    ))
                         .foregroundStyle(.secondary)
                 }
 
                 GroupBox {
                     VStack(alignment: .leading, spacing: 12) {
-                        Toggle("Enable local MCP server", isOn: $mcpEnabled)
-                        Toggle("Enable HTTP authentication", isOn: $authenticationEnabled)
+                        Toggle(
+                            Localization.string(.mcpEnableLocalServer),
+                            isOn: $mcpEnabled
+                        )
+                        Toggle(
+                            Localization.string(.mcpEnableHttpAuthentication),
+                            isOn: $authenticationEnabled
+                        )
                         HStack {
-                            Text("Access")
+                            Text(Localization.string(.mcpAccess))
                                 .frame(width: 120, alignment: .leading)
-                            Picker("Access", selection: $accessMode) {
-                                Text("Read Only").tag(MCPAccessMode.readOnly)
-                                Text("Full Access").tag(MCPAccessMode.fullAccess)
+                            Picker(Localization.string(.mcpAccess), selection: $accessMode) {
+                                Text(Localization.string(.mcpReadOnly))
+                                    .tag(MCPAccessMode.readOnly)
+                                Text(Localization.string(.mcpFullAccess))
+                                    .tag(MCPAccessMode.fullAccess)
                             }
                             .labelsHidden()
                             .pickerStyle(.segmented)
                             .frame(maxWidth: 280)
                         }
                         HStack {
-                            Text("MCP HTTP port")
+                            Text(Localization.string(.mcpHttpPort))
                                 .frame(width: 120, alignment: .leading)
                             TextField(Localization.string(.mobilePort), text: $port)
                                 .focused($focusedField, equals: .port)
@@ -1105,15 +1120,45 @@ struct MCPSettingsView: View {
                             Spacer()
                         }
 
-                        Text("HTTP endpoint: http://127.0.0.1:\(port)/mcp")
+                        Text(Localization.format(
+                            .mcpHttpEndpointValue,
+                            "http://127.0.0.1:\(port)/mcp"
+                        ))
                             .font(.system(.caption, design: .monospaced))
                             .foregroundStyle(.secondary)
                             .textSelection(.enabled)
                         Text(authenticationEnabled
-                            ? "The server only listens on localhost. HTTP clients must use the generated Bearer token; stdio clients can launch the bundled whistleyoo-mcp helper."
-                            : "Authentication is disabled. Any process on this Mac can call the localhost MCP endpoint without a token.")
+                            ? Localization.string(.mcpServerOnlyListensOnLocalhost)
+                            : Localization.string(.mcpAuthenticationDisabled))
                             .font(.caption)
                             .foregroundStyle(authenticationEnabled ? Color.secondary : Color.orange)
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text(Localization.string(.mcpHttpConfiguration))
+                                    .font(.headline)
+                                Spacer()
+                                Button(Localization.string(.mobileCopy)) {
+                                    copyHTTPConfiguration()
+                                }
+                            }
+                            ScrollView(.horizontal) {
+                                Text(httpConfiguration)
+                                    .font(.system(.caption, design: .monospaced))
+                                    .textSelection(.enabled)
+                                    .fixedSize(horizontal: true, vertical: false)
+                            }
+                            .padding(12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(
+                                Color(nsColor: .textBackgroundColor),
+                                in: RoundedRectangle(cornerRadius: 7)
+                            )
+                            .hairlineRoundedBorder(
+                                Color.primary.opacity(0.12),
+                                cornerRadius: 7
+                            )
+                        }
 
                         if let status {
                             Label(status, systemImage: "checkmark.circle.fill")
@@ -1121,16 +1166,15 @@ struct MCPSettingsView: View {
                                 .foregroundStyle(.green)
                         }
                         HStack {
-                            Button("Copy HTTP configuration") { copyHTTPConfiguration() }
-                            Button("Copy stdio configuration") { copyStdioConfiguration() }
-                            Button("Rotate token") {
+                            Button(Localization.string(.mcpRotateToken)) {
                                 if state.rotateMCPToken() {
-                                    status = "Bearer token rotated."
+                                    bearerToken = try? MCPTokenStore().loadOrCreate()
+                                    status = Localization.string(.mcpBearerTokenRotated)
                                 }
                             }
                             .disabled(!authenticationEnabled)
                             Spacer()
-                            Button("Apply") { applySettings() }
+                            Button(Localization.string(.rulesApply)) { applySettings() }
                                 .buttonStyle(.borderedProminent)
                                 .disabled(parsedPort == nil)
                         }
@@ -1139,7 +1183,7 @@ struct MCPSettingsView: View {
                 }
 
                 if !state.mcpAuditEvents.isEmpty {
-                    GroupBox("Recent MCP activity") {
+                    GroupBox(Localization.string(.mcpRecentActivity)) {
                         VStack(spacing: 10) {
                             ForEach(state.mcpAuditEvents.prefix(5)) { event in
                                 HStack(spacing: 8) {
@@ -1170,6 +1214,11 @@ struct MCPSettingsView: View {
         .onAppear {
             focusedField = nil
         }
+        .onChange(of: authenticationEnabled) { enabled in
+            if enabled, bearerToken == nil {
+                bearerToken = try? MCPTokenStore().loadOrCreate()
+            }
+        }
     }
 
     private var parsedPort: Int? {
@@ -1185,48 +1234,33 @@ struct MCPSettingsView: View {
             port: port,
             accessMode: accessMode
         ) {
-            status = mcpEnabled ? "MCP server settings applied." : "MCP server disabled."
+            status = Localization.string(
+                mcpEnabled ? .mcpServerSettingsApplied : .mcpServerDisabled
+            )
         }
+    }
+
+    private var httpConfiguration: String {
+        guard authenticationEnabled else {
+            return """
+            {
+              "url": "http://127.0.0.1:\(port)/mcp"
+            }
+            """
+        }
+        return """
+        {
+          "url": "http://127.0.0.1:\(port)/mcp",
+          "headers": {
+            "Authorization": "Bearer \(bearerToken ?? "")"
+          }
+        }
+        """
     }
 
     private func copyHTTPConfiguration() {
-        guard authenticationEnabled else {
-            copyToPasteboard(
-                """
-                {
-                  "url": "http://127.0.0.1:\(port)/mcp"
-                }
-                """
-            )
-            status = "HTTP configuration copied."
-            return
-        }
-        guard let token = try? MCPTokenStore().loadOrCreate() else { return }
-        copyToPasteboard(
-            """
-            {
-              "url": "http://127.0.0.1:\(port)/mcp",
-              "headers": {
-                "Authorization": "Bearer \(token)"
-              }
-            }
-            """
-        )
-        status = "HTTP configuration copied."
-    }
-
-    private func copyStdioConfiguration() {
-        let helper = Bundle.main.bundleURL
-            .appendingPathComponent("Contents/MacOS/whistleyoo-mcp").path
-        copyToPasteboard(
-            """
-            {
-              "command": "\(helper)",
-              "args": ["--mcp-stdio"]
-            }
-            """
-        )
-        status = "stdio configuration copied."
+        copyToPasteboard(httpConfiguration)
+        status = Localization.string(.mcpHttpConfigurationCopied)
     }
 
     private func copyToPasteboard(_ value: String) {

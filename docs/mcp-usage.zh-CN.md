@@ -11,44 +11,24 @@ Agent API，因此需要 Whistle 2.10.7 或更高版本。
 
 1. 打开 WhistleYoo。
 2. 点击主窗口左侧、位于“更多设置”之前的 **MCP** 标签页。
-3. 勾选 **Enable local MCP server**。
-4. 保持 **Enable HTTP authentication** 开启，或按需关闭鉴权。
+3. 勾选 **启用本地 MCP 服务**。
+4. 保持 **启用 HTTP 鉴权** 开启，或按需关闭鉴权。
 5. 选择访问权限：
-   - **Read Only**：适合日常查询和分析。
-   - **Full Access**：允许修改 Rules、Values、插件状态、系统代理及代理引擎。
+   - **只读**：适合日常查询和分析。
+   - **完全访问**：允许修改 Rules、Values、插件状态、系统代理及代理引擎。
 6. 确认 MCP HTTP 端口，默认地址为 `http://127.0.0.1:8901/mcp`。
-7. 点击 **Apply**。
+7. 点击 **应用**。
 
-如果修改了端口、访问权限或鉴权设置，需要再次点击 **Apply** 才会生效。
+如果修改了端口、访问权限或鉴权设置，需要再次点击 **应用** 才会生效。
 
-## 2. 选择连接方式
+## 2. 获取 HTTP 配置
 
-WhistleYoo 同时支持 HTTP 和 stdio。对于只在本机使用的桌面 Agent，优先推荐
-stdio；需要多个本机客户端共享同一个 MCP 服务时，可以选择 HTTP。
-
-### stdio
-
-stdio 由 Agent 直接启动 WhistleYoo 随附的 MCP Helper，不经过 HTTP，也不需要
-Bearer Token。
-
-点击 **Copy stdio configuration** 可以复制当前应用对应的配置。标准安装路径下
-的配置如下：
-
-```json
-{
-  "command": "/Applications/WhistleYoo.app/Contents/MacOS/whistleyoo-mcp",
-  "args": ["--mcp-stdio"]
-}
-```
-
-将这段内容填入 MCP 客户端的服务器配置，并将服务器名称设置为
-`whistleyoo` 即可。不同客户端最外层的配置结构可能不同，请把上面的
-`command` 和 `args` 放入该客户端要求的 MCP Server 节点。
+MCP 标签页会默认展示当前 HTTP MCP JSON。端口或鉴权开关变化时，展示内容会
+实时更新；点击配置右上角的 **复制** 按钮即可复制完整内容。
 
 ### HTTP（开启鉴权）
 
-HTTP 鉴权默认开启。点击 **Copy HTTP configuration** 会复制包含当前 Token 的
-配置：
+HTTP 鉴权默认开启。页面展示的配置会包含当前 Token：
 
 ```json
 {
@@ -62,12 +42,12 @@ HTTP 鉴权默认开启。点击 **Copy HTTP configuration** 会复制包含当�
 客户端必须发送完全匹配的 `Authorization: Bearer <Token>`。未传 Header、Token
 错误或使用其他认证字符串时，服务端会返回 `401 Unauthorized`。
 
-点击 **Rotate token** 会立即生成新 Token 并重启 HTTP MCP 服务，旧 Token 随即
+点击 **更新 Token** 会立即生成新 Token 并重启 HTTP MCP 服务，旧 Token 随即
 失效。Token 只保存在本机，并使用仅当前用户可读写的文件权限。
 
 ### HTTP（关闭鉴权）
 
-取消勾选 **Enable HTTP authentication**，再点击 **Apply** 后，复制出的配置不再
+取消勾选 **启用 HTTP 鉴权**，再点击 **应用** 后，展示的配置不再
 包含 Header：
 
 ```json
@@ -87,7 +67,7 @@ Header，否则建议保持鉴权开启。
 
 ## 3. 推荐使用方式
 
-首次接入时，建议先使用 **Read Only**，让 Agent 完成连接检查：
+首次接入时，建议先使用 **只读**，让 Agent 完成连接检查：
 
 ```text
 调用 WhistleYoo 的 app_get_status，确认 MCP、Whistle 引擎和系统代理状态。
@@ -101,21 +81,21 @@ Header，否则建议保持鉴权开启。
 按域名汇总，并分析失败原因。不要修改 Rules 或 Values。
 ```
 
-需要修改规则时，再切换到 **Full Access**，并明确要求 Agent 先读取后修改：
+需要修改规则时，再切换到 **完全访问**，并明确要求 Agent 先读取后修改：
 
 ```text
 先调用 rules_get_list 检查现有规则。新增一条名为 debug-api 的规则，
 内容为 api.example.com log://，启用它，并再次读取规则确认结果。
 ```
 
-完成修改后，建议把访问权限切回 **Read Only**。
+完成修改后，建议把访问权限切回 **只读**。
 
 ## 4. 权限与数据保护
 
-**Read Only** 允许读取数据，以及安全的应用状态查询和启动操作。标记为破坏性
+**只读** 允许读取数据，以及安全的应用状态查询和启动操作。标记为破坏性
 或会改变配置的工具会被拒绝。
 
-**Full Access** 额外允许：
+**完全访问** 额外允许：
 
 - 发起或中止网络请求；
 - 新增、启用、停用和调整 Rules；
@@ -127,7 +107,7 @@ Header，否则建议保持鉴权开启。
 
 返回结果默认会隐藏 Authorization、Cookie、Token 等敏感字段。较大的字符串
 默认截断为 32 KiB，可通过 `maxBodyBytes` 调整，最大为 256 KiB。只有在
-**Full Access** 下显式传入 `includeSensitive: true`，才会返回未隐藏的敏感内容。
+**完全访问** 下显式传入 `includeSensitive: true`，才会返回未隐藏的敏感内容。
 
 ## 5. 常用工具
 
@@ -163,8 +143,8 @@ snake_case 格式。例如：
 
 依次检查：
 
-1. **Enable local MCP server** 是否已开启并点击 **Apply**；
-2. 客户端 URL 与设置页显示的端口是否一致；
+1. **启用本地 MCP 服务** 是否已开启并点击 **应用**；
+2. 客户端 URL 与 MCP 标签页显示的端口是否一致；
 3. 开启鉴权时是否完整复制了 `Authorization` Header；
 4. Token 是否在点击 **Rotate token** 后已经变化；
 5. 端口是否被其他本机程序占用。
@@ -172,18 +152,12 @@ snake_case 格式。例如：
 ### 返回 `401 Unauthorized`
 
 HTTP 鉴权已开启，但客户端没有携带当前 Bearer Token。重新点击
-**Copy HTTP configuration**，使用复制出的完整配置覆盖客户端旧配置。
+页面右侧的 **复制** 按钮，使用复制出的完整配置覆盖客户端旧配置。
 
 ### 工具提示需要 Full Access
 
-当前处于 **Read Only**。确认操作风险后，在 WhistleYoo 设置中切换到
-**Full Access** 并点击 **Apply**。
-
-### stdio 配置启动失败
-
-确认 WhistleYoo 安装在 `/Applications/WhistleYoo.app`。如果应用安装在其他
-位置，请使用 **Copy stdio configuration** 获取实际 Helper 路径，不要手动套用
-标准安装路径。
+当前处于 **只读**。确认操作风险后，在 WhistleYoo MCP 标签页中切换到
+**完全访问** 并点击 **应用**。
 
 ### Agent 已连接但无法获取网络数据
 

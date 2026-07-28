@@ -30,19 +30,15 @@ The token is generated locally, stored separately from the portable app
 configuration, and protected with owner-only (`0600`) permissions. Rotating it
 immediately restarts the HTTP server and invalidates the previous token.
 
-Authentication can be disabled explicitly in Settings. In that mode the server
+Authentication can be disabled explicitly in the MCP tab. In that mode the server
 continues to bind only to `127.0.0.1`, skips authorization checks entirely, and
 accepts requests whether the `Authorization` header is missing, valid, invalid,
 or contains an arbitrary string. Any process on the Mac can then call the MCP
 endpoint, so Bearer token authentication remains the recommended default.
 
-The app bundle also includes a stdio helper:
-
-```text
-/Applications/WhistleYoo.app/Contents/MacOS/whistleyoo-mcp --mcp-stdio
-```
-
-The Settings page can copy both connection formats as JSON.
+The MCP tab displays the active HTTP connection configuration as JSON. When
+authentication is enabled it includes the current Bearer token; use the Copy
+button beside the configuration to copy it.
 
 ## Access modes
 

@@ -2262,6 +2262,312 @@
       },
       "comment": "中文： · 虚拟网卡"
     },
+    "mcp.access": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "访问权限"
+          }
+        }
+      },
+      "comment": "中文：访问权限"
+    },
+    "mcp.authentication_disabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authentication is disabled. Any process on this Mac can call the localhost MCP endpoint without a token."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鉴权已关闭。本机任意进程无需 Token 即可调用 localhost MCP 端点。"
+          }
+        }
+      },
+      "comment": "中文：鉴权已关闭。本机任意进程无需 Token 即可调用 localhost MCP 端点。"
+    },
+    "mcp.bearer_token_rotated": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bearer token rotated."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bearer Token 已更新。"
+          }
+        }
+      },
+      "comment": "中文：Bearer Token 已更新。"
+    },
+    "mcp.enable_http_authentication": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable HTTP authentication"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用 HTTP 鉴权"
+          }
+        }
+      },
+      "comment": "中文：启用 HTTP 鉴权"
+    },
+    "mcp.enable_local_server": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable local MCP server"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用本地 MCP 服务"
+          }
+        }
+      },
+      "comment": "中文：启用本地 MCP 服务"
+    },
+    "mcp.full_access": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full Access"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完全访问"
+          }
+        }
+      },
+      "comment": "中文：完全访问"
+    },
+    "mcp.http_configuration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HTTP MCP Configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HTTP MCP 配置"
+          }
+        }
+      },
+      "comment": "中文：HTTP MCP 配置"
+    },
+    "mcp.http_configuration_copied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HTTP configuration copied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HTTP 配置已复制。"
+          }
+        }
+      },
+      "comment": "中文：HTTP 配置已复制。"
+    },
+    "mcp.http_endpoint_value": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HTTP endpoint: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HTTP 端点：%@"
+          }
+        }
+      },
+      "comment": "中文：HTTP 端点：%@"
+    },
+    "mcp.http_port": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MCP HTTP port"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MCP HTTP 端口"
+          }
+        }
+      },
+      "comment": "中文：MCP HTTP 端口"
+    },
+    "mcp.let_local_ai_agents_call_whistle_apis_with_whistle_compatible_names": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Let local AI agents call Whistle APIs with Whistle-compatible names."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许本机 AI Agent 使用与 Whistle 对齐的名称调用 Whistle API。"
+          }
+        }
+      },
+      "comment": "中文：允许本机 AI Agent 使用与 Whistle 对齐的名称调用 Whistle API。"
+    },
+    "mcp.model_context_protocol": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model Context Protocol (MCP)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型上下文协议（MCP）"
+          }
+        }
+      },
+      "comment": "中文：模型上下文协议（MCP）"
+    },
+    "mcp.read_only": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read Only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只读"
+          }
+        }
+      },
+      "comment": "中文：只读"
+    },
+    "mcp.recent_activity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent MCP activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近的 MCP 活动"
+          }
+        }
+      },
+      "comment": "中文：最近的 MCP 活动"
+    },
+    "mcp.rotate_token": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rotate token"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新 Token"
+          }
+        }
+      },
+      "comment": "中文：更新 Token"
+    },
+    "mcp.server_disabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MCP server disabled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MCP 服务已关闭。"
+          }
+        }
+      },
+      "comment": "中文：MCP 服务已关闭。"
+    },
+    "mcp.server_only_listens_on_localhost": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server only listens on localhost. HTTP clients must use the generated Bearer token."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务仅监听本机地址。HTTP 客户端必须使用生成的 Bearer Token。"
+          }
+        }
+      },
+      "comment": "中文：服务仅监听本机地址。HTTP 客户端必须使用生成的 Bearer Token。"
+    },
+    "mcp.server_settings_applied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MCP server settings applied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MCP 服务设置已应用。"
+          }
+        }
+      },
+      "comment": "中文：MCP 服务设置已应用。"
+    },
     "onboarding.a_matching_fingerprint_was_found_in_the_login_keychain": {
       "localizations": {
         "en": {
