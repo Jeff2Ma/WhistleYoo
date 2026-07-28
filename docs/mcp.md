@@ -70,6 +70,12 @@ WhistleYoo-only capabilities use the separate `app_*` namespace, including
 `app_restart_engine`, `app_get_system_proxy_status`, and
 `app_set_system_proxy`.
 
+`app_get_status` also reports the detected `nodeVersion`, `nodeExecutable`,
+`whistleVersion`, `whistleExecutable`, and `mcpMinimumWhistleVersion`. If the
+detected Whistle version is too old, MCP refreshes the environment once before
+rejecting the request, then includes the detected version and executable path
+in the error response.
+
 The complete exposed official surface follows Whistle's namespaces:
 
 - top level: `get_root_ca`, `is_enabled_https`, `set_enable_https`,

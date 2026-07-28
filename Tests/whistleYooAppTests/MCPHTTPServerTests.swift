@@ -4,6 +4,40 @@ import XCTest
 @testable import whistleYooCore
 
 final class MCPHTTPServerTests: XCTestCase {
+    func testMCPEnvironmentDetailsIncludeDetectedVersionsAndExecutablePaths() throws {
+        let environment = EnvironmentInfo(
+            nodeURL: URL(fileURLWithPath: "/opt/example/bin/node"),
+            npmURL: URL(fileURLWithPath: "/opt/example/bin/npm"),
+            whistleURL: URL(fileURLWithPath: "/opt/example/bin/w2"),
+            nodeVersion: SemanticVersion(22, 4, 1),
+            whistleVersion: SemanticVersion(2, 10, 7)
+        )
+
+        let details = MCPToolBackend.environmentDetails(.ready(environment))
+
+        XCTAssertEqual(details["environment"], .string("ready"))
+        XCTAssertEqual(details["nodeExecutable"], .string("/opt/example/bin/node"))
+        XCTAssertEqual(details["nodeVersion"], .string("22.4.1"))
+        XCTAssertEqual(details["whistleExecutable"], .string("/opt/example/bin/w2"))
+        XCTAssertEqual(details["whistleVersion"], .string("2.10.7"))
+    }
+
+    func testUnsupportedWhistleVersionMessageIncludesDetectedVersionAndPath() {
+        let environment = EnvironmentInfo(
+            nodeURL: URL(fileURLWithPath: "/opt/example/bin/node"),
+            npmURL: nil,
+            whistleURL: URL(fileURLWithPath: "/old/node/bin/w2"),
+            nodeVersion: SemanticVersion(20, 0, 0),
+            whistleVersion: SemanticVersion(2, 10, 6)
+        )
+
+        let message = MCPToolBackend.unsupportedWhistleVersionMessage(environment)
+
+        XCTAssertTrue(message.contains("Detected Whistle 2.10.6"))
+        XCTAssertTrue(message.contains("/old/node/bin/w2"))
+        XCTAssertTrue(message.contains("Whistle 2.10.7 or later is required"))
+    }
+
     @MainActor
     func testLocalHTTPTransportRequiresTokenAndListsOfficialTools() async throws {
         let port = 18_901

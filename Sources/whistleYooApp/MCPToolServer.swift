@@ -292,11 +292,27 @@ final class MCPToolBackend {
     }
 
     private func client() async throws -> WhistleAPIClient {
-        guard case .ready(let environment) = state.environmentStatus else {
-            throw MCPError.invalidRequest("Whistle is not installed or the environment is unavailable.")
+        var environment: EnvironmentInfo?
+        if case .ready(let detected) = state.environmentStatus {
+            environment = detected
+        }
+        let needsRefresh = environment.map {
+            $0.whistleVersion < WhistleAPIClient.minimumAgentAPIVersion
+        } ?? true
+        if needsRefresh {
+            await state.refreshEnvironment()
+            if case .ready(let refreshed) = state.environmentStatus {
+                environment = refreshed
+            }
+        }
+        guard let environment else {
+            throw MCPError.invalidRequest(
+                "Whistle is not installed or the environment is unavailable. "
+                    + "Open More Settings > Runtime Environment to inspect the detected executable."
+            )
         }
         guard environment.whistleVersion >= WhistleAPIClient.minimumAgentAPIVersion else {
-            throw MCPError.invalidRequest("Whistle 2.10.7 or later is required for MCP.")
+            throw MCPError.invalidRequest(Self.unsupportedWhistleVersionMessage(environment))
         }
         guard await state.startEngine(), let url = state.uiURL else {
             throw backendError()
@@ -329,15 +345,59 @@ final class MCPToolBackend {
     }
 
     private func appStatus() -> JSONValue {
-        .object([
+        var details: [String: JSONValue] = [
             "engine": .string(engineStatusString),
             "systemProxy": .string(systemProxyStatusString),
             "proxyPort": .number(Double(state.settings.engine.proxyPort)),
             "uiPort": .number(Double(state.settings.engine.uiPort)),
             "mcpPort": .number(Double(state.settings.mcp.port)),
             "mcpAuthenticationEnabled": .bool(state.settings.mcp.authenticationEnabled),
-            "mcpAccessMode": .string(state.settings.mcp.accessMode.rawValue)
-        ])
+            "mcpAccessMode": .string(state.settings.mcp.accessMode.rawValue),
+            "mcpMinimumWhistleVersion": .string(
+                Self.versionString(WhistleAPIClient.minimumAgentAPIVersion)
+            )
+        ]
+        details.merge(
+            Self.environmentDetails(state.environmentStatus),
+            uniquingKeysWith: { _, new in new }
+        )
+        return .object(details)
+    }
+
+    nonisolated static func environmentDetails(
+        _ status: AppEnvironmentStatus
+    ) -> [String: JSONValue] {
+        switch status {
+        case .checking:
+            return ["environment": .string("checking")]
+        case .unavailable(let message):
+            return [
+                "environment": .string("unavailable"),
+                "environmentMessage": .string(message)
+            ]
+        case .ready(let environment):
+            return [
+                "environment": .string("ready"),
+                "nodeExecutable": .string(environment.nodeURL.path),
+                "nodeVersion": .string(versionString(environment.nodeVersion)),
+                "whistleExecutable": .string(environment.whistleURL.path),
+                "whistleVersion": .string(versionString(environment.whistleVersion))
+            ]
+        }
+    }
+
+    nonisolated static func unsupportedWhistleVersionMessage(
+        _ environment: EnvironmentInfo
+    ) -> String {
+        let detected = versionString(environment.whistleVersion)
+        let required = versionString(WhistleAPIClient.minimumAgentAPIVersion)
+        return "Detected Whistle \(detected) at \(environment.whistleURL.path). "
+            + "Whistle \(required) or later is required for MCP. "
+            + "After updating, open More Settings > Runtime Environment and check again."
+    }
+
+    nonisolated private static func versionString(_ version: SemanticVersion) -> String {
+        "\(version.major).\(version.minor).\(version.patch)"
     }
 
     private var engineStatusString: String {
@@ -550,7 +610,7 @@ final class MCPToolBackend {
         .init(name: "plugins_select", description: "Official API: api.plugins.select(name).", schema: nameSchema, requiresFullAccess: true, destructive: false, openWorld: false),
         .init(name: "plugins_unselect", description: "Official API: api.plugins.unselect(name).", schema: nameSchema, requiresFullAccess: true, destructive: true, openWorld: false),
 
-        .init(name: "app_get_status", description: "WhistleYoo extension: get App, engine and system proxy status.", schema: emptySchema, requiresFullAccess: false, destructive: false, openWorld: false),
+        .init(name: "app_get_status", description: "WhistleYoo extension: get app, engine, system proxy, and detected Node/Whistle environment status.", schema: emptySchema, requiresFullAccess: false, destructive: false, openWorld: false),
         .init(name: "app_start_engine", description: "WhistleYoo extension: start the managed Whistle engine.", schema: emptySchema, requiresFullAccess: false, destructive: false, openWorld: false),
         .init(name: "app_stop_engine", description: "WhistleYoo extension: stop the managed Whistle engine.", schema: emptySchema, requiresFullAccess: true, destructive: true, openWorld: false),
         .init(name: "app_restart_engine", description: "WhistleYoo extension: restart the managed Whistle engine.", schema: emptySchema, requiresFullAccess: true, destructive: true, openWorld: false),
