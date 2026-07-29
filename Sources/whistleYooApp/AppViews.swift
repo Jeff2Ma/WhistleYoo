@@ -1194,8 +1194,13 @@ struct MCPSettingsView: View {
                                     Text(event.tool)
                                         .font(.system(.caption, design: .monospaced))
                                     Spacer()
+                                    Text(event.date.formatted(date: .numeric, time: .standard))
+                                        .font(.caption)
+                                        .monospacedDigit()
+                                        .foregroundStyle(.secondary)
                                     Text("\(event.durationMilliseconds) ms")
                                         .font(.caption)
+                                        .monospacedDigit()
                                         .foregroundStyle(.secondary)
                                 }
                                 .help(event.message ?? event.date.formatted())

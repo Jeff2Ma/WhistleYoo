@@ -21,6 +21,10 @@ final class WhistleAPIClientTests: XCTestCase {
                 let body = try Self.bodyData(for: request)
                 let object = try JSONDecoder().decode(JSONValue.self, from: body)
                 XCTAssertEqual(object.objectValue?["latest"], .bool(true))
+                XCTAssertEqual(
+                    object.objectValue?["reqHeader"]?.objectValue?["name"],
+                    .string("x-mcp-probe")
+                )
                 return Self.response(for: request, json: #"[]"#)
             default:
                 XCTFail("Unexpected endpoint \(request.url?.path ?? "")")
@@ -30,8 +34,106 @@ final class WhistleAPIClientTests: XCTestCase {
 
         let status = try await client.networkGetStatus()
         XCTAssertEqual(status.objectValue?["version"], .string("2.10.7"))
-        let sessions = try await client.networkGetSessions(.object(["latest": .bool(true)]))
+        let sessions = try await client.networkGetSessions(.object([
+            "latest": .bool(true),
+            "reqHeader": .object(["name": .string("X-MCP-Probe")])
+        ]))
         XCTAssertEqual(sessions, .array([]))
+    }
+
+    func testNetworkRequestMapsOfficialOptionsToComposerPayload() async throws {
+        let requests = RequestRecorder()
+        let client = makeClient { request in
+            XCTAssertEqual(request.url?.path, "/cgi-bin/composer")
+            XCTAssertEqual(request.httpMethod, "POST")
+            let body = try Self.bodyData(for: request)
+            requests.append(
+                path: request.url?.path ?? "",
+                body: String(decoding: body, as: UTF8.self)
+            )
+            return Self.response(
+                for: request,
+                json: #"{"ec":0,"res":{"statusCode":200}}"#
+            )
+        }
+
+        let result = try await client.networkRequest(.object([
+            "url": .string("https://example.test/path"),
+            "method": .string("POST"),
+            "body": .string("request body"),
+            "enableHTTP2": .bool(true),
+            "times": .number(2)
+        ]))
+
+        let recorded = requests.snapshot()
+        XCTAssertEqual(recorded.count, 2)
+        for (index, request) in recorded.enumerated() {
+            let object = try JSONDecoder().decode(JSONValue.self, from: Data(request.body.utf8))
+            let options = try XCTUnwrap(object.objectValue)
+            XCTAssertEqual(options["url"], .string("https://example.test/path"))
+            XCTAssertEqual(options["method"], .string("POST"))
+            XCTAssertEqual(options["body"], .string("request body"))
+            XCTAssertEqual(options["needResponse"], .bool(index == recorded.count - 1))
+            XCTAssertEqual(options["useH2"], .number(1))
+            XCTAssertNil(options["repeatCount"])
+            XCTAssertNil(options["enableHTTP2"])
+            XCTAssertNil(options["times"])
+        }
+
+        XCTAssertEqual(result.objectValue?["res"]?.objectValue?["statusCode"], .number(200))
+    }
+
+    func testSavedSessionsFilenameMapsToRequiredQueryParameters() async throws {
+        let client = makeClient { request in
+            XCTAssertEqual(request.url?.path, "/cgi-bin/saved/sessions")
+            let query = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems
+            XCTAssertEqual(query?.first(where: { $0.name == "filename" })?.value, "agent_capture_set")
+            XCTAssertEqual(query?.first(where: { $0.name == "count" })?.value, "3")
+            XCTAssertEqual(query?.first(where: { $0.name == "time" })?.value, "1785342744077")
+            return Self.response(for: request, json: #"[]"#)
+        }
+
+        let sessions = try await client.networkGetSavedSessions(
+            "agent_capture_set_3_1785342744077"
+        )
+
+        XCTAssertEqual(sessions, .array([]))
+    }
+
+    func testValuesGetUsesWhistleKeyQueryParameter() async throws {
+        let client = makeClient { request in
+            XCTAssertEqual(request.url?.path, "/cgi-bin/values/value")
+            let query = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems
+            XCTAssertEqual(query?.first(where: { $0.name == "key" })?.value, "agent-value")
+            XCTAssertNil(query?.first(where: { $0.name == "name" }))
+            return Self.response(for: request, json: #"{"value":"saved value"}"#)
+        }
+
+        let value = try await client.valuesGet("agent-value")
+
+        XCTAssertEqual(value.objectValue?["value"], .string("saved value"))
+    }
+
+    func testPluginLookupAndSelectionExposeMissingPluginState() async throws {
+        let client = makeClient { request in
+            switch request.url?.path {
+            case "/cgi-bin/plugins/plugin":
+                return Self.response(for: request, json: #"{"ec":0}"#)
+            case "/cgi-bin/plugins/disable-plugin":
+                return Self.response(for: request, json: #"{"ec":0,"exists":false}"#)
+            default:
+                XCTFail("Unexpected endpoint \(request.url?.path ?? "")")
+                return Self.response(for: request, status: 404, json: "{}")
+            }
+        }
+
+        let plugin = try await client.pluginsGet("missing-plugin")
+        let selected = try await client.pluginsSelect("missing-plugin")
+        let unselected = try await client.pluginsUnselect("missing-plugin")
+
+        XCTAssertEqual(plugin.objectValue?["plugin"], .null)
+        XCTAssertFalse(selected)
+        XCTAssertFalse(unselected)
     }
 
     func testRulesAddUsesOfficialAddAndSelectEndpoints() async throws {

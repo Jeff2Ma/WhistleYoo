@@ -135,6 +135,14 @@ final class MCPHTTPServerTests: XCTestCase {
             let names = Set(tools.compactMap { $0["name"] as? String })
             XCTAssertTrue(names.contains("network_get_sessions"))
             XCTAssertTrue(names.contains("app_get_status"))
+            let saveSessions = try XCTUnwrap(
+                tools.first(where: { $0["name"] as? String == "network_save_sessions" })
+            )
+            let inputSchema = try XCTUnwrap(saveSessions["inputSchema"] as? [String: Any])
+            let properties = try XCTUnwrap(inputSchema["properties"] as? [String: Any])
+            let sessions = try XCTUnwrap(properties["sessions"] as? [String: Any])
+            let items = try XCTUnwrap(sessions["items"] as? [String: Any])
+            XCTAssertEqual(items["type"] as? String, "object")
 
             let (callData, callResponse) = try await URLSession.shared.data(
                 for: request(

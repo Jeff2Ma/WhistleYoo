@@ -178,8 +178,7 @@ final class MCPToolBackend {
                 name: arguments["name"]?.stringValue
             )
         case "network_get_saved_sessions":
-            let data = try await client.networkGetSavedSessions(try string("filename", arguments))
-            return .object(["gzipBase64": .string(data.base64EncodedString())])
+            return try await client.networkGetSavedSessions(try string("filename", arguments))
         case "network_get_frames":
             return try await client.networkGetFrames(jsonArguments(arguments, droppingControlFields: true))
         case "network_request":
@@ -251,11 +250,13 @@ final class MCPToolBackend {
         case "plugins_get":
             return try await client.pluginsGet(try string("name", arguments))
         case "plugins_select":
-            try await client.pluginsSelect(try string("name", arguments))
-            return success()
+            return .object([
+                "exists": .bool(try await client.pluginsSelect(try string("name", arguments)))
+            ])
         case "plugins_unselect":
-            try await client.pluginsUnselect(try string("name", arguments))
-            return success()
+            return .object([
+                "exists": .bool(try await client.pluginsUnselect(try string("name", arguments)))
+            ])
         default:
             throw MCPError.methodNotFound(name)
         }
@@ -570,7 +571,7 @@ final class MCPToolBackend {
             "reqHeader": ["type": "object"], "resHeader": ["type": "object"],
             "count": ["type": "integer", "minimum": 1, "maximum": 3_600]
         ], allowControlFields: true), requiresFullAccess: false, destructive: false, openWorld: false),
-        .init(name: "network_save_sessions", description: "Official API: api.network.saveSessions(sessions, name).", schema: fields(["sessions": ["type": "array"], "name": ["type": "string"]], required: ["sessions"]), requiresFullAccess: true, destructive: false, openWorld: false),
+        .init(name: "network_save_sessions", description: "Official API: api.network.saveSessions(sessions, name).", schema: fields(["sessions": ["type": "array", "items": ["type": "object"]], "name": ["type": "string"]], required: ["sessions"]), requiresFullAccess: true, destructive: false, openWorld: false),
         .init(name: "network_get_saved_sessions", description: "Official API: api.network.getSavedSessions(filename).", schema: fields(["filename": ["type": "string"]], required: ["filename"]), requiresFullAccess: false, destructive: false, openWorld: false),
         .init(name: "network_get_frames", description: "Official API: api.network.getFrames(options).", schema: fields([
             "reqId": ["type": "string"], "count": ["type": "integer", "minimum": 1, "maximum": 3_600],

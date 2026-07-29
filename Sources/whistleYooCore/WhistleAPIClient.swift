@@ -103,7 +103,11 @@ public actor WhistleAPIClient {
     }
 
     public func networkGetSessions(_ options: JSONValue = .object([:])) async throws -> JSONValue {
-        try await json(path: "cgi-bin/sessions", method: "POST", body: options)
+        try await json(
+            path: "cgi-bin/sessions",
+            method: "POST",
+            body: normalizedNetworkSessionOptions(options)
+        )
     }
 
     public func networkSaveSessions(_ sessions: JSONValue, name: String?) async throws -> JSONValue {
@@ -112,8 +116,8 @@ public actor WhistleAPIClient {
         return try await json(path: "cgi-bin/saved/save", method: "POST", body: .object(body))
     }
 
-    public func networkGetSavedSessions(_ filename: String) async throws -> Data {
-        try await data(path: "cgi-bin/saved/sessions", query: ["filename": filename])
+    public func networkGetSavedSessions(_ filename: String) async throws -> JSONValue {
+        try await json(path: "cgi-bin/saved/sessions", query: try savedSessionsQuery(filename))
     }
 
     public func networkGetFrames(_ options: JSONValue) async throws -> JSONValue {
@@ -121,7 +125,39 @@ public actor WhistleAPIClient {
     }
 
     public func networkRequest(_ options: JSONValue) async throws -> JSONValue {
-        try await json(path: "cgi-bin/composer", method: "POST", body: options)
+        guard case .object(let officialOptions) = options else {
+            throw WhistleYooError.invalidResponse("Network request options must be an object.")
+        }
+        var composerOptions: [String: JSONValue] = [:]
+        for key in ["rules", "url", "headers", "method", "disabledGlobalRules"] {
+            composerOptions[key] = officialOptions[key]
+        }
+        if case .string(let body)? = officialOptions["body"], !body.isEmpty {
+            composerOptions["body"] = .string(body)
+        } else if let base64 = officialOptions["base64"] {
+            composerOptions["base64"] = base64
+        } else if let body = officialOptions["body"] {
+            composerOptions["body"] = body
+        }
+        if case .bool(true)? = officialOptions["enableHTTP2"] {
+            composerOptions["useH2"] = .number(1)
+        }
+        let requestCount: Int
+        if case .number(let times)? = officialOptions["times"], times > 0 {
+            requestCount = max(1, Int(min(times.rounded(.down), 100)))
+        } else {
+            requestCount = 1
+        }
+        var result = JSONValue.object(["ec": .number(0)])
+        for index in 0..<requestCount {
+            composerOptions["needResponse"] = .bool(index == requestCount - 1)
+            result = try await json(
+                path: "cgi-bin/composer",
+                method: "POST",
+                body: .object(composerOptions)
+            )
+        }
+        return result
     }
 
     public func networkAbort(_ reqID: String) async throws {
@@ -189,7 +225,7 @@ public actor WhistleAPIClient {
     }
 
     public func valuesGet(_ name: String) async throws -> JSONValue {
-        try await json(path: "cgi-bin/values/value", query: ["name": name])
+        try await json(path: "cgi-bin/values/value", query: ["key": name])
     }
 
     public func valuesAdd(name: String, value: String) async throws {
@@ -213,15 +249,54 @@ public actor WhistleAPIClient {
     }
 
     public func pluginsGet(_ name: String) async throws -> JSONValue {
-        try await json(path: "cgi-bin/plugins/plugin", query: ["name": name])
+        let result = try await json(path: "cgi-bin/plugins/plugin", query: ["name": name])
+        return .object(["plugin": result.objectValue?["plugin"] ?? .null])
     }
 
-    public func pluginsSelect(_ name: String) async throws {
-        _ = try await form(path: "cgi-bin/plugins/disable-plugin", fields: ["name": name, "disabled": "0"])
+    public func pluginsSelect(_ name: String) async throws -> Bool {
+        let result = try await form(
+            path: "cgi-bin/plugins/disable-plugin",
+            fields: ["name": name, "disabled": "0"]
+        )
+        return result.objectValue?["exists"] == .bool(true)
     }
 
-    public func pluginsUnselect(_ name: String) async throws {
-        _ = try await form(path: "cgi-bin/plugins/disable-plugin", fields: ["name": name, "disabled": "1"])
+    public func pluginsUnselect(_ name: String) async throws -> Bool {
+        let result = try await form(
+            path: "cgi-bin/plugins/disable-plugin",
+            fields: ["name": name, "disabled": "1"]
+        )
+        return result.objectValue?["exists"] == .bool(true)
+    }
+
+    private func normalizedNetworkSessionOptions(_ options: JSONValue) -> JSONValue {
+        guard case .object(var normalized) = options else { return options }
+        for key in ["reqHeader", "resHeader"] {
+            guard case .object(var filter)? = normalized[key] else { continue }
+            for nameKey in ["name", "key"] {
+                if case .string(let name)? = filter[nameKey] {
+                    filter[nameKey] = .string(name.lowercased())
+                }
+            }
+            normalized[key] = .object(filter)
+        }
+        return .object(normalized)
+    }
+
+    private func savedSessionsQuery(_ filename: String) throws -> [String: String] {
+        guard let timeSeparator = filename.lastIndex(of: "_"),
+              let countSeparator = filename[..<timeSeparator].lastIndex(of: "_"),
+              let count = Int(filename[filename.index(after: countSeparator)..<timeSeparator]),
+              let time = Int(filename[filename.index(after: timeSeparator)...]),
+              count > 0,
+              time > 0 else {
+            throw WhistleYooError.invalidResponse("Invalid saved sessions filename.")
+        }
+        return [
+            "filename": String(filename[..<countSeparator]),
+            "count": String(count),
+            "time": String(time)
+        ]
     }
 
     private func form(path: String, fields: [String: String]) async throws -> JSONValue {
