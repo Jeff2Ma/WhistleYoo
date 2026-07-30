@@ -92,6 +92,46 @@ final class WhistleIntegrationTests: XCTestCase {
                 coexistRules.documents.first(where: { $0.name == name })?.isEnabled == true
             })
 
+            let hotReloadRuleName = "WhistleYoo runtime refresh"
+            let hotReloadHost = "whistleyoo-runtime-refresh.example.test"
+            try await rulesManager.save(
+                name: hotReloadRuleName,
+                value: "\(hotReloadHost) host://127.0.0.1:1",
+                isEnabled: true,
+                baseURL: configuration.uiURL
+            )
+            let beforeHotReload = try await rulesManager.load(baseURL: configuration.uiURL)
+            let hotReloadedDocuments = beforeHotReload.documents.map { document in
+                guard document.name == hotReloadRuleName else { return document }
+                return WhistleRuleDocument(
+                    name: document.name,
+                    value: "\(hotReloadHost) host://127.0.0.1:\(uiPort)",
+                    isEnabled: document.isEnabled,
+                    isDefault: document.isDefault
+                )
+            }
+            try await rulesManager.applyChanges(
+                from: beforeHotReload,
+                to: WhistleRulesSnapshot(
+                    documents: hotReloadedDocuments,
+                    allowMultipleChoice: beforeHotReload.allowMultipleChoice,
+                    backRulesFirst: beforeHotReload.backRulesFirst
+                ),
+                baseURL: configuration.uiURL
+            )
+            let hotReloadResult = try FoundationProcessRunner().run(
+                executableURL: URL(fileURLWithPath: "/usr/bin/curl"),
+                arguments: [
+                    "--silent", "--show-error", "--fail", "--noproxy", "",
+                    "--proxy", "http://127.0.0.1:\(proxyPort)",
+                    "http://\(hotReloadHost)/cgi-bin/init"
+                ],
+                environment: nil,
+                timeout: 10
+            )
+            XCTAssertEqual(hotReloadResult.exitCode, 0)
+            XCTAssertTrue(hotReloadResult.standardOutput.contains("\"version\""))
+
             let valuesManager = WhistleValuesManager()
             let originalValues = try await valuesManager.load(baseURL: configuration.uiURL)
             let persistedValue = WhistleValueDocument(
@@ -127,6 +167,7 @@ final class WhistleIntegrationTests: XCTestCase {
             for name in enabledRuleNames {
                 try await rulesManager.delete(name: name, baseURL: configuration.uiURL)
             }
+            try await rulesManager.delete(name: hotReloadRuleName, baseURL: configuration.uiURL)
             try await valuesManager.applyChanges(
                 from: restartedValues,
                 to: WhistleValuesSnapshot(documents: restartedValues.documents.filter {
