@@ -165,6 +165,42 @@ SHA-256: %@</string>
 	<string>Wi-Fi HTTP Proxy</string>
 	<key>editor.line_and_column</key>
 	<string>Ln %lld, Col %lld</string>
+	<key>mcp.access</key>
+	<string>Access</string>
+	<key>mcp.authentication_disabled</key>
+	<string>Authentication is disabled. Any process on this Mac can call the localhost MCP endpoint without a token.</string>
+	<key>mcp.bearer_token_rotated</key>
+	<string>Bearer token rotated.</string>
+	<key>mcp.enable_http_authentication</key>
+	<string>Enable HTTP authentication</string>
+	<key>mcp.enable_local_server</key>
+	<string>Enable local MCP server</string>
+	<key>mcp.full_access</key>
+	<string>Full Access</string>
+	<key>mcp.http_configuration</key>
+	<string>HTTP MCP Configuration</string>
+	<key>mcp.http_configuration_copied</key>
+	<string>HTTP configuration copied.</string>
+	<key>mcp.http_endpoint_value</key>
+	<string>HTTP endpoint: %@</string>
+	<key>mcp.http_port</key>
+	<string>MCP HTTP port</string>
+	<key>mcp.let_local_ai_agents_call_whistle_apis_with_whistle_compatible_names</key>
+	<string>Let local AI agents call Whistle APIs with Whistle-compatible names.</string>
+	<key>mcp.model_context_protocol</key>
+	<string>Model Context Protocol (MCP)</string>
+	<key>mcp.read_only</key>
+	<string>Read Only</string>
+	<key>mcp.recent_activity</key>
+	<string>Recent MCP activity</string>
+	<key>mcp.rotate_token</key>
+	<string>Rotate token</string>
+	<key>mcp.server_disabled</key>
+	<string>MCP server disabled.</string>
+	<key>mcp.server_only_listens_on_localhost</key>
+	<string>The server only listens on localhost. HTTP clients must use the generated Bearer token.</string>
+	<key>mcp.server_settings_applied</key>
+	<string>MCP server settings applied.</string>
 	<key>menu.check_for_updates</key>
 	<string>Check for Updates…</string>
 	<key>menu.cut</key>

@@ -75,12 +75,33 @@ public struct SettingsV3ToV4Migration: SettingsMigrating {
     }
 }
 
+public struct SettingsV4ToV5Migration: SettingsMigrating {
+    public let fromVersion = 4
+    public let toVersion = 5
+
+    public init() {}
+
+    public func migrate(_ data: Data) throws -> Data {
+        guard var object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw WhistleYooError.settingsCorrupted("The v4 settings file format is invalid.")
+        }
+        object["schemaVersion"] = toVersion
+        object["mcp"] = [
+            "enabled": false,
+            "port": 8_901,
+            "accessMode": MCPAccessMode.readOnly.rawValue
+        ]
+        return try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys])
+    }
+}
+
 public extension MigrationManager {
     static var applicationDefault: MigrationManager {
         MigrationManager(migrations: [
             SettingsV1ToV2Migration(),
             SettingsV2ToV3Migration(),
-            SettingsV3ToV4Migration()
+            SettingsV3ToV4Migration(),
+            SettingsV4ToV5Migration()
         ])
     }
 }
@@ -189,13 +210,15 @@ public final class WhistleYooConfigurationStore: @unchecked Sendable {
     public let legacyDefaultFileURL: URL?
 
     private let fileManager: FileManager
+    private let migrationManager: MigrationManager
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
 
     public init(
         defaultFileURL: URL? = nil,
         legacyDefaultFileURL: URL? = nil,
-        fileManager: FileManager = .default
+        fileManager: FileManager = .default,
+        migrationManager: MigrationManager = .applicationDefault
     ) {
         let support = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
             .appendingPathComponent("com.devework.whistleyoo", isDirectory: true)
@@ -208,6 +231,7 @@ public final class WhistleYooConfigurationStore: @unchecked Sendable {
                 ?? support.appendingPathComponent("WhistleYoo.whistleyoo")
         }
         self.fileManager = fileManager
+        self.migrationManager = migrationManager
         encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         decoder = JSONDecoder()
@@ -237,10 +261,14 @@ public final class WhistleYooConfigurationStore: @unchecked Sendable {
     }
 
     public func load(from url: URL) throws -> WhistleYooConfigurationFile {
-        let data = try Data(contentsOf: url)
+        let original = try Data(contentsOf: url)
+        let data: Data
         let configuration: WhistleYooConfigurationFile
         do {
+            data = try migrateSettingsIfNeeded(in: original)
             configuration = try decoder.decode(WhistleYooConfigurationFile.self, from: data)
+        } catch let error as WhistleYooError {
+            throw error
         } catch {
             throw WhistleYooError.settingsCorrupted(
                 Localization.format(.coreUnableToReadTheWhistleyooConfigurationFileValue, error.localizedDescription)
@@ -259,6 +287,9 @@ public final class WhistleYooConfigurationStore: @unchecked Sendable {
             ))
         }
         try validate(configuration)
+        if data != original {
+            try save(configuration, to: url)
+        }
         return configuration
     }
 
@@ -273,6 +304,50 @@ public final class WhistleYooConfigurationStore: @unchecked Sendable {
             withIntermediateDirectories: true
         )
         try encoder.encode(configuration).write(to: url, options: .atomic)
+    }
+
+    private func migrateSettingsIfNeeded(in data: Data) throws -> Data {
+        guard var object = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let formatVersion = object["formatVersion"] as? Int else {
+            return data
+        }
+        guard formatVersion == WhistleYooConfigurationFile.currentFormatVersion else {
+            throw WhistleYooError.settingsCorrupted(Localization.format(
+                .coreUnsupportedWhistleyooConfigurationFileVersionVValue,
+                formatVersion
+            ))
+        }
+        guard let settingsObject = object["settings"] as? [String: Any],
+              let settingsVersion = settingsObject["schemaVersion"] as? Int else {
+            return data
+        }
+        guard settingsVersion <= PersistedSettings.currentSchemaVersion else {
+            throw WhistleYooError.settingsCorrupted(Localization.format(
+                .coreTheSettingsVersionInTheConfigurationFileIsIncompatibleVValue,
+                settingsVersion
+            ))
+        }
+        guard settingsVersion < PersistedSettings.currentSchemaVersion else {
+            return data
+        }
+
+        let settingsData = try JSONSerialization.data(withJSONObject: settingsObject)
+        let migratedData = try migrationManager.migrate(
+            settingsData,
+            from: settingsVersion,
+            to: PersistedSettings.currentSchemaVersion
+        )
+        guard let migratedSettings = try JSONSerialization.jsonObject(with: migratedData)
+            as? [String: Any] else {
+            throw WhistleYooError.settingsCorrupted(
+                Localization.string(.coreTheSettingsFileIsMissingSchemaversion)
+            )
+        }
+        object["settings"] = migratedSettings
+        return try JSONSerialization.data(
+            withJSONObject: object,
+            options: [.prettyPrinted, .sortedKeys]
+        )
     }
 
     private func validate(_ configuration: WhistleYooConfigurationFile) throws {

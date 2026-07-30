@@ -99,6 +99,11 @@ TARGET_APP="$DIST_DIR/WhistleYoo.app"
 rm -rf "$TARGET_APP"
 cp -R "$SOURCE_APP" "$TARGET_APP"
 
+# The stdio MCP helper intentionally reuses the app executable and switches mode
+# based on argv[0], keeping one implementation of the Whistle tool surface.
+cp "$TARGET_APP/Contents/MacOS/WhistleYoo" "$TARGET_APP/Contents/MacOS/whistleyoo-mcp"
+chmod 755 "$TARGET_APP/Contents/MacOS/whistleyoo-mcp"
+
 SIGN_ARGS=(--force --deep --sign "$SIGN_IDENTITY" --options runtime --entitlements "$ROOT_DIR/Sources/whistleYooApp/Resources/whistleYoo.entitlements")
 if [[ "$SIGN_IDENTITY" != "-" ]]; then
   SIGN_ARGS+=(--timestamp)
@@ -106,6 +111,7 @@ fi
 codesign "${SIGN_ARGS[@]}" "$TARGET_APP"
 codesign --verify --deep --strict --verbose=2 "$TARGET_APP"
 lipo -info "$TARGET_APP/Contents/MacOS/WhistleYoo"
+lipo -info "$TARGET_APP/Contents/MacOS/whistleyoo-mcp"
 print "Built: $TARGET_APP"
 
 # 安装：退出当前运行的实例并覆盖到应用目录

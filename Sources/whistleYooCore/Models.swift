@@ -149,7 +149,7 @@ public struct EngineConfiguration: Codable, Equatable, Sendable {
 }
 
 public struct PersistedSettings: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 4
+    public static let currentSchemaVersion = 5
     public static let currentOnboardingVersion = 1
 
     public var schemaVersion: Int
@@ -160,6 +160,7 @@ public struct PersistedSettings: Codable, Equatable, Sendable {
     public var certificateStepSkipped: Bool
     public var softwareDomainWhitelistEnabled: Bool
     public var softwareDomainWhitelistDomains: [String]
+    public var mcp: MCPSettings
 
     public init(
         schemaVersion: Int = currentSchemaVersion,
@@ -169,7 +170,8 @@ public struct PersistedSettings: Codable, Equatable, Sendable {
         completedOnboardingVersion: Int? = nil,
         certificateStepSkipped: Bool = false,
         softwareDomainWhitelistEnabled: Bool = true,
-        softwareDomainWhitelistDomains: [String] = SoftwareDomainWhitelistManager.domains
+        softwareDomainWhitelistDomains: [String] = SoftwareDomainWhitelistManager.domains,
+        mcp: MCPSettings = MCPSettings()
     ) {
         self.schemaVersion = schemaVersion
         self.engine = engine
@@ -179,6 +181,49 @@ public struct PersistedSettings: Codable, Equatable, Sendable {
         self.certificateStepSkipped = certificateStepSkipped
         self.softwareDomainWhitelistEnabled = softwareDomainWhitelistEnabled
         self.softwareDomainWhitelistDomains = softwareDomainWhitelistDomains
+        self.mcp = mcp
+    }
+}
+
+public enum MCPAccessMode: String, Codable, CaseIterable, Sendable {
+    case readOnly
+    case fullAccess
+}
+
+public struct MCPSettings: Codable, Equatable, Sendable {
+    public var enabled: Bool
+    public var authenticationEnabled: Bool
+    public var port: Int
+    public var accessMode: MCPAccessMode
+
+    public init(
+        enabled: Bool = false,
+        authenticationEnabled: Bool = true,
+        port: Int = 8_901,
+        accessMode: MCPAccessMode = .readOnly
+    ) {
+        self.enabled = enabled
+        self.authenticationEnabled = authenticationEnabled
+        self.port = port
+        self.accessMode = accessMode
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case enabled
+        case authenticationEnabled
+        case port
+        case accessMode
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        enabled = try container.decode(Bool.self, forKey: .enabled)
+        authenticationEnabled = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .authenticationEnabled
+        ) ?? true
+        port = try container.decode(Int.self, forKey: .port)
+        accessMode = try container.decode(MCPAccessMode.self, forKey: .accessMode)
     }
 }
 

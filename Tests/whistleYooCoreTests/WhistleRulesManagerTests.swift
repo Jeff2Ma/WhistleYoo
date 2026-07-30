@@ -304,6 +304,42 @@ final class WhistleRulesManagerTests: XCTestCase {
         XCTAssertEqual(captured[2].1["name"], "Two")
     }
 
+    func testEditingEnabledRuleReloadsRuntimeWithoutTogglingSelection() async throws {
+        var captured = [(String, [String: String])]()
+        RulesURLProtocol.handler = { request in
+            captured.append((request.url!.path, Self.formFields(request)))
+            return (200, #"{"ec":0}"#.data(using: .utf8)!)
+        }
+        let defaultRule = WhistleRuleDocument(
+            name: "Default",
+            value: "managed.default.test host://127.0.0.1",
+            isEnabled: true,
+            isDefault: true
+        )
+
+        try await makeManager().applyChanges(
+            from: WhistleRulesSnapshot(documents: [
+                defaultRule,
+                WhistleRuleDocument(name: "Enabled", value: "old", isEnabled: true)
+            ]),
+            to: WhistleRulesSnapshot(documents: [
+                defaultRule,
+                WhistleRuleDocument(name: "Enabled", value: "new", isEnabled: true)
+            ]),
+            baseURL: URL(string: "http://127.0.0.1:8900/")!
+        )
+
+        XCTAssertEqual(captured.map(\.0), [
+            "/cgi-bin/rules/allow-multiple-choice",
+            "/cgi-bin/rules/add",
+            "/cgi-bin/rules/select"
+        ])
+        XCTAssertEqual(captured[1].1["name"], "Enabled")
+        XCTAssertEqual(captured[1].1["value"], "new")
+        XCTAssertEqual(captured[2].1["name"], "Enabled")
+        XCTAssertEqual(captured[2].1["value"], "new")
+    }
+
     func testLoadValuesReturnsWhistleValueDocumentsInStorageOrder() async throws {
         var capturedRequests = [URLRequest]()
         RulesURLProtocol.handler = { request in

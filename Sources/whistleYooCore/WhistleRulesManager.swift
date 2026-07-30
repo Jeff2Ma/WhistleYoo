@@ -180,14 +180,19 @@ public struct WhistleRulesManager: Sendable {
 
         for document in updated.documents where !document.isDefault {
             let previous = originalNamed[document.name]
-            if previous?.value != document.value {
+            let contentChanged = previous?.value != document.value
+            if contentChanged {
                 try await post(
                     "cgi-bin/rules/add",
                     form: ["name": document.name, "value": document.value],
                     baseURL: baseURL
                 )
             }
-            if previous?.isEnabled != document.isEnabled || needsSelectionReconciliation {
+            // `rules/add` only updates Whistle's storage. Re-select an edited,
+            // active document so Whistle reparses the live Rules immediately.
+            if previous?.isEnabled != document.isEnabled
+                || needsSelectionReconciliation
+                || (contentChanged && document.isEnabled) {
                 try await persistEnabled(
                     document.isEnabled,
                     name: document.name,

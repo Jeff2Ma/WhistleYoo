@@ -431,6 +431,7 @@ enum MainWorkspaceTab: Hashable {
     case plugins
     case mobile
     case rules
+    case mcp
     case settings
     case about
 }
@@ -479,7 +480,12 @@ struct MainWorkspaceView: View {
                     tab: .mobile
                 )
                 sidebarButton(
-                    title: Localization.string(.rulesSettings),
+                    title: "MCP",
+                    symbol: "server.rack",
+                    tab: .mcp
+                )
+                sidebarButton(
+                    title: Localization.string(.settingsMoreSettings),
                     symbol: "gearshape",
                     tab: .settings
                 )
@@ -587,6 +593,8 @@ struct MainWorkspaceView: View {
             MobileSetupView(model: mobileModel, isActive: true)
         case .rules:
             RuleConfigurationView(state: state, draft: rulesDraft)
+        case .mcp:
+            MCPSettingsView(state: state)
         case .settings:
             SettingsView(
                 state: state,
@@ -1036,6 +1044,253 @@ struct OnboardingView: View {
     private func copy(_ value: String) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(value, forType: .string)
+    }
+}
+
+struct MCPSettingsView: View {
+    private enum FocusField: Hashable {
+        case port
+    }
+
+    @ObservedObject var state: AppStateController
+    @FocusState private var focusedField: FocusField?
+    @State private var mcpEnabled: Bool
+    @State private var authenticationEnabled: Bool
+    @State private var port: String
+    @State private var accessMode: MCPAccessMode
+    @State private var bearerToken: String?
+    @State private var status: String?
+
+    init(state: AppStateController) {
+        self.state = state
+        let authenticationEnabled = state.settings.mcp.authenticationEnabled
+        _mcpEnabled = State(initialValue: state.settings.mcp.enabled)
+        _authenticationEnabled = State(initialValue: authenticationEnabled)
+        _port = State(initialValue: String(state.settings.mcp.port))
+        _accessMode = State(initialValue: state.settings.mcp.accessMode)
+        _bearerToken = State(
+            initialValue: authenticationEnabled
+                ? (try? MCPTokenStore().loadOrCreate())
+                : nil
+        )
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(Localization.string(.mcpModelContextProtocol))
+                        .font(.title3.weight(.semibold))
+                    Text(Localization.string(
+                        .mcpLetLocalAiAgentsCallWhistleApisWithWhistleCompatibleNames
+                    ))
+                        .foregroundStyle(.secondary)
+                }
+
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Toggle(
+                            Localization.string(.mcpEnableLocalServer),
+                            isOn: $mcpEnabled
+                        )
+                        Toggle(
+                            Localization.string(.mcpEnableHttpAuthentication),
+                            isOn: $authenticationEnabled
+                        )
+                        HStack {
+                            Text(Localization.string(.mcpAccess))
+                                .frame(width: 120, alignment: .leading)
+                            Picker(Localization.string(.mcpAccess), selection: $accessMode) {
+                                Text(Localization.string(.mcpReadOnly))
+                                    .tag(MCPAccessMode.readOnly)
+                                Text(Localization.string(.mcpFullAccess))
+                                    .tag(MCPAccessMode.fullAccess)
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.segmented)
+                            .frame(maxWidth: 280)
+                        }
+                        HStack {
+                            Text(Localization.string(.mcpHttpPort))
+                                .frame(width: 120, alignment: .leading)
+                            TextField(Localization.string(.mobilePort), text: $port)
+                                .focused($focusedField, equals: .port)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 130)
+                            Spacer()
+                        }
+
+                        Text(Localization.format(
+                            .mcpHttpEndpointValue,
+                            "http://127.0.0.1:\(port)/mcp"
+                        ))
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                            .textSelection(.enabled)
+                        Text(authenticationEnabled
+                            ? Localization.string(.mcpServerOnlyListensOnLocalhost)
+                            : Localization.string(.mcpAuthenticationDisabled))
+                            .font(.caption)
+                            .foregroundStyle(authenticationEnabled ? Color.secondary : Color.orange)
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text(Localization.string(.mcpHttpConfiguration))
+                                    .font(.headline)
+                                Spacer()
+                                Button(Localization.string(.mobileCopy)) {
+                                    copyHTTPConfiguration()
+                                }
+                            }
+                            ScrollView(.horizontal) {
+                                Text(httpConfiguration)
+                                    .font(.system(.caption, design: .monospaced))
+                                    .textSelection(.enabled)
+                                    .fixedSize(horizontal: true, vertical: false)
+                            }
+                            .padding(12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(
+                                Color(nsColor: .textBackgroundColor),
+                                in: RoundedRectangle(cornerRadius: 7)
+                            )
+                            .hairlineRoundedBorder(
+                                Color.primary.opacity(0.12),
+                                cornerRadius: 7
+                            )
+                        }
+
+                        if let status {
+                            Label(status, systemImage: "checkmark.circle.fill")
+                                .font(.callout)
+                                .foregroundStyle(.green)
+                        }
+                        HStack {
+                            Button(Localization.string(.mcpRotateToken)) {
+                                if state.rotateMCPToken() {
+                                    bearerToken = try? MCPTokenStore().loadOrCreate()
+                                    status = Localization.string(.mcpBearerTokenRotated)
+                                }
+                            }
+                            .disabled(!authenticationEnabled)
+                            Spacer()
+                            Button(Localization.string(.rulesApply)) { applySettings() }
+                                .buttonStyle(.borderedProminent)
+                                .disabled(parsedPort == nil)
+                        }
+                    }
+                    .padding(8)
+                }
+
+                if !state.mcpAuditEvents.isEmpty {
+                    GroupBox(Localization.string(.mcpRecentActivity)) {
+                        VStack(spacing: 10) {
+                            ForEach(state.mcpAuditEvents.prefix(5)) { event in
+                                HStack(spacing: 8) {
+                                    Image(systemName: event.succeeded
+                                        ? "checkmark.circle.fill"
+                                        : "xmark.circle.fill")
+                                        .foregroundStyle(event.succeeded ? Color.green : Color.red)
+                                    Text(event.tool)
+                                        .font(.system(.caption, design: .monospaced))
+                                    Spacer()
+                                    Text(event.date.formatted(date: .numeric, time: .standard))
+                                        .font(.caption)
+                                        .monospacedDigit()
+                                        .foregroundStyle(.secondary)
+                                    Text("\(event.durationMilliseconds) ms")
+                                        .font(.caption)
+                                        .monospacedDigit()
+                                        .foregroundStyle(.secondary)
+                                }
+                                .help(event.message ?? event.date.formatted())
+                            }
+                        }
+                        .padding(8)
+                    }
+                }
+            }
+            .padding(30)
+            .frame(maxWidth: 820, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .top)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .defaultFocus($focusedField, nil)
+        .onAppear {
+            focusedField = nil
+        }
+        .onChange(of: authenticationEnabled) { enabled in
+            if enabled, bearerToken == nil {
+                bearerToken = try? MCPTokenStore().loadOrCreate()
+            }
+        }
+    }
+
+    private var parsedPort: Int? {
+        guard let port = Int(port), (1...65_535).contains(port) else { return nil }
+        return port
+    }
+
+    private func applySettings() {
+        guard let port = parsedPort else { return }
+        if state.updateMCPSettings(
+            enabled: mcpEnabled,
+            authenticationEnabled: authenticationEnabled,
+            port: port,
+            accessMode: accessMode
+        ) {
+            status = Localization.string(
+                mcpEnabled ? .mcpServerSettingsApplied : .mcpServerDisabled
+            )
+        }
+    }
+
+    private var httpConfiguration: String {
+        MCPHTTPConfigurationFormatter.render(
+            port: port,
+            authenticationEnabled: authenticationEnabled,
+            bearerToken: bearerToken
+        )
+    }
+
+    private func copyHTTPConfiguration() {
+        copyToPasteboard(httpConfiguration)
+        status = Localization.string(.mcpHttpConfigurationCopied)
+    }
+
+    private func copyToPasteboard(_ value: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(value, forType: .string)
+    }
+}
+
+enum MCPHTTPConfigurationFormatter {
+    static func render(
+        port: String,
+        authenticationEnabled: Bool,
+        bearerToken: String?
+    ) -> String {
+        guard authenticationEnabled else {
+            return """
+            {
+              "whistleyoo": {
+                "url": "http://127.0.0.1:\(port)/mcp",
+                "transportType": "streamable-http"
+              }
+            }
+            """
+        }
+        return """
+        {
+          "whistleyoo": {
+            "url": "http://127.0.0.1:\(port)/mcp",
+            "transportType": "streamable-http",
+            "headers": {
+              "Authorization": "Bearer \(bearerToken ?? "")"
+            }
+          }
+        }
+        """
     }
 }
 
