@@ -34,6 +34,7 @@ HTTP 鉴权默认开启。页面展示的配置会包含当前 Token：
 {
   "whistleyoo": {
     "url": "http://127.0.0.1:8901/mcp",
+    "transportType": "streamable-http",
     "headers": {
       "Authorization": "Bearer <WhistleYoo 生成的 Token>"
     }
@@ -55,7 +56,8 @@ HTTP 鉴权默认开启。页面展示的配置会包含当前 Token：
 ```json
 {
   "whistleyoo": {
-    "url": "http://127.0.0.1:8901/mcp"
+    "url": "http://127.0.0.1:8901/mcp",
+    "transportType": "streamable-http"
   }
 }
 ```

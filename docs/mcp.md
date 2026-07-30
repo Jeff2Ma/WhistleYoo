@@ -37,8 +37,9 @@ or contains an arbitrary string. Any process on the Mac can then call the MCP
 endpoint, so Bearer token authentication remains the recommended default.
 
 The MCP tab displays a ready-to-paste JSON configuration keyed by
-`whistleyoo`. When authentication is enabled it includes the current Bearer
-token; use the Copy button beside the configuration to copy it.
+`whistleyoo` with `transportType` set to `streamable-http`. When authentication
+is enabled it includes the current Bearer token; use the Copy button beside the
+configuration to copy it.
 
 ## Access modes
 

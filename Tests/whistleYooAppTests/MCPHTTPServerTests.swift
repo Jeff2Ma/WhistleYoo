@@ -19,6 +19,7 @@ final class MCPHTTPServerTests: XCTestCase {
         let headers = try XCTUnwrap(whistleYoo["headers"] as? [String: String])
 
         XCTAssertEqual(whistleYoo["url"] as? String, "http://127.0.0.1:8901/mcp")
+        XCTAssertEqual(whistleYoo["transportType"] as? String, "streamable-http")
         XCTAssertEqual(headers["Authorization"], "Bearer example-token")
     }
 
@@ -36,6 +37,7 @@ final class MCPHTTPServerTests: XCTestCase {
         let whistleYoo = try XCTUnwrap(object["whistleyoo"] as? [String: Any])
 
         XCTAssertEqual(whistleYoo["url"] as? String, "http://127.0.0.1:9001/mcp")
+        XCTAssertEqual(whistleYoo["transportType"] as? String, "streamable-http")
         XCTAssertNil(whistleYoo["headers"])
     }
 

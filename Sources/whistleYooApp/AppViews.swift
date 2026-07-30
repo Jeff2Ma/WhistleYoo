@@ -1274,7 +1274,8 @@ enum MCPHTTPConfigurationFormatter {
             return """
             {
               "whistleyoo": {
-                "url": "http://127.0.0.1:\(port)/mcp"
+                "url": "http://127.0.0.1:\(port)/mcp",
+                "transportType": "streamable-http"
               }
             }
             """
@@ -1283,6 +1284,7 @@ enum MCPHTTPConfigurationFormatter {
         {
           "whistleyoo": {
             "url": "http://127.0.0.1:\(port)/mcp",
+            "transportType": "streamable-http",
             "headers": {
               "Authorization": "Bearer \(bearerToken ?? "")"
             }
