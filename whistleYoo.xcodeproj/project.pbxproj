@@ -20,7 +20,6 @@
 		1112 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0112 /* AppDelegate.swift */; };
 		1113 /* WhistleWebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0113 /* WhistleWebViewController.swift */; };
 		1114 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0114 /* main.swift */; };
-		1115 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0117 /* Assets.xcassets */; };
 		1116 /* ManagedProcessCleaner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0118 /* ManagedProcessCleaner.swift */; };
 		1117 /* AppStateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0119 /* AppStateController.swift */; };
 		1118 /* AppViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0120 /* AppViews.swift */; };
@@ -45,6 +44,7 @@
 		1138 /* NIOCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6006 /* NIOCore */; };
 		1139 /* NIOPosix in Frameworks */ = {isa = PBXBuildFile; productRef = 6007 /* NIOPosix */; };
 		1140 /* NIOHTTP1 in Frameworks */ = {isa = PBXBuildFile; productRef = 6008 /* NIOHTTP1 */; };
+		1141 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 0142 /* AppIcon.icon */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -86,6 +86,7 @@
 		0139 /* WhistleAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhistleAPIClient.swift; sourceTree = "<group>"; };
 		0140 /* MCPToolServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPToolServer.swift; sourceTree = "<group>"; };
 		0141 /* MCPHTTPServerCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPHTTPServerCoordinator.swift; sourceTree = "<group>"; };
+		0142 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,7 +133,7 @@
 		};
 		0007 /* Resources */ = {
 			isa = PBXGroup;
-			children = (0115, 0116, 0117, 0131 /* InfoPlist.strings */);
+			children = (0115, 0116, 0142 /* AppIcon.icon */, 0117, 0131 /* InfoPlist.strings */);
 			path = Resources;
 			sourceTree = "<group>";
 		};
@@ -180,7 +181,7 @@
 		2003 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
-			files = (1115 /* Assets.xcassets in Resources */, 1124 /* Localizable.xcstrings in Resources */, 1125 /* InfoPlist.strings in Resources */);
+			files = (1141 /* AppIcon.icon in Resources */, 1124 /* Localizable.xcstrings in Resources */, 1125 /* InfoPlist.strings in Resources */);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */

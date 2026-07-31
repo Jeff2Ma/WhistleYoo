@@ -100,6 +100,7 @@ jobs:
     permissions:
       contents: write
     env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
       SPARKLE_PRIVATE_KEY_FILE: ${{ github.workspace }}/.sparkle/ed25519-private-key
 
     steps:

@@ -34,6 +34,7 @@ let package = Package(
                 .product(name: "NIOHTTP1", package: "swift-nio")
             ],
             exclude: [
+                "Resources/AppIcon.icon",
                 "Resources/Info.plist",
                 "Resources/whistleYoo.entitlements"
             ],
