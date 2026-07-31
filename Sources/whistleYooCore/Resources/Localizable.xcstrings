@@ -6146,6 +6146,74 @@
       },
       "comment": "中文：可以暂时跳过，但 HTTPS 抓包会失败"
     },
+    "sidebar.section.capture": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capture"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "抓包"
+          }
+        }
+      },
+      "comment": "中文：抓包"
+    },
+    "sidebar.section.configuration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置"
+          }
+        }
+      },
+      "comment": "中文：配置"
+    },
+    "sidebar.section.general": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "General"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通用"
+          }
+        }
+      },
+      "comment": "中文：通用"
+    },
+    "sidebar.toggle_sidebar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide or Show Sidebar"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏或显示边栏"
+          }
+        }
+      },
+      "comment": "中文：隐藏或显示边栏"
+    },
     "status.a_rule_with_this_name_already_exists": {
       "localizations": {
         "en": {

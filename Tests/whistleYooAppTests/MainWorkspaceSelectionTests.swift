@@ -65,4 +65,28 @@ final class MainWorkspaceSelectionTests: XCTestCase {
         XCTAssertEqual(selection.selected, .mobile)
         XCTAssertFalse(selection.isDiscardConfirmationPresented)
     }
+
+    func testTogglingSidebarSwitchesBetweenFullAndDetailOnlyLayout() {
+        let selection = MainWorkspaceSelection(selected: .console)
+
+        XCTAssertEqual(selection.columnVisibility, .all)
+
+        selection.toggleSidebar()
+        XCTAssertEqual(selection.columnVisibility, .detailOnly)
+
+        selection.toggleSidebar()
+        XCTAssertEqual(selection.columnVisibility, .all)
+    }
+
+    func testTogglingSidebarDoesNotChangeTheSelectedPage() {
+        let selection = MainWorkspaceSelection(
+            selected: .rules,
+            hasUnsavedChanges: { true }
+        )
+
+        selection.toggleSidebar()
+
+        XCTAssertEqual(selection.selected, .rules)
+        XCTAssertFalse(selection.isDiscardConfirmationPresented)
+    }
 }

@@ -699,6 +699,14 @@ SHA-256: %@</string>
 	<string>With a custom location, the app reads this file at launch and atomically writes back after settings or rules are saved.</string>
 	<key>settings.you_can_skip_this_for_now_but_https_capture_will_not_work</key>
 	<string>You can skip this for now, but HTTPS capture will not work</string>
+	<key>sidebar.section.capture</key>
+	<string>Capture</string>
+	<key>sidebar.section.configuration</key>
+	<string>Configuration</string>
+	<key>sidebar.section.general</key>
+	<string>General</string>
+	<key>sidebar.toggle_sidebar</key>
+	<string>Hide or Show Sidebar</string>
 	<key>status.a_rule_with_this_name_already_exists</key>
 	<string>A rule with this name already exists</string>
 	<key>status.another_proxy_configuration_exists_whistleyoo_has_not_taken_control</key>

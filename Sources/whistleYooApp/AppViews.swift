@@ -464,6 +464,7 @@ final class MainWorkspaceSelection: ObservableObject {
     @Published private(set) var selected: MainWorkspaceTab
     @Published var isDiscardConfirmationPresented = false
     @Published var isOperationAlertPresented = false
+    @Published var columnVisibility: NavigationSplitViewVisibility = .all
 
     private let hasUnsavedChanges: () -> Bool
     private let hasOperationInProgress: () -> Bool
@@ -480,6 +481,10 @@ final class MainWorkspaceSelection: ObservableObject {
         self.hasUnsavedChanges = hasUnsavedChanges
         self.hasOperationInProgress = hasOperationInProgress
         self.discardUnsavedChanges = discardUnsavedChanges
+    }
+
+    func toggleSidebar() {
+        columnVisibility = columnVisibility == .detailOnly ? .all : .detailOnly
     }
 
     func request(_ tab: MainWorkspaceTab) {
@@ -524,58 +529,89 @@ struct MainWorkspaceView: View {
     let exportCertificate: () -> Void
     let runOnboarding: () -> Void
 
+    private struct SidebarItem: Identifiable {
+        let tab: MainWorkspaceTab
+        let title: String
+        let symbol: String
+
+        var id: MainWorkspaceTab { tab }
+    }
+
+    private struct SidebarGroup: Identifiable {
+        let id: String
+        let title: String
+        let items: [SidebarItem]
+    }
+
+    private var sidebarGroups: [SidebarGroup] {
+        [
+            SidebarGroup(
+                id: "capture",
+                title: Localization.string(.sidebarSectionCapture),
+                items: [
+                    SidebarItem(
+                        tab: .console,
+                        title: Localization.string(.consoleWhistleConsole),
+                        symbol: "network"
+                    ),
+                    SidebarItem(
+                        tab: .plugins,
+                        title: Localization.string(.pluginsWhistlePlugins),
+                        symbol: "puzzlepiece.extension"
+                    )
+                ]
+            ),
+            SidebarGroup(
+                id: "configuration",
+                title: Localization.string(.sidebarSectionConfiguration),
+                items: [
+                    SidebarItem(
+                        tab: .rules,
+                        title: Localization.string(.rulesConfiguration),
+                        symbol: "doc.text"
+                    ),
+                    SidebarItem(
+                        tab: .mobile,
+                        title: Localization.string(.mobileMobileProxy),
+                        symbol: "iphone.and.arrow.forward"
+                    )
+                ]
+            ),
+            SidebarGroup(
+                id: "general",
+                title: Localization.string(.sidebarSectionGeneral),
+                items: [
+                    SidebarItem(tab: .mcp, title: "MCP", symbol: "server.rack"),
+                    SidebarItem(
+                        tab: .settings,
+                        title: Localization.string(.settingsMoreSettings),
+                        symbol: "gearshape"
+                    ),
+                    SidebarItem(
+                        tab: .about,
+                        title: Localization.string(.settingsAbout),
+                        symbol: "info.circle"
+                    )
+                ]
+            )
+        ]
+    }
+
+    // The window uses `.fullSizeContentView`, so both columns start at the very top of
+    // the window. A bar this tall covers the 32pt title bar and leaves the toolbar row
+    // roughly level with the window buttons, the way OrbStack's unified top area reads.
+    private static let topBarHeight: CGFloat = 44
+    // The window buttons plus the sidebar toggle accessory occupy the leading title bar.
+    private static let titleBarControlsWidth: CGFloat = 112
+
     var body: some View {
-        HStack(spacing: 0) {
-            VStack(spacing: 10) {
-                sidebarButton(
-                    title: Localization.string(.consoleWhistleConsole),
-                    symbol: "network",
-                    tab: .console
-                )
-                sidebarButton(
-                    title: Localization.string(.pluginsWhistlePlugins),
-                    symbol: "puzzlepiece.extension",
-                    tab: .plugins
-                )
-                sidebarButton(
-                    title: Localization.string(.rulesConfiguration),
-                    symbol: "doc.text",
-                    tab: .rules
-                )
-                sidebarButton(
-                    title: Localization.string(.mobileMobileProxy),
-                    symbol: "iphone.and.arrow.forward",
-                    tab: .mobile
-                )
-                sidebarButton(
-                    title: "MCP",
-                    symbol: "server.rack",
-                    tab: .mcp
-                )
-                sidebarButton(
-                    title: Localization.string(.settingsMoreSettings),
-                    symbol: "gearshape",
-                    tab: .settings
-                )
-                sidebarButton(
-                    title: Localization.string(.settingsAbout),
-                    symbol: "info.circle",
-                    tab: .about
-                )
-                Spacer()
-                sidebarStatusSummary
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 12)
-            .frame(width: 170, alignment: .top)
-            .background(Color(nsColor: .controlBackgroundColor))
-
-            Divider()
-
-            mainContent
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(nsColor: .textBackgroundColor))
+        NavigationSplitView(columnVisibility: $selection.columnVisibility) {
+            sidebar
+                .navigationSplitViewColumnWidth(min: 186, ideal: 202, max: 300)
+        } detail: {
+            detail
         }
+        .navigationSplitViewStyle(.balanced)
         .frame(minWidth: 900, minHeight: 640)
         .alert(
             Localization.string(.settingsDiscardUnsavedChanges),
@@ -600,11 +636,130 @@ struct MainWorkspaceView: View {
         }
     }
 
+    private var isSidebarCollapsed: Bool {
+        selection.columnVisibility == .detailOnly
+    }
+
+    private var detail: some View {
+        VStack(spacing: 0) {
+            detailHeader
+            Divider()
+            mainContent
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .background(Color(nsColor: .textBackgroundColor))
+        // Without this the embedded WKWebView is pushed below the transparent title
+        // bar and leaves an empty strip above the Whistle console.
+        .ignoresSafeArea(.container, edges: .top)
+    }
+
+    private var detailHeader: some View {
+        HStack(spacing: 6) {
+            Text(detailTitle)
+                .font(.system(size: 13, weight: .semibold))
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            detailHeaderActions
+        }
+        // When the sidebar is hidden the window buttons and the sidebar toggle move
+        // over the detail column, so the title has to step out of their way.
+        .padding(.leading, isSidebarCollapsed ? Self.titleBarControlsWidth : 16)
+        .padding(.trailing, 12)
+        .frame(height: Self.topBarHeight)
+        .frame(maxWidth: .infinity)
+        .background(WindowDragHandle())
+        .background(.bar)
+    }
+
+    private var detailTitle: String {
+        sidebarGroups
+            .flatMap(\.items)
+            .first { $0.tab == selection.selected }?
+            .title ?? ""
+    }
+
+    private var selectedWebWorkspace: WhistleConsoleSession.Workspace? {
+        switch selection.selected {
+        case .console: return .network
+        case .plugins: return .plugins
+        default: return nil
+        }
+    }
+
+    @ViewBuilder
+    private var detailHeaderActions: some View {
+        if let workspace = selectedWebWorkspace, state.isEngineRunning, let url = state.uiURL {
+            detailHeaderButton(
+                symbol: "arrow.clockwise",
+                help: Localization.string(.consoleReload)
+            ) {
+                consoleSession.reload()
+            }
+            detailHeaderButton(
+                symbol: "safari",
+                help: Localization.string(.consoleOpenInBrowser)
+            ) {
+                NSWorkspace.shared.open(consoleSession.pageURL(for: url, workspace: workspace))
+            }
+        }
+    }
+
+    private func detailHeaderButton(
+        symbol: String,
+        help: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 13, weight: .medium))
+                .frame(width: 24, height: 22)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(DetailHeaderButtonStyle())
+        .help(help)
+        .accessibilityLabel(help)
+    }
+
+    private var sidebar: some View {
+        VStack(spacing: 0) {
+            ScrollView(.vertical) {
+                VStack(alignment: .leading, spacing: 16) {
+                    ForEach(sidebarGroups) { group in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(group.title)
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, 9)
+                                .padding(.bottom, 3)
+                            ForEach(group.items) { item in
+                                sidebarButton(item)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 8)
+                // The sidebar column already draws behind the title bar, so the first
+                // group has to clear the window buttons and line up with the detail bar.
+                .padding(.top, Self.topBarHeight + 8)
+                .padding(.bottom, 12)
+            }
+            .scrollIndicators(.never)
+
+            Divider()
+
+            sidebarStatusSummary
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)
+        }
+        .frame(maxHeight: .infinity, alignment: .top)
+        .ignoresSafeArea(.container, edges: .top)
+    }
+
     private var sidebarStatusSummary: some View {
         Button {
             requestTabSelection(.console)
         } label: {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 7) {
                 HStack(spacing: 6) {
                     Circle()
                         .fill(sidebarEngineStatusColor)
@@ -631,7 +786,7 @@ struct MainWorkspaceView: View {
                 .frame(maxWidth: .infinity)
             }
             .font(.system(size: 10.5, weight: .medium))
-            .padding(9)
+            .padding(8)
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
@@ -681,42 +836,28 @@ struct MainWorkspaceView: View {
         }
     }
 
-    private func sidebarButton(
-        title: String,
-        symbol: String,
-        tab: MainWorkspaceTab
-    ) -> some View {
-        Button {
-            requestTabSelection(tab)
+    private func sidebarButton(_ item: SidebarItem) -> some View {
+        let isSelected = selection.selected == item.tab
+        return Button {
+            requestTabSelection(item.tab)
         } label: {
-            HStack(spacing: 9) {
-                Image(systemName: symbol)
-                    .font(.system(size: 16, weight: .regular))
-                    .frame(width: 20)
-                Text(title)
+            HStack(spacing: 8) {
+                Image(systemName: item.symbol)
+                    .font(.system(size: 13, weight: .medium))
+                    .frame(width: 18)
+                Text(item.title)
                     .lineLimit(1)
                 Spacer(minLength: 0)
             }
-            .frame(maxWidth: .infinity)
-            .font(.system(size: 13, weight: .regular))
-            .foregroundStyle(selection.selected == tab ? Color.accentColor : Color.primary)
-            .padding(.vertical, 8)
-            .padding(.horizontal, 10)
-            .background(
-                selection.selected == tab ? Color.accentColor.opacity(0.14) : Color.clear,
-                in: RoundedRectangle(cornerRadius: 9, style: .continuous)
-            )
-            .hairlineRoundedBorder(
-                selection.selected == tab ? Color.accentColor.opacity(0.18) : Color.clear,
-                cornerRadius: 9,
-                style: .continuous
-            )
+            .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+            .padding(.vertical, 6)
+            .padding(.horizontal, 9)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .frame(maxWidth: .infinity)
-        .accessibilityLabel(title)
-        .accessibilityAddTraits(selection.selected == tab ? .isSelected : [])
+        .buttonStyle(SidebarRowButtonStyle(isSelected: isSelected))
+        .accessibilityLabel(item.title)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private func requestTabSelection(_ tab: MainWorkspaceTab) {
@@ -751,6 +892,40 @@ struct MainWorkspaceView: View {
     }
 }
 
+private struct SidebarRowButtonStyle: ButtonStyle {    let isSelected: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        SidebarRowButtonBody(configuration: configuration, isSelected: isSelected)
+    }
+
+    private struct SidebarRowButtonBody: View {
+        let configuration: Configuration
+        let isSelected: Bool
+        @State private var isHovering = false
+
+        var body: some View {
+            configuration.label
+                .foregroundStyle(isSelected ? Color.white : Color.primary)
+                .background(
+                    backgroundColor,
+                    in: RoundedRectangle(cornerRadius: 7, style: .continuous)
+                )
+                .onHover { isHovering = $0 }
+                .animation(.easeOut(duration: 0.1), value: isHovering)
+                .animation(.easeOut(duration: 0.08), value: configuration.isPressed)
+        }
+
+        private var backgroundColor: Color {
+            if isSelected {
+                return Color.accentColor.opacity(configuration.isPressed ? 0.82 : 1)
+            }
+            if configuration.isPressed { return Color.primary.opacity(0.12) }
+            if isHovering { return Color.primary.opacity(0.07) }
+            return .clear
+        }
+    }
+}
+
 private struct SidebarStatusButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         SidebarStatusButtonBody(configuration: configuration)
@@ -764,12 +939,7 @@ private struct SidebarStatusButtonStyle: ButtonStyle {
             configuration.label
                 .background(
                     backgroundColor,
-                    in: RoundedRectangle(cornerRadius: 9, style: .continuous)
-                )
-                .hairlineRoundedBorder(
-                    Color.primary.opacity(isHovering ? 0.13 : 0.08),
-                    cornerRadius: 9,
-                    style: .continuous
+                    in: RoundedRectangle(cornerRadius: 7, style: .continuous)
                 )
                 .onHover { isHovering = $0 }
                 .animation(.easeOut(duration: 0.08), value: isHovering)
@@ -777,9 +947,9 @@ private struct SidebarStatusButtonStyle: ButtonStyle {
         }
 
         private var backgroundColor: Color {
-            if configuration.isPressed { return Color.primary.opacity(0.13) }
-            if isHovering { return Color.primary.opacity(0.08) }
-            return Color.primary.opacity(0.04)
+            if configuration.isPressed { return Color.primary.opacity(0.12) }
+            if isHovering { return Color.primary.opacity(0.07) }
+            return .clear
         }
     }
 }

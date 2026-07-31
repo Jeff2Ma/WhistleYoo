@@ -699,6 +699,14 @@ SHA-256：%@</string>
 	<string>使用自定义路径后，应用启动时会从该文件读取配置，设置或规则保存后也会自动原子写回。</string>
 	<key>settings.you_can_skip_this_for_now_but_https_capture_will_not_work</key>
 	<string>可以暂时跳过，但 HTTPS 抓包会失败</string>
+	<key>sidebar.section.capture</key>
+	<string>抓包</string>
+	<key>sidebar.section.configuration</key>
+	<string>配置</string>
+	<key>sidebar.section.general</key>
+	<string>通用</string>
+	<key>sidebar.toggle_sidebar</key>
+	<string>隐藏或显示边栏</string>
 	<key>status.a_rule_with_this_name_already_exists</key>
 	<string>已存在同名规则</string>
 	<key>status.another_proxy_configuration_exists_whistleyoo_has_not_taken_control</key>

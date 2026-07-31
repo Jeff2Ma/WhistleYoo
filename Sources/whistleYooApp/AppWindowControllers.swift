@@ -8,19 +8,13 @@ import whistleYooCore
 final class MainWindowController: NSWindowController, NSWindowDelegate {
     private static let defaultContentSize = NSSize(width: 1280, height: 800)
     private static let minimumWindowSize = NSSize(width: 900, height: 640)
+    // `.fullSizeContentView` lets the SwiftUI sidebar paint behind the title bar so
+    // the window buttons sit inside the sidebar, the way OrbStack and Finder do it.
     private static let windowStyleMask: NSWindow.StyleMask = [
-        .titled, .closable, .miniaturizable, .resizable
+        .titled, .closable, .miniaturizable, .resizable, .fullSizeContentView
     ]
     private static let contentWidthDefaultsKey = "MainWorkspaceWindowContentWidth"
     private static let contentHeightDefaultsKey = "MainWorkspaceWindowContentHeight"
-    private static let hostingSizeMigrationDefaultsKey = "MainWorkspaceWindowHostingSizeMigrationV1"
-
-    private static var minimumContentSize: NSSize {
-        NSWindow.contentRect(
-            forFrameRect: NSRect(origin: .zero, size: minimumWindowSize),
-            styleMask: windowStyleMask
-        ).size
-    }
 
     private let selection: MainWorkspaceSelection
     private let mobileModel: MobileSetupViewModel
@@ -34,7 +28,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         runOnboarding: @escaping () -> Void
     ) {
         let rulesDraft = RuleConfigurationDraft()
-        selection = MainWorkspaceSelection(
+        let workspaceSelection = MainWorkspaceSelection(
             selected: initialTab,
             hasUnsavedChanges: { rulesDraft.isDirty },
             hasOperationInProgress: {
@@ -44,12 +38,13 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             },
             discardUnsavedChanges: { rulesDraft.discardChanges() }
         )
+        selection = workspaceSelection
         mobileModel = MobileSetupViewModel(state: state)
         self.rulesDraft = rulesDraft
         let rootView = MainWorkspaceView(
             state: state,
             consoleSession: consoleSession,
-            selection: selection,
+            selection: workspaceSelection,
             mobileModel: mobileModel,
             rulesDraft: rulesDraft,
             exportCertificate: exportCertificate,
@@ -63,8 +58,16 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             defer: false
         )
         window.title = "WhistleYoo"
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
         window.minSize = Self.minimumWindowSize
         window.isReleasedWhenClosed = false
+        // The sidebar toggle must live in the real title bar: with a transparent
+        // full-size content view the title bar still sits above the SwiftUI layer
+        // and would swallow clicks on any button drawn underneath it.
+        window.addTitlebarAccessoryViewController(
+            SidebarToggleTitlebarAccessory { workspaceSelection.toggleSidebar() }
+        )
         window.contentViewController = NSHostingController(rootView: rootView)
         // Attaching an NSHostingController resizes a new NSWindow to the SwiftUI
         // root view's fitting size (currently the 900 x 640 minimum). Reapply the
@@ -133,10 +136,12 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private func persistContentSize(of window: NSWindow) {
-        let size = window.contentLayoutRect.size
+        // With `.fullSizeContentView` the content rect matches the frame rect, so the
+        // frame size is the value that `setContentSize(_:)` expects on the next launch.
+        let size = window.frame.size
         guard size.width.isFinite, size.height.isFinite,
-              size.width >= Self.minimumContentSize.width,
-              size.height >= Self.minimumContentSize.height else { return }
+              size.width >= Self.minimumWindowSize.width,
+              size.height >= Self.minimumWindowSize.height else { return }
         UserDefaults.standard.set(size.width, forKey: Self.contentWidthDefaultsKey)
         UserDefaults.standard.set(size.height, forKey: Self.contentHeightDefaultsKey)
     }
@@ -144,28 +149,54 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
     private static func restoredContentSize(defaults: UserDefaults = .standard) -> NSSize {
         let width = defaults.double(forKey: contentWidthDefaultsKey)
         let height = defaults.double(forKey: contentHeightDefaultsKey)
-
-        // Earlier builds let NSHostingController collapse every restored window
-        // to the minimum frame size and then persisted that value. Recover that
-        // exact poisoned value once; future intentional minimum-size windows are
-        // preserved because the migration marker has already been written.
-        if !defaults.bool(forKey: hostingSizeMigrationDefaultsKey) {
-            defaults.set(true, forKey: hostingSizeMigrationDefaultsKey)
-            let minimumContentSize = Self.minimumContentSize
-            if abs(width - Double(minimumContentSize.width)) < 0.5,
-               abs(height - Double(minimumContentSize.height)) < 0.5 {
-                defaults.set(defaultContentSize.width, forKey: contentWidthDefaultsKey)
-                defaults.set(defaultContentSize.height, forKey: contentHeightDefaultsKey)
-                return defaultContentSize
-            }
-        }
-
+        // Values written by earlier builds excluded the title bar height, so anything
+        // below the minimum window size is discarded in favour of the default size.
         guard width.isFinite, height.isFinite,
-              width >= minimumContentSize.width,
-              height >= minimumContentSize.height else {
+              width >= minimumWindowSize.width,
+              height >= minimumWindowSize.height else {
             return defaultContentSize
         }
         return NSSize(width: width, height: height)
+    }
+}
+
+/// Hosts the sidebar toggle inside the window's title bar, right after the window
+/// buttons, so it stays reachable whether or not the sidebar is currently visible.
+@MainActor
+final class SidebarToggleTitlebarAccessory: NSTitlebarAccessoryViewController {
+    private let handler: () -> Void
+
+    init(handler: @escaping () -> Void) {
+        self.handler = handler
+        super.init(nibName: nil, bundle: nil)
+        layoutAttribute = .leading
+
+        let title = Localization.string(.sidebarToggleSidebar)
+        let button = NSButton(frame: NSRect(x: 20, y: 5, width: 26, height: 22))
+        button.isBordered = false
+        button.bezelStyle = .texturedRounded
+        button.imagePosition = .imageOnly
+        button.image = NSImage(systemSymbolName: "sidebar.leading", accessibilityDescription: title)
+        button.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+        button.contentTintColor = .secondaryLabelColor
+        button.toolTip = title
+        button.setAccessibilityLabel(title)
+        button.target = self
+        button.action = #selector(toggle)
+        button.autoresizingMask = [.minYMargin, .maxYMargin]
+
+        // AppKit stretches the accessory to the title bar height and takes its width
+        // from the view's frame. An Auto Layout width constraint on the controller's
+        // own view collapses to zero here, so lay the container out with frames.
+        let container = NSView(frame: NSRect(x: 0, y: 0, width: 66, height: 32))
+        container.addSubview(button)
+        view = container
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    @objc private func toggle() {
+        handler()
     }
 }
 
