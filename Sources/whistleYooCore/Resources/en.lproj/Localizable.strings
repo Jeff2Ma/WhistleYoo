@@ -163,8 +163,12 @@ SHA-256: %@</string>
 	<string>Whistle repeatedly exited unexpectedly; automatic restart has stopped</string>
 	<key>core.wi_fi_http_proxy</key>
 	<string>Wi-Fi HTTP Proxy</string>
+	<key>editor.duplicate_line</key>
+	<string>Duplicate Line</string>
 	<key>editor.line_and_column</key>
 	<string>Ln %lld, Col %lld</string>
+	<key>editor.toggle_comment</key>
+	<string>Toggle Comment</string>
 	<key>mcp.access</key>
 	<string>Access</string>
 	<key>mcp.authentication_disabled</key>
@@ -185,10 +189,14 @@ SHA-256: %@</string>
 	<string>HTTP endpoint: %@</string>
 	<key>mcp.http_port</key>
 	<string>MCP HTTP port</string>
+	<key>mcp.imported_configuration_could_not_be_applied</key>
+	<string>The imported MCP configuration could not be applied.</string>
 	<key>mcp.let_local_ai_agents_call_whistle_apis_with_whistle_compatible_names</key>
 	<string>Let local AI agents call Whistle APIs with Whistle-compatible names.</string>
 	<key>mcp.model_context_protocol</key>
 	<string>Model Context Protocol (MCP)</string>
+	<key>mcp.previous_runtime_configuration_could_not_be_restored</key>
+	<string>The previous MCP runtime configuration could not be restored.</string>
 	<key>mcp.read_only</key>
 	<string>Read Only</string>
 	<key>mcp.recent_activity</key>
@@ -201,12 +209,20 @@ SHA-256: %@</string>
 	<string>The server only listens on localhost. HTTP clients must use the generated Bearer token.</string>
 	<key>mcp.server_settings_applied</key>
 	<string>MCP server settings applied.</string>
+	<key>mcp.unable_to_start_server_value</key>
+	<string>Unable to start the MCP server: %@</string>
+	<key>menu.bring_all_to_front</key>
+	<string>Bring All to Front</string>
 	<key>menu.check_for_updates</key>
 	<string>Check for Updates…</string>
 	<key>menu.cut</key>
 	<string>Cut</string>
 	<key>menu.discard_and_quit</key>
 	<string>Discard and Quit</string>
+	<key>menu.help</key>
+	<string>Help</string>
+	<key>menu.minimize</key>
+	<string>Minimize</string>
 	<key>menu.ok</key>
 	<string>OK</string>
 	<key>menu.paste</key>
@@ -217,6 +233,8 @@ SHA-256: %@</string>
 	<string>Quitting WhistleYoo will discard unsaved Rules or Values changes.</string>
 	<key>menu.redo</key>
 	<string>Redo</string>
+	<key>menu.report_an_issue</key>
+	<string>Report an Issue…</string>
 	<key>menu.rule_operation_in_progress</key>
 	<string>Rules or Values Operation in Progress</string>
 	<key>menu.select_all</key>
@@ -229,6 +247,14 @@ SHA-256: %@</string>
 	<string>Unsaved Rules or Values Changes</string>
 	<key>menu.wait_for_the_current_rule_operation_to_finish_before_quitting_whistleyoo</key>
 	<string>Wait for the current Rules or Values operation to finish before quitting WhistleYoo.</string>
+	<key>menu.wait_for_the_current_rule_operation_to_finish_before_switching_pages</key>
+	<string>Wait for the current Rules or Values operation to finish before switching pages.</string>
+	<key>menu.whistleyoo_help</key>
+	<string>WhistleYoo Help</string>
+	<key>menu.window</key>
+	<string>Window</string>
+	<key>menu.zoom</key>
+	<string>Zoom</string>
 	<key>mobile.connect_the_phone_to_the_same_wi_fi</key>
 	<string>Connect the phone to the same Wi-Fi</string>
 	<key>mobile.copied</key>
@@ -395,6 +421,8 @@ SHA-256: %@</string>
 	<string>The proxy port accepts Mac and mobile connections and exposes the Whistle management UI; the in-app Web UI port remains local-only.</string>
 	<key>onboarding.trust_certificate_again</key>
 	<string>Trust Certificate Again…</string>
+	<key>onboarding.unable_to_complete_setup</key>
+	<string>Unable to complete setup. Review the error above and try again.</string>
 	<key>onboarding.update_certificate</key>
 	<string>Update Certificate…</string>
 	<key>onboarding.we_recommend_managing_node_js_with_nvm_fnm_volta_or_homebrew_after_insta</key>
@@ -459,6 +487,10 @@ SHA-256: %@</string>
 	<string>Enter one rule per line. The full Whistle rule syntax is supported.</string>
 	<key>rules.keep_editing</key>
 	<string>Keep Editing</string>
+	<key>rules.move_down</key>
+	<string>Move Down</string>
+	<key>rules.move_up</key>
+	<string>Move Up</string>
 	<key>rules.no_editable_rules</key>
 	<string>No Editable Rules</string>
 	<key>rules.no_matching_rules</key>

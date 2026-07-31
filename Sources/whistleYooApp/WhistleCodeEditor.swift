@@ -150,6 +150,8 @@ struct WhistleCodeEditor: NSViewRepresentable {
         private var language = WhistleEditorLanguage.rules
         private var sidebarSearchQuery = ""
         private var onPositionChange: (WhistleEditorPosition) -> Void = { _ in }
+        private var lastPublishedPosition: WhistleEditorPosition?
+        private var pendingPosition: WhistleEditorPosition?
 
         deinit {
             if let boundsObserver {
@@ -402,10 +404,19 @@ struct WhistleCodeEditor: NSViewRepresentable {
             let prefix = source.substring(to: location) as NSString
             let line = 1 + prefix.components(separatedBy: "\n").count - 1
             let lineStart = source.lineRange(for: NSRange(location: location, length: 0)).location
-            onPositionChange(WhistleEditorPosition(
+            let position = WhistleEditorPosition(
                 line: line,
                 column: location - lineStart + 1
-            ))
+            )
+            guard position != lastPublishedPosition, position != pendingPosition else { return }
+            pendingPosition = position
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.pendingPosition == position else { return }
+                self.pendingPosition = nil
+                guard self.lastPublishedPosition != position else { return }
+                self.lastPublishedPosition = position
+                self.onPositionChange(position)
+            }
         }
 
         private func configureLineWrapping(textView: NSTextView, scrollView: NSScrollView) {
@@ -477,11 +488,11 @@ final class WhistleSourceTextView: NSTextView {
         }
 
         if modifiers.contains(.shift), key == "d" {
-            onEditorCommand?(.duplicateLine)
+            duplicateLine(nil)
             return true
         }
         if !modifiers.contains(.option), key == "/" {
-            onEditorCommand?(.toggleComment)
+            toggleComment(nil)
             return true
         }
 
@@ -504,6 +515,15 @@ final class WhistleSourceTextView: NSTextView {
 
     override func keyDown(with event: NSEvent) {
         let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        if event.keyCode == 48, modifiers.contains(.control),
+           !modifiers.contains(.command), !modifiers.contains(.option) {
+            if modifiers.contains(.shift) {
+                window?.selectPreviousKeyView(self)
+            } else {
+                window?.selectNextKeyView(self)
+            }
+            return
+        }
         if event.keyCode == 48, !modifiers.contains(.command), !modifiers.contains(.option) {
             onEditorCommand?(modifiers.contains(.shift) ? .outdent : .indent)
             return
@@ -513,6 +533,14 @@ final class WhistleSourceTextView: NSTextView {
             return
         }
         super.keyDown(with: event)
+    }
+
+    @objc func toggleComment(_ sender: Any?) {
+        onEditorCommand?(.toggleComment)
+    }
+
+    @objc func duplicateLine(_ sender: Any?) {
+        onEditorCommand?(.duplicateLine)
     }
 
     override func insertNewline(_ sender: Any?) {
@@ -794,6 +822,40 @@ private enum WhistleValueLanguage {
     }
 }
 
+enum WhistleSyntaxPalette {
+    static let purple = dynamic(
+        light: NSColor(srgbRed: 0.38, green: 0.12, blue: 0.58, alpha: 1),
+        dark: NSColor(srgbRed: 0.84, green: 0.65, blue: 1.0, alpha: 1)
+    )
+    static let blue = dynamic(
+        light: NSColor(srgbRed: 0.0, green: 0.31, blue: 0.64, alpha: 1),
+        dark: NSColor(srgbRed: 0.46, green: 0.72, blue: 1.0, alpha: 1)
+    )
+    static let orange = dynamic(
+        light: NSColor(srgbRed: 0.53, green: 0.25, blue: 0.0, alpha: 1),
+        dark: NSColor(srgbRed: 1.0, green: 0.72, blue: 0.42, alpha: 1)
+    )
+    static let teal = dynamic(
+        light: NSColor(srgbRed: 0.0, green: 0.40, blue: 0.42, alpha: 1),
+        dark: NSColor(srgbRed: 0.43, green: 0.85, blue: 0.88, alpha: 1)
+    )
+    static let green = dynamic(
+        light: NSColor(srgbRed: 0.13, green: 0.42, blue: 0.20, alpha: 1),
+        dark: NSColor(srgbRed: 0.50, green: 0.85, blue: 0.58, alpha: 1)
+    )
+    static let red = dynamic(
+        light: NSColor(srgbRed: 0.63, green: 0.14, blue: 0.13, alpha: 1),
+        dark: NSColor(srgbRed: 1.0, green: 0.55, blue: 0.51, alpha: 1)
+    )
+    static let all = [purple, blue, orange, teal, green, red]
+
+    private static func dynamic(light: NSColor, dark: NSColor) -> NSColor {
+        NSColor(name: nil) { appearance in
+            appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? dark : light
+        }
+    }
+}
+
 private enum WhistleSyntaxHighlighter {
     private static let ruleComment = expression(#"(?m)^[\t ]*#.*$"#)
     private static let ruleScheme = expression(#"(?<![A-Za-z0-9+._-])!?([A-Za-z][A-Za-z0-9+._-]*)(?=://)"#)
@@ -828,7 +890,7 @@ private enum WhistleSyntaxHighlighter {
         case .rules:
             let commentRanges = ranges(matching: ruleComment, in: source)
             add(
-                .systemPurple,
+                WhistleSyntaxPalette.purple,
                 matches: ruleScheme,
                 source: source,
                 group: 1,
@@ -836,21 +898,21 @@ private enum WhistleSyntaxHighlighter {
                 to: layoutManager
             )
             add(
-                .linkColor,
+                WhistleSyntaxPalette.blue,
                 matches: ruleURL,
                 source: source,
                 excluding: commentRanges,
                 to: layoutManager
             )
             add(
-                .systemOrange,
+                WhistleSyntaxPalette.orange,
                 matches: ruleValueReference,
                 source: source,
                 excluding: commentRanges,
                 to: layoutManager
             )
             add(
-                .systemTeal,
+                WhistleSyntaxPalette.teal,
                 matches: ipAddress,
                 source: source,
                 excluding: commentRanges,
@@ -861,28 +923,28 @@ private enum WhistleSyntaxHighlighter {
                 excluding: commentRanges,
                 layoutManager: layoutManager
             )
-            add(.systemGreen, ranges: commentRanges, to: layoutManager)
+            add(WhistleSyntaxPalette.green, ranges: commentRanges, to: layoutManager)
         case let .value(documentName):
             switch WhistleValueLanguage(documentName: documentName, contents: source) {
             case .json:
-                add(.systemRed, matches: quotedString, source: source, to: layoutManager)
-                add(.systemPurple, matches: jsonKey, source: source, to: layoutManager)
-                add(.systemBlue, matches: number, source: source, to: layoutManager)
-                add(.systemOrange, matches: jsonKeyword, source: source, to: layoutManager)
+                add(WhistleSyntaxPalette.red, matches: quotedString, source: source, to: layoutManager)
+                add(WhistleSyntaxPalette.purple, matches: jsonKey, source: source, to: layoutManager)
+                add(WhistleSyntaxPalette.blue, matches: number, source: source, to: layoutManager)
+                add(WhistleSyntaxPalette.orange, matches: jsonKeyword, source: source, to: layoutManager)
             case .javascript:
-                add(.systemRed, matches: quotedString, source: source, to: layoutManager)
-                add(.systemGreen, matches: slashComment, source: source, to: layoutManager)
-                add(.systemGreen, matches: blockComment, source: source, to: layoutManager)
-                add(.systemBlue, matches: number, source: source, to: layoutManager)
+                add(WhistleSyntaxPalette.red, matches: quotedString, source: source, to: layoutManager)
+                add(WhistleSyntaxPalette.green, matches: slashComment, source: source, to: layoutManager)
+                add(WhistleSyntaxPalette.green, matches: blockComment, source: source, to: layoutManager)
+                add(WhistleSyntaxPalette.blue, matches: number, source: source, to: layoutManager)
             case .css:
-                add(.systemGreen, matches: blockComment, source: source, to: layoutManager)
-                add(.systemRed, matches: quotedString, source: source, to: layoutManager)
-                add(.systemBlue, matches: number, source: source, to: layoutManager)
+                add(WhistleSyntaxPalette.green, matches: blockComment, source: source, to: layoutManager)
+                add(WhistleSyntaxPalette.red, matches: quotedString, source: source, to: layoutManager)
+                add(WhistleSyntaxPalette.blue, matches: number, source: source, to: layoutManager)
             case .html:
-                add(.systemGreen, matches: htmlComment, source: source, to: layoutManager)
-                add(.systemRed, matches: quotedString, source: source, to: layoutManager)
+                add(WhistleSyntaxPalette.green, matches: htmlComment, source: source, to: layoutManager)
+                add(WhistleSyntaxPalette.red, matches: quotedString, source: source, to: layoutManager)
             case .plainText:
-                add(.systemOrange, matches: ruleValueReference, source: source, to: layoutManager)
+                add(WhistleSyntaxPalette.orange, matches: ruleValueReference, source: source, to: layoutManager)
             }
         }
 
@@ -924,7 +986,7 @@ private enum WhistleSyntaxHighlighter {
                 [
                     .underlineStyle: NSUnderlineStyle.patternDot.rawValue
                         | NSUnderlineStyle.single.rawValue,
-                    .underlineColor: NSColor.systemRed
+                    .underlineColor: WhistleSyntaxPalette.red
                 ],
                 forCharacterRange: schemeRange
             )

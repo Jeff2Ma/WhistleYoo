@@ -92,7 +92,12 @@ final class MCPHTTPServerTests: XCTestCase {
             settingsStore: SettingsStore(fileURL: directory.appendingPathComponent("settings.json"))
         )
         let coordinator = MCPHTTPServerCoordinator(state: state, tokenStore: tokenStore)
-        await coordinator.apply(MCPSettings(enabled: true, port: port))
+        let started = await coordinator.apply(MCPSettings(enabled: true, port: port))
+        XCTAssertTrue(started)
+        XCTAssertEqual(
+            state.mcpRuntimeState,
+            .listening(URL(string: "http://127.0.0.1:\(port)/mcp")!)
+        )
 
         do {
             let initialize = try request(
@@ -166,6 +171,7 @@ final class MCPHTTPServerTests: XCTestCase {
             throw error
         }
         await coordinator.stop()
+        XCTAssertEqual(state.mcpRuntimeState, .stopped)
     }
 
     @MainActor
@@ -186,11 +192,12 @@ final class MCPHTTPServerTests: XCTestCase {
             state: state,
             tokenStore: MCPTokenStore(fileURL: directory.appendingPathComponent("token"))
         )
-        await coordinator.apply(MCPSettings(
+        let started = await coordinator.apply(MCPSettings(
             enabled: true,
             authenticationEnabled: false,
             port: port
         ))
+        XCTAssertTrue(started)
 
         do {
             let (withoutHeaderData, withoutHeaderResponse) = try await URLSession.shared.data(
@@ -241,6 +248,82 @@ final class MCPHTTPServerTests: XCTestCase {
             throw error
         }
         await coordinator.stop()
+    }
+
+    @MainActor
+    func testFailedRuntimeApplyReportsFailedState() async throws {
+        let port = 18_903
+        guard PortChecker().isAvailable(port: port, host: "127.0.0.1") else {
+            throw XCTSkip("Port \(port) is in use.")
+        }
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let firstState = AppStateController(
+            settingsStore: SettingsStore(fileURL: directory.appendingPathComponent("first-settings.json"))
+        )
+        let secondState = AppStateController(
+            settingsStore: SettingsStore(fileURL: directory.appendingPathComponent("second-settings.json"))
+        )
+        let first = MCPHTTPServerCoordinator(
+            state: firstState,
+            tokenStore: MCPTokenStore(fileURL: directory.appendingPathComponent("first-token"))
+        )
+        let second = MCPHTTPServerCoordinator(
+            state: secondState,
+            tokenStore: MCPTokenStore(fileURL: directory.appendingPathComponent("second-token"))
+        )
+
+        let firstStarted = await first.apply(MCPSettings(enabled: true, port: port))
+        let secondStarted = await second.apply(MCPSettings(enabled: true, port: port))
+        XCTAssertTrue(firstStarted)
+        XCTAssertFalse(secondStarted)
+        guard case .failed(let message) = secondState.mcpRuntimeState else {
+            XCTFail("Expected the second runtime to report a failed state")
+            await first.stop()
+            return
+        }
+        XCTAssertFalse(message.isEmpty)
+
+        await first.stop()
+        await second.stop()
+    }
+
+    @MainActor
+    func testSettingsRollbackWhenRuntimeApplyFails() async throws {
+        let port = 18_904
+        guard PortChecker().isAvailable(port: port, host: "127.0.0.1") else {
+            throw XCTSkip("Port \(port) is in use.")
+        }
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let state = AppStateController(
+            settingsStore: SettingsStore(fileURL: directory.appendingPathComponent("settings.json"))
+        )
+        let original = state.settings.mcp
+        var appliedSettings: [MCPSettings] = []
+        state.onMCPSettingsChange = { settings in
+            appliedSettings.append(settings)
+            return appliedSettings.count > 1
+        }
+
+        let updated = await state.updateMCPSettings(
+            enabled: true,
+            authenticationEnabled: false,
+            port: port,
+            accessMode: .fullAccess
+        )
+
+        XCTAssertFalse(updated)
+        XCTAssertEqual(state.settings.mcp, original)
+        XCTAssertEqual(appliedSettings.count, 2)
+        XCTAssertEqual(appliedSettings.first?.port, port)
+        XCTAssertEqual(appliedSettings.last, original)
     }
 
     private func request(

@@ -1,0 +1,25 @@
+{
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "glass" : false,
+          "hidden" : false,
+          "image-name" : "OriginalAppIcon.png",
+          "name" : "WhistleYoo Original",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "specular" : false
+    }
+  ],
+  "supported-platforms" : {
+    "squares" : "shared"
+  }
+}

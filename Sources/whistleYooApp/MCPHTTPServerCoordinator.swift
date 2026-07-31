@@ -24,9 +24,11 @@ final class MCPHTTPServerCoordinator {
         self.tokenStore = tokenStore
     }
 
-    func apply(_ settings: MCPSettings) async {
+    @discardableResult
+    func apply(_ settings: MCPSettings) async -> Bool {
         await stop()
-        guard settings.enabled else { return }
+        guard settings.enabled else { return true }
+        state.setMCPRuntimeState(.starting)
 
         do {
             let token = settings.authenticationEnabled
@@ -36,8 +38,12 @@ final class MCPHTTPServerCoordinator {
             let server = await backend.makeServer()
             let transport = StatelessHTTPServerTransport()
             try await server.start(transport: transport)
+            self.server = server
+            self.backend = backend
+            self.transport = transport
 
             let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+            self.group = group
             let handler = MCPHTTPHandler(transport: transport, bearerToken: token)
             let channel = try await ServerBootstrap(group: group)
                 .serverChannelOption(ChannelOptions.backlog, value: 64)
@@ -51,21 +57,17 @@ final class MCPHTTPServerCoordinator {
                 .bind(host: "127.0.0.1", port: settings.port)
                 .get()
 
-            self.server = server
-            self.backend = backend
-            self.transport = transport
-            self.group = group
             self.channel = channel
-            endpoint = URL(string: "http://127.0.0.1:\(settings.port)/mcp")
+            let endpoint = URL(string: "http://127.0.0.1:\(settings.port)/mcp")!
+            self.endpoint = endpoint
             lastError = nil
+            state.setMCPRuntimeState(.listening(endpoint))
+            return true
         } catch {
             lastError = error.localizedDescription
             await stop()
-            state.onError?(
-                WhistleYooError.invalidResponse(
-                    "Unable to start the MCP server: \(error.localizedDescription)"
-                )
-            )
+            state.reportMCPRuntimeFailure(error.localizedDescription)
+            return false
         }
     }
 
@@ -85,6 +87,7 @@ final class MCPHTTPServerCoordinator {
             try? await group.shutdownGracefully()
         }
         group = nil
+        state.setMCPRuntimeState(.stopped)
     }
 }
 

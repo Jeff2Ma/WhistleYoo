@@ -5,8 +5,16 @@ import UniformTypeIdentifiers
 import whistleYooCore
 #endif
 
+extension Notification.Name {
+    static let saveRulesWorkspace = Notification.Name("WhistleYoo.saveRulesWorkspace")
+    static let refreshRulesWorkspace = Notification.Name("WhistleYoo.refreshRulesWorkspace")
+}
+
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private static let repositoryURL = URL(string: "https://github.com/Jeff2Ma/WhistleYoo")!
+    private static let issuesURL = URL(string: "https://github.com/Jeff2Ma/WhistleYoo/issues")!
+
     private let state = AppStateController()
     private lazy var mcpServer = MCPHTTPServerCoordinator(state: state)
     private let consoleSession = WhistleConsoleSession()
@@ -38,7 +46,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             await mcpServer.apply(state.settings.mcp)
             updateStatusIcon()
             if shouldShowOnboarding {
-                showOnboarding(reset: false)
+                showOnboarding(restartFromBeginning: false)
             }
         }
     }
@@ -137,9 +145,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.applyDockVisibility(isVisible) == true
         }
         state.onMCPSettingsChange = { [weak self] settings in
-            Task { @MainActor in
-                await self?.mcpServer.apply(settings)
-            }
+            guard let self else { return false }
+            return await self.mcpServer.apply(settings)
         }
     }
 
@@ -203,7 +210,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let mainMenu = NSMenu()
 
         let applicationMenuItem = NSMenuItem()
-        let applicationMenu = NSMenu()
+        let applicationMenu = NSMenu(title: "WhistleYoo")
+        let aboutItem = applicationMenu.addItem(
+            withTitle: Localization.string(.settingsAbout),
+            action: #selector(openAboutFromMainMenu(_:)),
+            keyEquivalent: ""
+        )
+        aboutItem.target = self
+        let updateItem = applicationMenu.addItem(
+            withTitle: Localization.string(.menuCheckForUpdates),
+            action: #selector(checkForUpdatesFromStatusMenu(_:)),
+            keyEquivalent: ""
+        )
+        updateItem.target = self
+        applicationMenu.addItem(.separator())
+        let settingsItem = applicationMenu.addItem(
+            withTitle: Localization.string(.rulesSettings),
+            action: #selector(openSettingsFromMainMenu(_:)),
+            keyEquivalent: ","
+        )
+        settingsItem.target = self
+        applicationMenu.addItem(.separator())
         applicationMenu.addItem(
             withTitle: Localization.string(.menuQuitWhistleyoo),
             action: #selector(NSApplication.terminate(_:)),
@@ -248,9 +275,109 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             action: #selector(NSText.selectAll(_:)),
             keyEquivalent: "a"
         )
+        editMenu.addItem(.separator())
+        editMenu.addItem(
+            withTitle: Localization.string(.editorToggleComment),
+            action: #selector(WhistleSourceTextView.toggleComment(_:)),
+            keyEquivalent: "/"
+        )
+        let duplicateLineItem = editMenu.addItem(
+            withTitle: Localization.string(.editorDuplicateLine),
+            action: #selector(WhistleSourceTextView.duplicateLine(_:)),
+            keyEquivalent: "d"
+        )
+        duplicateLineItem.keyEquivalentModifierMask = [.command, .shift]
         mainMenu.addItem(editMenuItem)
 
+        let rulesMenuItem = NSMenuItem()
+        let rulesMenu = NSMenu(title: Localization.string(.rulesConfiguration))
+        let saveRulesItem = rulesMenu.addItem(
+            withTitle: Localization.string(.rulesSave),
+            action: #selector(saveRulesFromMainMenu(_:)),
+            keyEquivalent: "s"
+        )
+        saveRulesItem.target = self
+        let refreshRulesItem = rulesMenu.addItem(
+            withTitle: Localization.string(.rulesRefresh),
+            action: #selector(refreshRulesFromMainMenu(_:)),
+            keyEquivalent: "r"
+        )
+        refreshRulesItem.target = self
+        rulesMenuItem.submenu = rulesMenu
+        mainMenu.addItem(rulesMenuItem)
+
+        let windowMenuItem = NSMenuItem()
+        let windowMenu = NSMenu(title: Localization.string(.menuWindow))
+        windowMenu.addItem(
+            withTitle: Localization.string(.menuMinimize),
+            action: #selector(NSWindow.performMiniaturize(_:)),
+            keyEquivalent: "m"
+        )
+        windowMenu.addItem(
+            withTitle: Localization.string(.menuZoom),
+            action: #selector(NSWindow.performZoom(_:)),
+            keyEquivalent: ""
+        )
+        windowMenu.addItem(.separator())
+        let bringAllToFrontItem = windowMenu.addItem(
+            withTitle: Localization.string(.menuBringAllToFront),
+            action: #selector(NSApplication.arrangeInFront(_:)),
+            keyEquivalent: ""
+        )
+        bringAllToFrontItem.target = NSApp
+        windowMenuItem.submenu = windowMenu
+        mainMenu.addItem(windowMenuItem)
+        NSApp.windowsMenu = windowMenu
+
+        let helpMenuItem = NSMenuItem()
+        let helpMenu = NSMenu(title: Localization.string(.menuHelp))
+        let projectHelpItem = helpMenu.addItem(
+            withTitle: Localization.string(.menuWhistleyooHelp),
+            action: #selector(openProjectHelp(_:)),
+            keyEquivalent: "?"
+        )
+        projectHelpItem.target = self
+        let reportIssueItem = helpMenu.addItem(
+            withTitle: Localization.string(.menuReportAnIssue),
+            action: #selector(reportIssue(_:)),
+            keyEquivalent: ""
+        )
+        reportIssueItem.target = self
+        helpMenuItem.submenu = helpMenu
+        mainMenu.addItem(helpMenuItem)
+        NSApp.helpMenu = helpMenu
+
         NSApplication.shared.mainMenu = mainMenu
+    }
+
+    @objc private func openAboutFromMainMenu(_ sender: NSMenuItem) {
+        openMainWindow(tab: .about)
+    }
+
+    @objc private func openSettingsFromMainMenu(_ sender: NSMenuItem) {
+        openMainWindow(tab: .settings)
+    }
+
+    @objc private func saveRulesFromMainMenu(_ sender: NSMenuItem) {
+        openMainWindow(tab: .rules)
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .saveRulesWorkspace, object: nil)
+        }
+    }
+
+    @objc private func refreshRulesFromMainMenu(_ sender: NSMenuItem) {
+        openMainWindow(tab: .rules)
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .refreshRulesWorkspace, object: nil)
+        }
+    }
+
+    @objc private func openProjectHelp(_ sender: NSMenuItem) {
+        NSWorkspace.shared.open(Self.repositoryURL)
+    }
+
+    @objc private func reportIssue(_ sender: NSMenuItem) {
+        NSWorkspace.shared.open(Self.issuesURL)
     }
 
     private func configureStatusItem() {
@@ -267,7 +394,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             state: state,
             openConsole: { [weak self] in self?.openMainWindow(tab: .console) },
             openSettings: { [weak self] in self?.openMainWindow(tab: .settings) },
-            openOnboarding: { [weak self] in self?.showOnboarding(reset: false) },
+            openOnboarding: { [weak self] in self?.showOnboarding(restartFromBeginning: false) },
             openMobileSetup: { [weak self] in self?.openMainWindow(tab: .mobile) },
             quit: { NSApp.terminate(nil) }
         )
@@ -427,7 +554,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func openOnboardingFromStatusMenu(_ sender: NSMenuItem) {
-        showOnboarding(reset: false)
+        showOnboarding(restartFromBeginning: false)
     }
 
     @objc private func checkForUpdatesFromStatusMenu(_ sender: NSMenuItem) {
@@ -479,18 +606,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 consoleSession: consoleSession,
                 initialTab: tab,
                 exportCertificate: { [weak self] in self?.exportCertificate() },
-                runOnboarding: { [weak self] in self?.showOnboarding(reset: true) }
+                runOnboarding: { [weak self] in self?.showOnboarding(restartFromBeginning: true) }
             )
         }
         NSApp.activate(ignoringOtherApps: true)
         mainWindowController?.show(tab: tab, centeredOn: preferredScreen)
     }
 
-    private func showOnboarding(reset: Bool) {
+    private func showOnboarding(restartFromBeginning: Bool) {
         let preferredScreen = statusItem?.button?.window?.screen ?? NSScreen.main
         popover.performClose(nil)
-        if reset {
-            state.resetOnboarding()
+        if restartFromBeginning {
+            onboardingWindowController?.close()
+            onboardingWindowController = nil
         }
         if onboardingWindowController == nil {
             onboardingWindowController = OnboardingWindowController(

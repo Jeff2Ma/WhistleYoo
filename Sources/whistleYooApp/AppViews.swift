@@ -36,6 +36,7 @@ extension View {
 
 struct StatusPopoverView: View {
     @ObservedObject var state: AppStateController
+    @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
     @State private var optimisticSystemProxyEnabled: Bool?
     @State private var isIconAnimating = false
     let openConsole: () -> Void
@@ -55,13 +56,20 @@ struct StatusPopoverView: View {
                         Image(systemName: statusSymbol)
                             .font(.system(size: 19, weight: .semibold))
                             .foregroundStyle(engineStatusColor)
-                            .scaleEffect(state.isEngineRunning && isIconAnimating ? 1.08 : 0.94)
-                            .opacity(state.isEngineRunning && isIconAnimating ? 1.0 : 0.8)
+                            .scaleEffect(
+                                state.isEngineRunning && isIconAnimating
+                                    && !accessibilityReduceMotion ? 1.08 : 1.0
+                            )
+                            .opacity(
+                                state.isEngineRunning && isIconAnimating
+                                    && !accessibilityReduceMotion ? 1.0 : 0.9
+                            )
                     }
                     .onAppear {
-                        withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
-                            isIconAnimating = true
-                        }
+                        updateIconAnimation()
+                    }
+                    .onChange(of: accessibilityReduceMotion) { _ in
+                        updateIconAnimation()
                     }
                     VStack(alignment: .leading, spacing: 3) {
                         Text(Localization.string(.mobileProxyEngine))
@@ -172,6 +180,21 @@ struct StatusPopoverView: View {
         .padding(16)
         .frame(width: 350)
         .background(.ultraThinMaterial)
+    }
+
+    private func updateIconAnimation() {
+        if accessibilityReduceMotion {
+            var transaction = Transaction(animation: nil)
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                isIconAnimating = false
+            }
+        } else {
+            isIconAnimating = false
+            withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
+                isIconAnimating = true
+            }
+        }
     }
 
     private var isEnvironmentUnavailable: Bool {
@@ -438,10 +461,57 @@ enum MainWorkspaceTab: Hashable {
 
 @MainActor
 final class MainWorkspaceSelection: ObservableObject {
-    @Published var selected: MainWorkspaceTab
+    @Published private(set) var selected: MainWorkspaceTab
+    @Published var isDiscardConfirmationPresented = false
+    @Published var isOperationAlertPresented = false
 
-    init(selected: MainWorkspaceTab) {
+    private let hasUnsavedChanges: () -> Bool
+    private let hasOperationInProgress: () -> Bool
+    private let discardUnsavedChanges: () -> Void
+    private var pendingSelection: MainWorkspaceTab?
+
+    init(
+        selected: MainWorkspaceTab,
+        hasUnsavedChanges: @escaping () -> Bool = { false },
+        hasOperationInProgress: @escaping () -> Bool = { false },
+        discardUnsavedChanges: @escaping () -> Void = {}
+    ) {
         self.selected = selected
+        self.hasUnsavedChanges = hasUnsavedChanges
+        self.hasOperationInProgress = hasOperationInProgress
+        self.discardUnsavedChanges = discardUnsavedChanges
+    }
+
+    func request(_ tab: MainWorkspaceTab) {
+        guard tab != selected else { return }
+        guard !hasOperationInProgress() else {
+            isOperationAlertPresented = true
+            return
+        }
+        guard selected == .rules else {
+            selected = tab
+            return
+        }
+        guard hasUnsavedChanges() else {
+            selected = tab
+            return
+        }
+        pendingSelection = tab
+        isDiscardConfirmationPresented = true
+    }
+
+    func keepEditing() {
+        pendingSelection = nil
+        isDiscardConfirmationPresented = false
+    }
+
+    func discardAndContinue() {
+        discardUnsavedChanges()
+        if let pendingSelection {
+            selected = pendingSelection
+        }
+        self.pendingSelection = nil
+        isDiscardConfirmationPresented = false
     }
 }
 
@@ -453,8 +523,6 @@ struct MainWorkspaceView: View {
     @ObservedObject var rulesDraft: RuleConfigurationDraft
     let exportCertificate: () -> Void
     let runOnboarding: () -> Void
-    @State private var pendingTabSelection: MainWorkspaceTab?
-    @State private var isDiscardingRulesForTabChange = false
 
     var body: some View {
         HStack(spacing: 0) {
@@ -509,19 +577,26 @@ struct MainWorkspaceView: View {
                 .background(Color(nsColor: .textBackgroundColor))
         }
         .frame(minWidth: 900, minHeight: 640)
-        .alert(Localization.string(.settingsDiscardUnsavedChanges), isPresented: $isDiscardingRulesForTabChange) {
+        .alert(
+            Localization.string(.settingsDiscardUnsavedChanges),
+            isPresented: $selection.isDiscardConfirmationPresented
+        ) {
             Button(Localization.string(.rulesKeepEditing), role: .cancel) {
-                pendingTabSelection = nil
+                selection.keepEditing()
             }
             Button(Localization.string(.rulesDiscardChanges), role: .destructive) {
-                rulesDraft.discardChanges()
-                if let pendingTabSelection {
-                    selection.selected = pendingTabSelection
-                }
-                self.pendingTabSelection = nil
+                selection.discardAndContinue()
             }
         } message: {
             Text(Localization.string(.settingsSwitchingPagesWillDiscardTheUnsavedChangesInTheCurrentRule))
+        }
+        .alert(
+            Localization.string(.menuRuleOperationInProgress),
+            isPresented: $selection.isOperationAlertPresented
+        ) {
+            Button(Localization.string(.menuOk), role: .cancel) {}
+        } message: {
+            Text(Localization.string(.menuWaitForTheCurrentRuleOperationToFinishBeforeSwitchingPages))
         }
     }
 
@@ -640,22 +715,12 @@ struct MainWorkspaceView: View {
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity)
+        .accessibilityLabel(title)
+        .accessibilityAddTraits(selection.selected == tab ? .isSelected : [])
     }
 
     private func requestTabSelection(_ tab: MainWorkspaceTab) {
-        guard tab != selection.selected else { return }
-        if selection.selected == .rules,
-           state.isLoadingRules || state.isSavingRules
-            || state.isLoadingValues || state.isSavingValues {
-            selection.selected = tab
-            return
-        }
-        guard selection.selected == .rules, rulesDraft.isDirty else {
-            selection.selected = tab
-            return
-        }
-        pendingTabSelection = tab
-        isDiscardingRulesForTabChange = true
+        selection.request(tab)
     }
 
     @ViewBuilder
@@ -737,6 +802,7 @@ struct OnboardingView: View {
     @State private var isWorking = false
     @State private var portStatus: String?
     @State private var portStatusIsSuccess = false
+    @State private var completionError: String?
 
     init(state: AppStateController, completion: @escaping () -> Void) {
         self.state = state
@@ -909,6 +975,12 @@ struct OnboardingView: View {
                 }
             }
             .toggleStyle(.switch)
+            if let completionError {
+                Label(completionError, systemImage: "exclamationmark.triangle.fill")
+                    .font(.callout)
+                    .foregroundStyle(.red)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             Spacer()
         }
         .padding(28)
@@ -940,13 +1012,19 @@ struct OnboardingView: View {
             case .finish:
                 Button(Localization.string(.rulesDone)) {
                     isWorking = true
+                    completionError = nil
                     Task {
-                        await state.completeOnboarding(
+                        let completed = await state.completeOnboarding(
                             enableSystemProxy: enableSystemProxy,
                             skippedCertificate: skippedCertificate && !state.certificateInstalled
                         )
                         isWorking = false
-                        completion()
+                        if completed {
+                            completion()
+                        } else {
+                            completionError = state.lastErrorMessage
+                                ?? Localization.string(.onboardingUnableToCompleteSetup)
+                        }
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -1034,6 +1112,7 @@ struct OnboardingView: View {
             TextField(Localization.string(.mobilePort), text: text)
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 110)
+                .accessibilityLabel(title)
             Text(detail)
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -1060,6 +1139,7 @@ struct MCPSettingsView: View {
     @State private var accessMode: MCPAccessMode
     @State private var bearerToken: String?
     @State private var status: String?
+    @State private var isApplying = false
 
     init(state: AppStateController) {
         self.state = state
@@ -1117,12 +1197,13 @@ struct MCPSettingsView: View {
                                 .focused($focusedField, equals: .port)
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 130)
+                                .accessibilityLabel(Localization.string(.mcpHttpPort))
                             Spacer()
                         }
 
                         Text(Localization.format(
                             .mcpHttpEndpointValue,
-                            "http://127.0.0.1:\(port)/mcp"
+                            state.mcpRuntimeState.endpoint?.absoluteString ?? "—"
                         ))
                             .font(.system(.caption, design: .monospaced))
                             .foregroundStyle(.secondary)
@@ -1141,6 +1222,7 @@ struct MCPSettingsView: View {
                                 Button(Localization.string(.mobileCopy)) {
                                     copyHTTPConfiguration()
                                 }
+                                .disabled(state.mcpRuntimeState.endpoint == nil)
                             }
                             ScrollView(.horizontal) {
                                 Text(httpConfiguration)
@@ -1160,6 +1242,14 @@ struct MCPSettingsView: View {
                             )
                         }
 
+                        runtimeStatus
+
+                        if settingsAreDirty {
+                            Label(Localization.string(.rulesUnsaved), systemImage: "circle.fill")
+                                .font(.callout)
+                                .foregroundStyle(.orange)
+                        }
+
                         if let status {
                             Label(status, systemImage: "checkmark.circle.fill")
                                 .font(.callout)
@@ -1167,16 +1257,21 @@ struct MCPSettingsView: View {
                         }
                         HStack {
                             Button(Localization.string(.mcpRotateToken)) {
-                                if state.rotateMCPToken() {
-                                    bearerToken = try? MCPTokenStore().loadOrCreate()
-                                    status = Localization.string(.mcpBearerTokenRotated)
+                                isApplying = true
+                                status = nil
+                                Task {
+                                    if await state.rotateMCPToken() {
+                                        bearerToken = try? MCPTokenStore().loadOrCreate()
+                                        status = Localization.string(.mcpBearerTokenRotated)
+                                    }
+                                    isApplying = false
                                 }
                             }
-                            .disabled(!authenticationEnabled)
+                            .disabled(!authenticationEnabled || isApplying)
                             Spacer()
                             Button(Localization.string(.rulesApply)) { applySettings() }
                                 .buttonStyle(.borderedProminent)
-                                .disabled(parsedPort == nil)
+                                .disabled(parsedPort == nil || isApplying || !canApplySettings)
                         }
                     }
                     .padding(8)
@@ -1224,6 +1319,9 @@ struct MCPSettingsView: View {
                 bearerToken = try? MCPTokenStore().loadOrCreate()
             }
         }
+        .onChange(of: state.settings.mcp) { _ in
+            synchronizeFormWithPersistedSettings()
+        }
     }
 
     private var parsedPort: Int? {
@@ -1233,22 +1331,29 @@ struct MCPSettingsView: View {
 
     private func applySettings() {
         guard let port = parsedPort else { return }
-        if state.updateMCPSettings(
-            enabled: mcpEnabled,
-            authenticationEnabled: authenticationEnabled,
-            port: port,
-            accessMode: accessMode
-        ) {
-            status = Localization.string(
-                mcpEnabled ? .mcpServerSettingsApplied : .mcpServerDisabled
-            )
+        isApplying = true
+        status = nil
+        Task {
+            if await state.updateMCPSettings(
+                enabled: mcpEnabled,
+                authenticationEnabled: authenticationEnabled,
+                port: port,
+                accessMode: accessMode
+            ) {
+                status = Localization.string(
+                    mcpEnabled ? .mcpServerSettingsApplied : .mcpServerDisabled
+                )
+            } else {
+                synchronizeFormWithPersistedSettings()
+            }
+            isApplying = false
         }
     }
 
     private var httpConfiguration: String {
         MCPHTTPConfigurationFormatter.render(
-            port: port,
-            authenticationEnabled: authenticationEnabled,
+            port: String(state.settings.mcp.port),
+            authenticationEnabled: state.settings.mcp.authenticationEnabled,
             bearerToken: bearerToken
         )
     }
@@ -1261,6 +1366,61 @@ struct MCPSettingsView: View {
     private func copyToPasteboard(_ value: String) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(value, forType: .string)
+    }
+
+    private var settingsAreDirty: Bool {
+        guard let parsedPort else { return true }
+        return mcpEnabled != state.settings.mcp.enabled
+            || authenticationEnabled != state.settings.mcp.authenticationEnabled
+            || parsedPort != state.settings.mcp.port
+            || accessMode != state.settings.mcp.accessMode
+    }
+
+    private var canApplySettings: Bool {
+        if settingsAreDirty { return true }
+        switch state.mcpRuntimeState {
+        case .failed:
+            return true
+        case .stopped:
+            return state.settings.mcp.enabled
+        case .starting, .listening:
+            return false
+        }
+    }
+
+    @ViewBuilder
+    private var runtimeStatus: some View {
+        switch state.mcpRuntimeState {
+        case .stopped:
+            Label(
+                Localization.string(state.settings.mcp.enabled ? .statusStopped : .mcpServerDisabled),
+                systemImage: "stop.circle"
+            )
+            .foregroundStyle(.secondary)
+        case .starting:
+            Label(Localization.string(.statusStarting), systemImage: "hourglass")
+                .foregroundStyle(.orange)
+        case .listening(let endpoint):
+            Label(
+                Localization.format(.mcpHttpEndpointValue, endpoint.absoluteString),
+                systemImage: "checkmark.circle.fill"
+            )
+            .foregroundStyle(.green)
+        case .failed(let message):
+            Label(message, systemImage: "exclamationmark.triangle.fill")
+                .foregroundStyle(.red)
+        }
+    }
+
+    private func synchronizeFormWithPersistedSettings() {
+        let persisted = state.settings.mcp
+        mcpEnabled = persisted.enabled
+        authenticationEnabled = persisted.authenticationEnabled
+        port = String(persisted.port)
+        accessMode = persisted.accessMode
+        bearerToken = persisted.authenticationEnabled
+            ? (try? MCPTokenStore().loadOrCreate())
+            : nil
     }
 }
 
@@ -1418,7 +1578,11 @@ struct SettingsView: View {
                 .padding(8)
             }
         }
-        .disabled(isHandlingConfigurationFile || state.isTransitioning)
+        .disabled(
+            isHandlingConfigurationFile || state.isTransitioning
+                || state.isLoadingRules || state.isSavingRules
+                || state.isLoadingValues || state.isSavingValues
+        )
     }
 
     private var generalSection: some View {
@@ -1440,7 +1604,7 @@ struct SettingsView: View {
                     updatingCompatibilityRules = true
                     whitelistSaveFeedback = nil
                     Task {
-                        await state.setSoftwareDomainWhitelistEnabled(enabled)
+                        _ = await state.setSoftwareDomainWhitelistEnabled(enabled)
                         updatingCompatibilityRules = false
                     }
                 }
@@ -1455,6 +1619,9 @@ struct SettingsView: View {
             }
             .toggleStyle(.switch)
             .disabled(isCompatibilityOperationInProgress)
+            .accessibilityLabel(Localization.string(.settingsCompatibilityDomainFiltering))
+
+            compatibilityRuntimeStatus
 
             DisclosureGroup(
                 Localization.format(.settingsEditBuiltInDomainsValue, state.settings.softwareDomainWhitelistDomains.count),
@@ -1718,6 +1885,7 @@ struct SettingsView: View {
 
     private var isCompatibilityOperationInProgress: Bool {
         savingWhitelistDomains || updatingCompatibilityRules
+            || state.softwareDomainWhitelistRuntimeState == .applying
     }
 
     private var isSystemProxyActiveOrPartial: Bool {
@@ -1872,6 +2040,29 @@ struct SettingsView: View {
         }
     }
 
+    @ViewBuilder
+    private var compatibilityRuntimeStatus: some View {
+        switch state.softwareDomainWhitelistRuntimeState {
+        case .idle, .applied:
+            EmptyView()
+        case .applying:
+            Label(Localization.string(.statusStarting), systemImage: "arrow.triangle.2.circlepath")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+        case .failed(let message):
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .font(.callout)
+                    .foregroundStyle(.red)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button(Localization.string(.mobileRetry)) {
+                    Task { _ = await state.retrySoftwareDomainWhitelistSynchronization() }
+                }
+                .disabled(isCompatibilityOperationInProgress)
+            }
+        }
+    }
+
     private func sectionTitle(_ title: String, detail: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title).font(.title3.weight(.semibold))
@@ -1891,6 +2082,7 @@ struct SettingsView: View {
                 .focused($focusedField, equals: focus)
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 130)
+                .accessibilityLabel(title)
                 .onSubmit { applyPorts() }
                 .onChange(of: text.wrappedValue) { _ in
                     portStatus = nil

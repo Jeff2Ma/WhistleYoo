@@ -353,6 +353,12 @@ struct RuleConfigurationView: View {
                 createName = ""
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .saveRulesWorkspace)) { _ in
+            saveCurrentWorkspace()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .refreshRulesWorkspace)) { _ in
+            requestReload(workspace)
+        }
     }
 
     private var workspaceToolbar: some View {
@@ -495,6 +501,20 @@ struct RuleConfigurationView: View {
                 if state.isLoadingRules {
                     ProgressView().controlSize(.small)
                 }
+                moveButton(
+                    symbol: "arrow.up",
+                    title: Localization.string(.rulesMoveUp),
+                    enabled: canMoveSelectedRuleUp,
+                    shortcut: .upArrow,
+                    action: { moveSelectedRule(by: -1) }
+                )
+                moveButton(
+                    symbol: "arrow.down",
+                    title: Localization.string(.rulesMoveDown),
+                    enabled: canMoveSelectedRuleDown,
+                    shortcut: .downArrow,
+                    action: { moveSelectedRule(by: 1) }
+                )
                 Button {
                     createName = nextRuleName()
                     isCreating = true
@@ -718,6 +738,52 @@ struct RuleConfigurationView: View {
 
     private var selectedDocument: WhistleRuleDocument? {
         draft.documents.first { $0.name == selectedName }
+    }
+
+    private var selectedMovableRuleIndex: Int? {
+        guard filter.isEmpty, let selectedName else { return nil }
+        return movableRules.firstIndex { $0.name == selectedName }
+    }
+
+    private var movableRules: [WhistleRuleDocument] {
+        draft.documents.filter { !$0.isDefault }
+    }
+
+    private var canMoveSelectedRuleUp: Bool {
+        guard let selectedMovableRuleIndex else { return false }
+        return selectedMovableRuleIndex > 0 && !rulesOperationInProgress
+    }
+
+    private var canMoveSelectedRuleDown: Bool {
+        guard let selectedMovableRuleIndex else { return false }
+        return selectedMovableRuleIndex < movableRules.count - 1 && !rulesOperationInProgress
+    }
+
+    private func moveSelectedRule(by offset: Int) {
+        guard let selectedName, let selectedMovableRuleIndex else { return }
+        let targetIndex = selectedMovableRuleIndex + offset
+        guard movableRules.indices.contains(targetIndex) else { return }
+        withAnimation(.easeInOut(duration: 0.14)) {
+            draft.move(name: selectedName, over: movableRules[targetIndex].name)
+        }
+    }
+
+    private func moveButton(
+        symbol: String,
+        title: String,
+        enabled: Bool,
+        shortcut: KeyEquivalent,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .frame(width: 26, height: 26)
+        }
+        .buttonStyle(HoverIconButtonStyle())
+        .help(title)
+        .accessibilityLabel(title)
+        .keyboardShortcut(shortcut, modifiers: [.command, .option])
+        .disabled(!enabled)
     }
 
     private var editorMatchCount: Int {
@@ -1070,6 +1136,20 @@ private struct ValuesConfigurationContent: View {
                 if state.isLoadingValues {
                     ProgressView().controlSize(.small)
                 }
+                valueMoveButton(
+                    symbol: "arrow.up",
+                    title: Localization.string(.rulesMoveUp),
+                    enabled: canMoveSelectedValueUp,
+                    shortcut: .upArrow,
+                    action: { moveSelectedValue(by: -1) }
+                )
+                valueMoveButton(
+                    symbol: "arrow.down",
+                    title: Localization.string(.rulesMoveDown),
+                    enabled: canMoveSelectedValueDown,
+                    shortcut: .downArrow,
+                    action: { moveSelectedValue(by: 1) }
+                )
                 Button {
                     createName = nextValueName()
                     isCreating = true
@@ -1374,6 +1454,48 @@ private struct ValuesConfigurationContent: View {
         }
         return "Values \(index)"
     }
+
+    private var selectedValueIndex: Int? {
+        guard filter.isEmpty, let selectedName else { return nil }
+        return draft.valueDocuments.firstIndex { $0.name == selectedName }
+    }
+
+    private var canMoveSelectedValueUp: Bool {
+        guard let selectedValueIndex else { return false }
+        return selectedValueIndex > 0 && !isOperationInProgress
+    }
+
+    private var canMoveSelectedValueDown: Bool {
+        guard let selectedValueIndex else { return false }
+        return selectedValueIndex < draft.valueDocuments.count - 1 && !isOperationInProgress
+    }
+
+    private func moveSelectedValue(by offset: Int) {
+        guard let selectedName, let selectedValueIndex else { return }
+        let targetIndex = selectedValueIndex + offset
+        guard draft.valueDocuments.indices.contains(targetIndex) else { return }
+        withAnimation(.easeInOut(duration: 0.14)) {
+            draft.moveValue(name: selectedName, over: draft.valueDocuments[targetIndex].name)
+        }
+    }
+
+    private func valueMoveButton(
+        symbol: String,
+        title: String,
+        enabled: Bool,
+        shortcut: KeyEquivalent,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .frame(width: 26, height: 26)
+        }
+        .buttonStyle(HoverIconButtonStyle())
+        .help(title)
+        .accessibilityLabel(title)
+        .keyboardShortcut(shortcut, modifiers: [.command, .option])
+        .disabled(!enabled)
+    }
 }
 
 private struct RuleListRow: View {
@@ -1423,6 +1545,8 @@ private struct RuleListRow: View {
             }
             .buttonStyle(.plain)
             .disabled(isInteractionDisabled)
+            .accessibilityLabel(document.name)
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
 
             if matchCount > 0 {
                 Text("\(matchCount)")
@@ -1531,6 +1655,8 @@ private struct ValueListRow: View {
             }
             .buttonStyle(.plain)
             .disabled(isInteractionDisabled)
+            .accessibilityLabel(document.name)
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
 
             if matchCount > 0 {
                 Text("\(matchCount)")

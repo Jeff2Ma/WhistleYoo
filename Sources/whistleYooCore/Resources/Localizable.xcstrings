@@ -1361,6 +1361,57 @@
       },
       "comment": "中文：第 %lld 行，第 %lld 列"
     },
+    "editor.duplicate_line": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicate Line"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制当前行"
+          }
+        }
+      },
+      "comment": "中文：复制当前行"
+    },
+    "editor.toggle_comment": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toggle Comment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换注释"
+          }
+        }
+      },
+      "comment": "中文：切换注释"
+    },
+    "menu.bring_all_to_front": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring All to Front"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前置全部窗口"
+          }
+        }
+      },
+      "comment": "中文：前置全部窗口"
+    },
     "menu.check_for_updates": {
       "localizations": {
         "en": {
@@ -1411,6 +1462,40 @@
         }
       },
       "comment": "中文：放弃并退出"
+    },
+    "menu.help": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帮助"
+          }
+        }
+      },
+      "comment": "中文：帮助"
+    },
+    "menu.minimize": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimize"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最小化"
+          }
+        }
+      },
+      "comment": "中文：最小化"
     },
     "menu.ok": {
       "localizations": {
@@ -1496,6 +1581,23 @@
         }
       },
       "comment": "中文：重做"
+    },
+    "menu.report_an_issue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report an Issue…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报告问题…"
+          }
+        }
+      },
+      "comment": "中文：报告问题…"
     },
     "menu.rule_operation_in_progress": {
       "localizations": {
@@ -1598,6 +1700,74 @@
         }
       },
       "comment": "中文：请等待当前 Rules 或 Values 操作完成后再退出 WhistleYoo。"
+    },
+    "menu.wait_for_the_current_rule_operation_to_finish_before_switching_pages": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wait for the current Rules or Values operation to finish before switching pages."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请等待当前 Rules 或 Values 操作完成后再切换页面。"
+          }
+        }
+      },
+      "comment": "中文：请等待当前 Rules 或 Values 操作完成后再切换页面。"
+    },
+    "menu.whistleyoo_help": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhistleYoo Help"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhistleYoo 帮助"
+          }
+        }
+      },
+      "comment": "中文：WhistleYoo 帮助"
+    },
+    "menu.window": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Window"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "窗口"
+          }
+        }
+      },
+      "comment": "中文：窗口"
+    },
+    "menu.zoom": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缩放"
+          }
+        }
+      },
+      "comment": "中文：缩放"
     },
     "mobile.connect_the_phone_to_the_same_wi_fi": {
       "localizations": {
@@ -2517,6 +2687,40 @@
       },
       "comment": "中文：更新 Token"
     },
+    "mcp.imported_configuration_could_not_be_applied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The imported MCP configuration could not be applied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法应用导入的 MCP 配置。"
+          }
+        }
+      },
+      "comment": "中文：无法应用导入的 MCP 配置。"
+    },
+    "mcp.previous_runtime_configuration_could_not_be_restored": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The previous MCP runtime configuration could not be restored."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法恢复之前的 MCP 运行配置。"
+          }
+        }
+      },
+      "comment": "中文：无法恢复之前的 MCP 运行配置。"
+    },
     "mcp.server_disabled": {
       "localizations": {
         "en": {
@@ -2567,6 +2771,23 @@
         }
       },
       "comment": "中文：MCP 服务设置已应用。"
+    },
+    "mcp.unable_to_start_server_value": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to start the MCP server: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法启动 MCP 服务：%@"
+          }
+        }
+      },
+      "comment": "中文：无法启动 MCP 服务：%@"
     },
     "onboarding.a_matching_fingerprint_was_found_in_the_login_keychain": {
       "localizations": {
@@ -3196,6 +3417,23 @@
         }
       },
       "comment": "中文：设置完成"
+    },
+    "onboarding.unable_to_complete_setup": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to complete setup. Review the error above and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法完成设置，请检查上方错误并重试。"
+          }
+        }
+      },
+      "comment": "中文：无法完成设置，请检查上方错误并重试。"
     },
     "onboarding.skip_certificate_installation_for_now": {
       "localizations": {
@@ -3951,6 +4189,40 @@
         }
       },
       "comment": "中文：未启用"
+    },
+    "rules.move_down": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Down"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下移"
+          }
+        }
+      },
+      "comment": "中文：下移"
+    },
+    "rules.move_up": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上移"
+          }
+        }
+      },
+      "comment": "中文：上移"
     },
     "rules.refresh": {
       "localizations": {
