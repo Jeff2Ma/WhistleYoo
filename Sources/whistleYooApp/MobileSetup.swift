@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import CoreImage
 import CoreImage.CIFilterBuiltins
 import SwiftUI
@@ -14,17 +15,21 @@ final class MobileSetupViewModel: ObservableObject {
     @Published private(set) var selectedEndpointID = ""
     @Published private(set) var qrImage: NSImage?
     @Published private(set) var engineReady = false
+    @Published private(set) var proxyPort: Int
 
     private let state: AppStateController
+    private var cancellables: Set<AnyCancellable> = []
+    private var refreshTask: Task<Void, Never>?
+    private var isActive = false
 
     init(state: AppStateController) {
         self.state = state
         endpoints = state.localNetworkEndpoints
         selectedEndpointID = state.preferredLocalEndpoint?.id ?? ""
         engineReady = state.isEngineRunning
+        proxyPort = state.settings.engine.proxyPort
+        observeState()
     }
-
-    var proxyPort: Int { state.settings.engine.proxyPort }
 
     var hasCachedConfiguration: Bool {
         engineReady && !endpoints.isEmpty && qrImage != nil
@@ -45,6 +50,8 @@ final class MobileSetupViewModel: ObservableObject {
     }
 
     func prepare() async {
+        isActive = true
+        startMonitoring()
         let isShowingCachedConfiguration = hasCachedConfiguration
         isLoading = !isShowingCachedConfiguration
         errorMessage = nil
@@ -91,8 +98,83 @@ final class MobileSetupViewModel: ObservableObject {
     }
 
     func stop() {
+        isActive = false
+        refreshTask?.cancel()
+        refreshTask = nil
         qrImage = nil
         isLoading = false
+    }
+
+    private func observeState() {
+        state.$engineState
+            .sink { [weak self] engineState in
+                guard let self else { return }
+                if case .running = engineState {
+                    self.engineReady = true
+                    if self.isActive { self.updateQRCode() }
+                } else {
+                    self.engineReady = false
+                    self.qrImage = nil
+                }
+            }
+            .store(in: &cancellables)
+
+        state.$localNetworkEndpoints
+            .sink { [weak self] endpoints in
+                guard let self else { return }
+                self.endpoints = endpoints
+                if endpoints.isEmpty, self.isActive {
+                    self.errorMessage = Localization.string(
+                        .mobileNoLocalIpv4AddressAvailableToMobileDevicesWasDetected
+                    )
+                } else if !endpoints.isEmpty {
+                    self.errorMessage = nil
+                }
+                if !endpoints.contains(where: { $0.id == self.selectedEndpointID }) {
+                    self.selectedEndpointID = self.state.preferredLocalEndpoint?.id
+                        ?? endpoints.first?.id
+                        ?? ""
+                }
+                if self.isActive && self.engineReady {
+                    self.updateQRCode()
+                }
+            }
+            .store(in: &cancellables)
+
+        state.$selectedLocalEndpointID
+            .sink { [weak self] selectedID in
+                guard let self else { return }
+                self.selectedEndpointID = selectedID
+                    ?? self.state.preferredLocalEndpoint?.id
+                    ?? ""
+                if self.isActive && self.engineReady {
+                    self.updateQRCode()
+                }
+            }
+            .store(in: &cancellables)
+
+        state.$settings
+            .map(\.engine.proxyPort)
+            .removeDuplicates()
+            .sink { [weak self] proxyPort in
+                guard let self else { return }
+                self.proxyPort = proxyPort
+                if self.isActive && self.engineReady {
+                    self.updateQRCode()
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    private func startMonitoring() {
+        refreshTask?.cancel()
+        refreshTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(5))
+                guard let self, !Task.isCancelled, self.isActive else { return }
+                await self.state.refreshNetworkServices()
+            }
+        }
     }
 
     private func updateQRCode() {
@@ -181,6 +263,9 @@ struct MobileSetupView: View {
         .task {
             if isActive { await model.prepare() }
         }
+        .onDisappear {
+            model.stop()
+        }
     }
 
     private var configurationContent: some View {
@@ -233,6 +318,7 @@ struct MobileSetupView: View {
                 .labelsHidden()
                 .pickerStyle(.menu)
                 .fixedSize()
+                .accessibilityLabel(Localization.string(.mobileNetworkInterface))
                 Spacer()
             }
 

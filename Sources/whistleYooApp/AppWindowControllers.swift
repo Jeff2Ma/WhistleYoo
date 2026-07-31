@@ -34,7 +34,16 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         runOnboarding: @escaping () -> Void
     ) {
         let rulesDraft = RuleConfigurationDraft()
-        selection = MainWorkspaceSelection(selected: initialTab)
+        selection = MainWorkspaceSelection(
+            selected: initialTab,
+            hasUnsavedChanges: { rulesDraft.isDirty },
+            hasOperationInProgress: {
+                state.isLoadingRules || state.isSavingRules
+                    || state.isLoadingValues || state.isSavingValues
+                    || state.isImportingConfiguration
+            },
+            discardUnsavedChanges: { rulesDraft.discardChanges() }
+        )
         mobileModel = MobileSetupViewModel(state: state)
         self.rulesDraft = rulesDraft
         let rootView = MainWorkspaceView(
@@ -78,7 +87,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
     }
 
     func show(tab: MainWorkspaceTab, centeredOn preferredScreen: NSScreen?) {
-        selection.selected = tab
+        selection.request(tab)
         centerWindow(centeredOn: preferredScreen)
         window?.makeKeyAndOrderFront(nil)
         reassertWindowPosition(centeredOn: preferredScreen)

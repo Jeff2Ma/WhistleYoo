@@ -163,8 +163,12 @@ SHA-256：%@</string>
 	<string>Whistle 连续异常退出，已停止自动重启</string>
 	<key>core.wi_fi_http_proxy</key>
 	<string>Wi-Fi HTTP 代理</string>
+	<key>editor.duplicate_line</key>
+	<string>复制当前行</string>
 	<key>editor.line_and_column</key>
 	<string>第 %lld 行，第 %lld 列</string>
+	<key>editor.toggle_comment</key>
+	<string>切换注释</string>
 	<key>mcp.access</key>
 	<string>访问权限</string>
 	<key>mcp.authentication_disabled</key>
@@ -185,10 +189,14 @@ SHA-256：%@</string>
 	<string>HTTP 端点：%@</string>
 	<key>mcp.http_port</key>
 	<string>MCP HTTP 端口</string>
+	<key>mcp.imported_configuration_could_not_be_applied</key>
+	<string>无法应用导入的 MCP 配置。</string>
 	<key>mcp.let_local_ai_agents_call_whistle_apis_with_whistle_compatible_names</key>
 	<string>允许本机 AI Agent 使用与 Whistle 对齐的名称调用 Whistle API。</string>
 	<key>mcp.model_context_protocol</key>
 	<string>模型上下文协议（MCP）</string>
+	<key>mcp.previous_runtime_configuration_could_not_be_restored</key>
+	<string>无法恢复之前的 MCP 运行配置。</string>
 	<key>mcp.read_only</key>
 	<string>只读</string>
 	<key>mcp.recent_activity</key>
@@ -201,12 +209,20 @@ SHA-256：%@</string>
 	<string>服务仅监听本机地址。HTTP 客户端必须使用生成的 Bearer Token。</string>
 	<key>mcp.server_settings_applied</key>
 	<string>MCP 服务设置已应用。</string>
+	<key>mcp.unable_to_start_server_value</key>
+	<string>无法启动 MCP 服务：%@</string>
+	<key>menu.bring_all_to_front</key>
+	<string>前置全部窗口</string>
 	<key>menu.check_for_updates</key>
 	<string>检查更新…</string>
 	<key>menu.cut</key>
 	<string>剪切</string>
 	<key>menu.discard_and_quit</key>
 	<string>放弃并退出</string>
+	<key>menu.help</key>
+	<string>帮助</string>
+	<key>menu.minimize</key>
+	<string>最小化</string>
 	<key>menu.ok</key>
 	<string>好</string>
 	<key>menu.paste</key>
@@ -217,6 +233,8 @@ SHA-256：%@</string>
 	<string>退出 WhistleYoo 将放弃 Rules 或 Values 中未保存的修改。</string>
 	<key>menu.redo</key>
 	<string>重做</string>
+	<key>menu.report_an_issue</key>
+	<string>报告问题…</string>
 	<key>menu.rule_operation_in_progress</key>
 	<string>Rules 或 Values 操作仍在进行</string>
 	<key>menu.select_all</key>
@@ -229,6 +247,14 @@ SHA-256：%@</string>
 	<string>Rules 或 Values 存在未保存的修改</string>
 	<key>menu.wait_for_the_current_rule_operation_to_finish_before_quitting_whistleyoo</key>
 	<string>请等待当前 Rules 或 Values 操作完成后再退出 WhistleYoo。</string>
+	<key>menu.wait_for_the_current_rule_operation_to_finish_before_switching_pages</key>
+	<string>请等待当前 Rules 或 Values 操作完成后再切换页面。</string>
+	<key>menu.whistleyoo_help</key>
+	<string>WhistleYoo 帮助</string>
+	<key>menu.window</key>
+	<string>窗口</string>
+	<key>menu.zoom</key>
+	<string>缩放</string>
 	<key>mobile.connect_the_phone_to_the_same_wi_fi</key>
 	<string>手机连接相同 Wi-Fi</string>
 	<key>mobile.copied</key>
@@ -395,6 +421,8 @@ SHA-256：%@</string>
 	<string>代理端口供 Mac 和手机连接，并开放 Whistle 管理 UI；应用内 Web UI 端口仍仅本机访问。</string>
 	<key>onboarding.trust_certificate_again</key>
 	<string>重新信任证书…</string>
+	<key>onboarding.unable_to_complete_setup</key>
+	<string>无法完成设置，请检查上方错误并重试。</string>
 	<key>onboarding.update_certificate</key>
 	<string>更新证书…</string>
 	<key>onboarding.we_recommend_managing_node_js_with_nvm_fnm_volta_or_homebrew_after_insta</key>
@@ -459,6 +487,10 @@ SHA-256：%@</string>
 	<string>每行一条规则，支持 Whistle 完整规则语法。</string>
 	<key>rules.keep_editing</key>
 	<string>继续编辑</string>
+	<key>rules.move_down</key>
+	<string>下移</string>
+	<key>rules.move_up</key>
+	<string>上移</string>
 	<key>rules.no_editable_rules</key>
 	<string>没有可编辑的规则</string>
 	<key>rules.no_matching_rules</key>

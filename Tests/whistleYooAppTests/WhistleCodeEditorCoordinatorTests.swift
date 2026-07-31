@@ -176,7 +176,7 @@ final class WhistleCodeEditorCoordinatorTests: XCTestCase {
                 atCharacterIndex: commentSchemeRange.location,
                 effectiveRange: nil
             ) as? NSColor,
-            .systemGreen
+            WhistleSyntaxPalette.green
         )
         XCTAssertEqual(
             editor.layoutManager.temporaryAttribute(
@@ -184,7 +184,7 @@ final class WhistleCodeEditorCoordinatorTests: XCTestCase {
                 atCharacterIndex: commentIPRange.location,
                 effectiveRange: nil
             ) as? NSColor,
-            .systemGreen
+            WhistleSyntaxPalette.green
         )
         XCTAssertEqual(
             editor.layoutManager.temporaryAttribute(
@@ -192,7 +192,7 @@ final class WhistleCodeEditorCoordinatorTests: XCTestCase {
                 atCharacterIndex: commentValueRange.location,
                 effectiveRange: nil
             ) as? NSColor,
-            .systemGreen
+            WhistleSyntaxPalette.green
         )
         XCTAssertNil(
             editor.layoutManager.temporaryAttribute(
@@ -207,7 +207,7 @@ final class WhistleCodeEditorCoordinatorTests: XCTestCase {
                 atCharacterIndex: codeSchemeRange.location,
                 effectiveRange: nil
             ) as? NSColor,
-            .systemPurple
+            WhistleSyntaxPalette.purple
         )
         XCTAssertNotNil(
             editor.layoutManager.temporaryAttribute(
@@ -216,6 +216,92 @@ final class WhistleCodeEditorCoordinatorTests: XCTestCase {
                 effectiveRange: nil
             )
         )
+    }
+
+    func testPositionChangesAreDeferredAndDeduplicated() async {
+        var text = "first\nsecond"
+        var positions: [WhistleEditorPosition] = []
+        let editor = makeEditor()
+        let documentID = "test:position:\(UUID())"
+        let initialPositionPublished = expectation(description: "Initial position published")
+
+        update(
+            editor,
+            binding: Binding(get: { text }, set: { text = $0 }),
+            documentID: documentID,
+            text: text,
+            isEditable: true,
+            onPositionChange: {
+                positions.append($0)
+                initialPositionPublished.fulfill()
+            }
+        )
+        XCTAssertTrue(positions.isEmpty)
+        await fulfillment(of: [initialPositionPublished], timeout: 1)
+        XCTAssertEqual(positions, [WhistleEditorPosition(line: 1, column: 1)])
+
+        let duplicatePositionPublished = expectation(description: "Duplicate position suppressed")
+        duplicatePositionPublished.isInverted = true
+        update(
+            editor,
+            binding: Binding(get: { text }, set: { text = $0 }),
+            documentID: documentID,
+            text: text,
+            isEditable: true,
+            onPositionChange: { _ in duplicatePositionPublished.fulfill() }
+        )
+        await fulfillment(of: [duplicatePositionPublished], timeout: 0.05)
+        XCTAssertEqual(positions.count, 1)
+
+        let movedPositionPublished = expectation(description: "Moved position published")
+        update(
+            editor,
+            binding: Binding(get: { text }, set: { text = $0 }),
+            documentID: documentID,
+            text: text,
+            isEditable: true,
+            onPositionChange: {
+                positions.append($0)
+                movedPositionPublished.fulfill()
+            }
+        )
+        editor.textView.setSelectedRange(NSRange(location: 6, length: 0))
+        editor.coordinator.textViewDidChangeSelection(
+            Notification(name: NSTextView.didChangeSelectionNotification, object: editor.textView)
+        )
+        XCTAssertEqual(positions.count, 1)
+        await fulfillment(of: [movedPositionPublished], timeout: 1)
+        XCTAssertEqual(positions.last, WhistleEditorPosition(line: 2, column: 1))
+    }
+
+    func testSyntaxPaletteMeetsNormalTextContrastInLightAndDarkAppearances() throws {
+        let lightAppearance = try XCTUnwrap(NSAppearance(named: .aqua))
+        let darkAppearance = try XCTUnwrap(NSAppearance(named: .darkAqua))
+        var lightBackground: NSColor?
+        lightAppearance.performAsCurrentDrawingAppearance {
+            lightBackground = NSColor.textBackgroundColor.usingColorSpace(.sRGB)
+        }
+        var darkBackground: NSColor?
+        darkAppearance.performAsCurrentDrawingAppearance {
+            darkBackground = NSColor.textBackgroundColor.usingColorSpace(.sRGB)
+        }
+        let resolvedLightBackground = try XCTUnwrap(lightBackground)
+        let resolvedDarkBackground = try XCTUnwrap(darkBackground)
+
+        for color in WhistleSyntaxPalette.all {
+            var lightColor: NSColor?
+            lightAppearance.performAsCurrentDrawingAppearance {
+                lightColor = color.usingColorSpace(.sRGB)
+            }
+            var darkColor: NSColor?
+            darkAppearance.performAsCurrentDrawingAppearance {
+                darkColor = color.usingColorSpace(.sRGB)
+            }
+            let light = try XCTUnwrap(lightColor)
+            let dark = try XCTUnwrap(darkColor)
+            XCTAssertGreaterThanOrEqual(contrastRatio(light, resolvedLightBackground), 4.5)
+            XCTAssertGreaterThanOrEqual(contrastRatio(dark, resolvedDarkBackground), 4.5)
+        }
     }
 
     private typealias Editor = (
@@ -262,7 +348,8 @@ final class WhistleCodeEditorCoordinatorTests: XCTestCase {
         binding: Binding<String>,
         documentID: String,
         text: String,
-        isEditable: Bool
+        isEditable: Bool,
+        onPositionChange: @escaping (WhistleEditorPosition) -> Void = { _ in }
     ) {
         editor.coordinator.updateConfiguration(
             textBinding: binding,
@@ -273,7 +360,25 @@ final class WhistleCodeEditorCoordinatorTests: XCTestCase {
             sidebarSearchQuery: "",
             completionWords: [],
             valueNames: [],
-            onPositionChange: { _ in }
+            onPositionChange: onPositionChange
         )
+    }
+
+    private func contrastRatio(_ first: NSColor, _ second: NSColor) -> CGFloat {
+        let firstLuminance = relativeLuminance(first)
+        let secondLuminance = relativeLuminance(second)
+        return (max(firstLuminance, secondLuminance) + 0.05)
+            / (min(firstLuminance, secondLuminance) + 0.05)
+    }
+
+    private func relativeLuminance(_ color: NSColor) -> CGFloat {
+        func linearize(_ component: CGFloat) -> CGFloat {
+            component <= 0.04045
+                ? component / 12.92
+                : pow((component + 0.055) / 1.055, 2.4)
+        }
+        return 0.2126 * linearize(color.redComponent)
+            + 0.7152 * linearize(color.greenComponent)
+            + 0.0722 * linearize(color.blueComponent)
     }
 }

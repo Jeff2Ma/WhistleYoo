@@ -10,6 +10,25 @@ enum AppEnvironmentStatus: Equatable {
     case unavailable(String)
 }
 
+enum MCPRuntimeState: Equatable {
+    case stopped
+    case starting
+    case listening(URL)
+    case failed(String)
+
+    var endpoint: URL? {
+        guard case .listening(let endpoint) = self else { return nil }
+        return endpoint
+    }
+}
+
+enum SoftwareDomainWhitelistRuntimeState: Equatable {
+    case idle
+    case applying
+    case applied
+    case failed(String)
+}
+
 struct MCPAuditEvent: Identifiable {
     let id = UUID()
     let date: Date
@@ -51,13 +70,16 @@ final class AppStateController: ObservableObject {
     @Published private(set) var isImportingConfiguration = false
     @Published private(set) var configurationFileURL: URL
     @Published private(set) var mcpAuditEvents: [MCPAuditEvent] = []
+    @Published private(set) var mcpRuntimeState: MCPRuntimeState = .stopped
+    @Published private(set) var softwareDomainWhitelistRuntimeState:
+        SoftwareDomainWhitelistRuntimeState = .idle
 
     var onStatusChange: (() -> Void)?
     var onError: ((Error) -> Void)?
     var onMessage: ((String) -> Void)?
     var onEngineReady: ((URL) -> Void)?
     var onDockVisibilityChange: ((Bool) -> Bool)?
-    var onMCPSettingsChange: ((MCPSettings) -> Void)?
+    var onMCPSettingsChange: ((MCPSettings) async -> Bool)?
 
     private let settingsStore: SettingsStore
     private let proxyManager: SystemProxyManager
@@ -569,7 +591,7 @@ final class AppStateController: ObservableObject {
         authenticationEnabled: Bool,
         port: Int,
         accessMode: MCPAccessMode
-    ) -> Bool {
+    ) async -> Bool {
         guard (1...65_535).contains(port),
               port != settings.engine.proxyPort,
               port != settings.engine.uiPort else {
@@ -586,7 +608,7 @@ final class AppStateController: ObservableObject {
             accessMode: accessMode
         )
         guard previous != updated else {
-            return true
+            return await applyMCPRuntimeSettings(updated)
         }
         if enabled, (!previous.enabled || previous.port != port),
            !portChecker.isAvailable(port: port, host: "127.0.0.1") {
@@ -596,21 +618,33 @@ final class AppStateController: ObservableObject {
         settings.mcp = updated
         do {
             try persistSettings()
-            onMCPSettingsChange?(settings.mcp)
-            return true
         } catch {
             settings.mcp = previous
             report(error)
             return false
         }
+        guard await applyMCPRuntimeSettings(updated) else {
+            settings.mcp = previous
+            do {
+                try persistSettings()
+            } catch {
+                report(error)
+            }
+            if !(await applyMCPRuntimeSettings(previous)) {
+                report(WhistleYooError.commandFailed(
+                    Localization.string(.mcpPreviousRuntimeConfigurationCouldNotBeRestored)
+                ))
+            }
+            return false
+        }
+        return true
     }
 
     @discardableResult
-    func rotateMCPToken() -> Bool {
+    func rotateMCPToken() async -> Bool {
         do {
             _ = try MCPTokenStore().rotate()
-            onMCPSettingsChange?(settings.mcp)
-            return true
+            return await applyMCPRuntimeSettings(settings.mcp)
         } catch {
             report(error)
             return false
@@ -712,7 +746,8 @@ final class AppStateController: ObservableObject {
     @discardableResult
     func importConfiguration(from url: URL) async -> Bool {
         guard !isImportingConfiguration, !isTransitioning,
-              !isLoadingRules, !isSavingRules else {
+              !isLoadingRules, !isSavingRules,
+              !isLoadingValues, !isSavingValues else {
             report(WhistleYooError.commandFailed(Localization.string(.statusWaitForTheCurrentOperationToFinishBeforeImportingAConfiguratio)))
             return false
         }
@@ -751,6 +786,13 @@ final class AppStateController: ObservableObject {
             }
             originalValues = valuesSnapshot
 
+            var suspendedMCPSettings = originalSettings.mcp
+            suspendedMCPSettings.enabled = false
+            guard await applyMCPRuntimeSettings(suspendedMCPSettings) else {
+                throw WhistleYooError.commandFailed(
+                    Localization.string(.mcpImportedConfigurationCouldNotBeApplied)
+                )
+            }
             if isEngineRunning {
                 try await stopEngineThrowing()
             }
@@ -759,8 +801,15 @@ final class AppStateController: ObservableObject {
                 configureEngine(environment: environment)
             }
             try await startEngineThrowing()
+            try requireSoftwareDomainWhitelistSynchronization()
             try await applyImportedRulesThrowing(imported.rules)
             try await applyImportedValuesThrowing(imported.values)
+            guard await applyMCPRuntimeSettings(settings.mcp) else {
+                throw WhistleYooError.commandFailed(
+                    lastErrorMessage
+                        ?? Localization.string(.mcpImportedConfigurationCouldNotBeApplied)
+                )
+            }
 
             try settingsStore.save(settings)
             try AutoLaunchManager().setEnabled(settings.launchAtLogin)
@@ -792,11 +841,17 @@ final class AppStateController: ObservableObject {
             if engineWasRunning || shouldRestoreProxy || originalRules != nil {
                 do {
                     try await startEngineThrowing()
+                    try requireSoftwareDomainWhitelistSynchronization()
                     if let originalRules {
                         try await applyImportedRulesThrowing(originalRules)
                     }
                     if let originalValues {
                         try await applyImportedValuesThrowing(originalValues)
+                    }
+                    guard await applyMCPRuntimeSettings(originalSettings.mcp) else {
+                        throw WhistleYooError.commandFailed(
+                            Localization.string(.mcpPreviousRuntimeConfigurationCouldNotBeRestored)
+                        )
                     }
                     if shouldRestoreProxy {
                         _ = await setSystemProxyEnabled(true)
@@ -852,11 +907,15 @@ final class AppStateController: ObservableObject {
         dockVisibilityPreference.setVisible(isVisible)
     }
 
-    func setSoftwareDomainWhitelistEnabled(_ enabled: Bool) async {
-        guard settings.softwareDomainWhitelistEnabled != enabled else { return }
-        settings.softwareDomainWhitelistEnabled = enabled
+    @discardableResult
+    func setSoftwareDomainWhitelistEnabled(_ enabled: Bool) async -> Bool {
+        guard softwareDomainWhitelistRuntimeState != .applying else { return false }
+        let previous = settings.softwareDomainWhitelistEnabled
+        guard previous != enabled else {
+            return await retrySoftwareDomainWhitelistSynchronization()
+        }
+        softwareDomainWhitelistRuntimeState = .applying
         do {
-            try persistSettings()
             if isEngineRunning, let url = uiURL {
                 try await softwareWhitelistManager.sync(
                     baseURL: url,
@@ -864,22 +923,43 @@ final class AppStateController: ObservableObject {
                     domains: settings.softwareDomainWhitelistDomains
                 )
             }
+            settings.softwareDomainWhitelistEnabled = enabled
+            do {
+                try persistSettings()
+            } catch {
+                settings.softwareDomainWhitelistEnabled = previous
+                if isEngineRunning, let url = uiURL {
+                    try? await softwareWhitelistManager.sync(
+                        baseURL: url,
+                        enabled: previous,
+                        domains: settings.softwareDomainWhitelistDomains
+                    )
+                }
+                throw error
+            }
+            softwareDomainWhitelistRuntimeState = .applied
+            return true
         } catch {
+            softwareDomainWhitelistRuntimeState = .failed(error.localizedDescription)
             report(error)
+            return false
         }
     }
 
     func updateSoftwareDomainWhitelistDomains(_ domains: [String]) async -> Bool {
+        guard softwareDomainWhitelistRuntimeState != .applying else { return false }
         let normalized = SoftwareDomainWhitelistManager.normalizedDomains(domains)
         guard !normalized.isEmpty else {
             report(WhistleYooError.commandFailed(Localization.string(.statusKeepAtLeastOneAllowlistedDomain)))
             return false
         }
-        guard settings.softwareDomainWhitelistDomains != normalized else { return true }
+        let previous = settings.softwareDomainWhitelistDomains
+        guard previous != normalized else {
+            return await retrySoftwareDomainWhitelistSynchronization()
+        }
 
-        settings.softwareDomainWhitelistDomains = normalized
+        softwareDomainWhitelistRuntimeState = .applying
         do {
-            try persistSettings()
             if isEngineRunning, let url = uiURL, settings.softwareDomainWhitelistEnabled {
                 try await softwareWhitelistManager.sync(
                     baseURL: url,
@@ -887,8 +967,48 @@ final class AppStateController: ObservableObject {
                     domains: normalized
                 )
             }
+            settings.softwareDomainWhitelistDomains = normalized
+            do {
+                try persistSettings()
+            } catch {
+                settings.softwareDomainWhitelistDomains = previous
+                if isEngineRunning, let url = uiURL,
+                   settings.softwareDomainWhitelistEnabled {
+                    try? await softwareWhitelistManager.sync(
+                        baseURL: url,
+                        enabled: true,
+                        domains: previous
+                    )
+                }
+                throw error
+            }
+            softwareDomainWhitelistRuntimeState = .applied
             return true
         } catch {
+            softwareDomainWhitelistRuntimeState = .failed(error.localizedDescription)
+            report(error)
+            return false
+        }
+    }
+
+    @discardableResult
+    func retrySoftwareDomainWhitelistSynchronization() async -> Bool {
+        guard softwareDomainWhitelistRuntimeState != .applying else { return false }
+        guard isEngineRunning, let url = uiURL else {
+            softwareDomainWhitelistRuntimeState = .idle
+            return true
+        }
+        softwareDomainWhitelistRuntimeState = .applying
+        do {
+            try await softwareWhitelistManager.sync(
+                baseURL: url,
+                enabled: settings.softwareDomainWhitelistEnabled,
+                domains: settings.softwareDomainWhitelistDomains
+            )
+            softwareDomainWhitelistRuntimeState = .applied
+            return true
+        } catch {
+            softwareDomainWhitelistRuntimeState = .failed(error.localizedDescription)
             report(error)
             return false
         }
@@ -1101,34 +1221,49 @@ final class AppStateController: ObservableObject {
         }
     }
 
-    func completeOnboarding(enableSystemProxy: Bool, skippedCertificate: Bool) async {
+    @discardableResult
+    func completeOnboarding(enableSystemProxy: Bool, skippedCertificate: Bool) async -> Bool {
+        let previousCompletedVersion = settings.completedOnboardingVersion
+        let previousCertificateStepSkipped = settings.certificateStepSkipped
+        let enabledProxyForCompletion = enableSystemProxy && !isSystemProxyEnabled
+        if enabledProxyForCompletion,
+           !(await setSystemProxyEnabled(true)) {
+            return false
+        }
+
         settings.completedOnboardingVersion = PersistedSettings.currentOnboardingVersion
         settings.certificateStepSkipped = skippedCertificate
         do {
             try persistSettings()
         } catch {
+            settings.completedOnboardingVersion = previousCompletedVersion
+            settings.certificateStepSkipped = previousCertificateStepSkipped
+            if enabledProxyForCompletion {
+                _ = await setSystemProxyEnabled(false)
+            }
             report(error)
-        }
-        if enableSystemProxy {
-            _ = await setSystemProxyEnabled(true)
+            return false
         }
         if isEngineRunning, !hasCompleteRulesSnapshot, let baseURL = uiURL {
             try? await reloadRules(baseURL: baseURL)
             await synchronizeConfigurationFile()
         }
-    }
-
-    func resetOnboarding() {
-        settings.completedOnboardingVersion = nil
-        do {
-            try persistSettings()
-        } catch {
-            report(error)
-        }
+        return true
     }
 
     func clearError() {
         lastErrorMessage = nil
+    }
+
+    func setMCPRuntimeState(_ state: MCPRuntimeState) {
+        mcpRuntimeState = state
+    }
+
+    func reportMCPRuntimeFailure(_ message: String) {
+        mcpRuntimeState = .failed(message)
+        report(WhistleYooError.invalidResponse(
+            Localization.format(.mcpUnableToStartServerValue, message)
+        ))
     }
 
     func shutdown() async throws {
@@ -1189,15 +1324,7 @@ final class AppStateController: ObservableObject {
         }
         try await engine.start()
         await refreshCertificateStatus()
-        do {
-            try await softwareWhitelistManager.sync(
-                baseURL: engine.uiURL,
-                enabled: settings.softwareDomainWhitelistEnabled,
-                domains: settings.softwareDomainWhitelistDomains
-            )
-        } catch {
-            report(error)
-        }
+        _ = await retrySoftwareDomainWhitelistSynchronization()
         if let pendingStartupRules,
            await applyImportedRules(pendingStartupRules) {
             self.pendingStartupRules = nil
@@ -1334,6 +1461,16 @@ final class AppStateController: ObservableObject {
     private func persistSettings() throws {
         try settingsStore.save(settings)
         scheduleConfigurationSynchronization()
+    }
+
+    private func applyMCPRuntimeSettings(_ settings: MCPSettings) async -> Bool {
+        guard let onMCPSettingsChange else { return true }
+        return await onMCPSettingsChange(settings)
+    }
+
+    private func requireSoftwareDomainWhitelistSynchronization() throws {
+        guard case .failed(let message) = softwareDomainWhitelistRuntimeState else { return }
+        throw WhistleYooError.invalidResponse(message)
     }
 
     private func scheduleConfigurationSynchronization() {
