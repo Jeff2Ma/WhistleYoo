@@ -259,11 +259,7 @@ struct RuleConfigurationView: View {
     }
 
     private var editorValue: String {
-        get { selectedDocument?.value ?? "" }
-        nonmutating set {
-            guard let selectedName else { return }
-            draft.updateValue(newValue, name: selectedName)
-        }
+        selectedDocument?.value ?? ""
     }
 
     private var editorEnabled: Bool {
@@ -672,10 +668,7 @@ struct RuleConfigurationView: View {
                 Divider()
 
                 WhistleCodeEditor(
-                    text: Binding(
-                        get: { displayedEditorValue },
-                        set: { editorValue = $0 }
-                    ),
+                    text: editorBinding(for: document),
                     documentID: "rules:\(document.name)",
                     language: .rules,
                     isEditable: !document.isDefault && !rulesOperationInProgress,
@@ -738,6 +731,17 @@ struct RuleConfigurationView: View {
 
     private var selectedDocument: WhistleRuleDocument? {
         draft.documents.first { $0.name == selectedName }
+    }
+
+    private func editorBinding(for document: WhistleRuleDocument) -> Binding<String> {
+        Binding(
+            get: {
+                let current = draft.documents.first { $0.name == document.name } ?? document
+                guard current.isDefault, current.value.isEmpty else { return current.value }
+                return Self.defaultRuleExample
+            },
+            set: { draft.updateValue($0, name: document.name) }
+        )
     }
 
     private var selectedMovableRuleIndex: Int? {
@@ -1076,11 +1080,16 @@ private struct ValuesConfigurationContent: View {
     }
 
     private var editorValue: String {
-        get { selectedDocument?.value ?? "" }
-        nonmutating set {
-            guard let selectedName else { return }
-            draft.updateValueDocument(newValue, name: selectedName)
-        }
+        selectedDocument?.value ?? ""
+    }
+
+    private func editorBinding(for document: WhistleValueDocument) -> Binding<String> {
+        Binding(
+            get: {
+                draft.valueDocuments.first { $0.name == document.name }?.value ?? document.value
+            },
+            set: { draft.updateValueDocument($0, name: document.name) }
+        )
     }
 
     var body: some View {
@@ -1312,10 +1321,7 @@ private struct ValuesConfigurationContent: View {
                 Divider()
 
                 WhistleCodeEditor(
-                    text: Binding(
-                        get: { editorValue },
-                        set: { editorValue = $0 }
-                    ),
+                    text: editorBinding(for: document),
                     documentID: "values:\(document.name)",
                     language: .value(documentName: document.name),
                     isEditable: !isOperationInProgress,

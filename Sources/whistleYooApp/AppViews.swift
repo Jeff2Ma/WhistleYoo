@@ -601,17 +601,12 @@ struct MainWorkspaceView: View {
     // the window. A bar this tall covers the 32pt title bar and leaves the toolbar row
     // roughly level with the window buttons, the way OrbStack's unified top area reads.
     private static let topBarHeight: CGFloat = 44
-    // The window buttons plus the sidebar toggle accessory occupy the leading title bar.
-    private static let titleBarControlsWidth: CGFloat = 112
+    // When the sidebar is hidden, the window buttons and the system sidebar toggle
+    // sit over the detail title bar. Keep the page title clear of those controls.
+    private static let titleBarControlsWidth: CGFloat = 208
 
     var body: some View {
-        NavigationSplitView(columnVisibility: $selection.columnVisibility) {
-            sidebar
-                .navigationSplitViewColumnWidth(min: 186, ideal: 202, max: 300)
-        } detail: {
-            detail
-        }
-        .navigationSplitViewStyle(.balanced)
+        baseWorkspaceSplitView
         .frame(minWidth: 900, minHeight: 640)
         .alert(
             Localization.string(.settingsDiscardUnsavedChanges),
@@ -634,6 +629,17 @@ struct MainWorkspaceView: View {
         } message: {
             Text(Localization.string(.menuWaitForTheCurrentRuleOperationToFinishBeforeSwitchingPages))
         }
+    }
+
+    private var baseWorkspaceSplitView: some View {
+        NavigationSplitView(columnVisibility: $selection.columnVisibility) {
+            sidebar
+                .navigationSplitViewColumnWidth(min: 186, ideal: 202, max: 300)
+        } detail: {
+            detail
+        }
+        .navigationSplitViewStyle(.balanced)
+        .ignoresSafeArea(.container, edges: .top)
     }
 
     private var isSidebarCollapsed: Bool {
@@ -888,6 +894,48 @@ struct MainWorkspaceView: View {
                 .controlSize(.large)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+}
+
+private struct WindowDragHandle: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        DraggableView()
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    private final class DraggableView: NSView {
+        override var mouseDownCanMoveWindow: Bool { true }
+    }
+}
+
+private struct DetailHeaderButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        DetailHeaderButtonBody(configuration: configuration)
+    }
+
+    private struct DetailHeaderButtonBody: View {
+        let configuration: Configuration
+        @State private var isHovering = false
+
+        var body: some View {
+            configuration.label
+                .foregroundStyle(isHovering ? Color.primary : Color.secondary)
+                .background(
+                    backgroundColor,
+                    in: RoundedRectangle(cornerRadius: 6, style: .continuous)
+                )
+                .contentShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .onHover { isHovering = $0 }
+                .animation(.easeOut(duration: 0.08), value: isHovering)
+                .animation(.easeOut(duration: 0.06), value: configuration.isPressed)
+        }
+
+        private var backgroundColor: Color {
+            if configuration.isPressed { return Color.primary.opacity(0.12) }
+            if isHovering { return Color.primary.opacity(0.07) }
+            return .clear
         }
     }
 }

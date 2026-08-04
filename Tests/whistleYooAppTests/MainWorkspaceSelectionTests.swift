@@ -89,4 +89,5 @@ final class MainWorkspaceSelectionTests: XCTestCase {
         XCTAssertEqual(selection.selected, .rules)
         XCTAssertFalse(selection.isDiscardConfirmationPresented)
     }
+
 }

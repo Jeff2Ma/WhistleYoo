@@ -62,12 +62,6 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         window.titlebarAppearsTransparent = true
         window.minSize = Self.minimumWindowSize
         window.isReleasedWhenClosed = false
-        // The sidebar toggle must live in the real title bar: with a transparent
-        // full-size content view the title bar still sits above the SwiftUI layer
-        // and would swallow clicks on any button drawn underneath it.
-        window.addTitlebarAccessoryViewController(
-            SidebarToggleTitlebarAccessory { workspaceSelection.toggleSidebar() }
-        )
         window.contentViewController = NSHostingController(rootView: rootView)
         // Attaching an NSHostingController resizes a new NSWindow to the SwiftUI
         // root view's fitting size (currently the 900 x 640 minimum). Reapply the
@@ -157,46 +151,6 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             return defaultContentSize
         }
         return NSSize(width: width, height: height)
-    }
-}
-
-/// Hosts the sidebar toggle inside the window's title bar, right after the window
-/// buttons, so it stays reachable whether or not the sidebar is currently visible.
-@MainActor
-final class SidebarToggleTitlebarAccessory: NSTitlebarAccessoryViewController {
-    private let handler: () -> Void
-
-    init(handler: @escaping () -> Void) {
-        self.handler = handler
-        super.init(nibName: nil, bundle: nil)
-        layoutAttribute = .leading
-
-        let title = Localization.string(.sidebarToggleSidebar)
-        let button = NSButton(frame: NSRect(x: 20, y: 5, width: 26, height: 22))
-        button.isBordered = false
-        button.bezelStyle = .texturedRounded
-        button.imagePosition = .imageOnly
-        button.image = NSImage(systemSymbolName: "sidebar.leading", accessibilityDescription: title)
-        button.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
-        button.contentTintColor = .secondaryLabelColor
-        button.toolTip = title
-        button.setAccessibilityLabel(title)
-        button.target = self
-        button.action = #selector(toggle)
-        button.autoresizingMask = [.minYMargin, .maxYMargin]
-
-        // AppKit stretches the accessory to the title bar height and takes its width
-        // from the view's frame. An Auto Layout width constraint on the controller's
-        // own view collapses to zero here, so lay the container out with frames.
-        let container = NSView(frame: NSRect(x: 0, y: 0, width: 66, height: 32))
-        container.addSubview(button)
-        view = container
-    }
-
-    required init?(coder: NSCoder) { nil }
-
-    @objc private func toggle() {
-        handler()
     }
 }
 

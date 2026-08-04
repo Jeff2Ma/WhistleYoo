@@ -126,7 +126,7 @@ struct WhistleCodeEditor: NSViewRepresentable {
     }
 
     static func dismantleNSView(_ scrollView: NSScrollView, coordinator: Coordinator) {
-        coordinator.saveCurrentSession()
+        coordinator.prepareForDismantle()
     }
 
     private var completionWords: [String] {
@@ -190,11 +190,12 @@ struct WhistleCodeEditor: NSViewRepresentable {
             onPositionChange: @escaping (WhistleEditorPosition) -> Void
         ) {
             guard let textView, let scrollView else { return }
-            self.textBinding = textBinding
             self.onPositionChange = onPositionChange
 
             if documentID != newDocumentID {
+                commitMarkedText(in: textView)
                 saveCurrentSession()
+                self.textBinding = textBinding
                 documentID = newDocumentID
                 loadDocument(
                     id: newDocumentID,
@@ -202,7 +203,13 @@ struct WhistleCodeEditor: NSViewRepresentable {
                     in: textView,
                     scrollView: scrollView
                 )
-            } else if textView.string != newText {
+            } else {
+                self.textBinding = textBinding
+            }
+
+            if documentID == newDocumentID,
+               !textView.hasMarkedText(),
+               textView.string != newText {
                 synchronizeDocument {
                     replaceTextWithoutUndo(newText, in: textView)
                     restoreSafeSelection(in: textView)
@@ -225,6 +232,15 @@ struct WhistleCodeEditor: NSViewRepresentable {
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? WhistleSourceTextView else { return }
             guard !isSynchronizingDocument else { return }
+            guard !textView.hasMarkedText() else {
+                // An input method owns the marked range until the user commits a
+                // candidate. Publishing or re-highlighting the intermediate value
+                // can cause SwiftUI to update the representable while AppKit is
+                // still composing, which cancels CJK input methods.
+                highlightWorkItem?.cancel()
+                invalidateLineNumbers()
+                return
+            }
             textBinding?.wrappedValue = textView.string
             scheduleHighlightUpdate(in: textView)
             invalidateLineNumbers()
@@ -234,6 +250,7 @@ struct WhistleCodeEditor: NSViewRepresentable {
 
         func textViewDidChangeSelection(_ notification: Notification) {
             guard let textView = notification.object as? WhistleSourceTextView else { return }
+            guard !textView.hasMarkedText() else { return }
             updateHighlights(in: textView)
             if !isSynchronizingDocument {
                 saveCurrentSession()
@@ -312,11 +329,19 @@ struct WhistleCodeEditor: NSViewRepresentable {
 
         func saveCurrentSession() {
             guard !documentID.isEmpty, let textView, let scrollView else { return }
+            guard !textView.hasMarkedText() else { return }
             WhistleEditorSessionStore.shared.update(
                 id: documentID,
                 selection: textView.selectedRange(),
                 visibleOrigin: scrollView.contentView.bounds.origin
             )
+        }
+
+        func prepareForDismantle() {
+            if let textView {
+                commitMarkedText(in: textView)
+            }
+            saveCurrentSession()
         }
 
         private func loadDocument(
@@ -342,6 +367,14 @@ struct WhistleCodeEditor: NSViewRepresentable {
             isSynchronizingDocument = true
             defer { isSynchronizingDocument = false }
             updates()
+        }
+
+        private func commitMarkedText(in textView: WhistleSourceTextView) {
+            guard textView.hasMarkedText() else { return }
+            textView.unmarkText()
+            if textBinding?.wrappedValue != textView.string {
+                textBinding?.wrappedValue = textView.string
+            }
         }
 
         private func replaceTextWithoutUndo(_ replacement: String, in textView: NSTextView) {
@@ -387,6 +420,7 @@ struct WhistleCodeEditor: NSViewRepresentable {
         }
 
         private func updateHighlights(in textView: WhistleSourceTextView) {
+            guard !textView.hasMarkedText() else { return }
             WhistleSyntaxHighlighter.apply(
                 to: textView,
                 language: language,
@@ -399,6 +433,7 @@ struct WhistleCodeEditor: NSViewRepresentable {
         }
 
         private func publishPosition(from textView: NSTextView) {
+            guard !textView.hasMarkedText() else { return }
             let source = textView.string as NSString
             let location = min(textView.selectedRange().location, source.length)
             let prefix = source.substring(to: location) as NSString
@@ -514,6 +549,14 @@ final class WhistleSourceTextView: NSTextView {
     }
 
     override func keyDown(with event: NSEvent) {
+        // Let NSTextInputContext own every keystroke while an IME candidate is
+        // being composed. In particular, Tab and Space may navigate or commit a
+        // candidate and must not trigger editor shortcuts.
+        if hasMarkedText() {
+            super.keyDown(with: event)
+            return
+        }
+
         let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         if event.keyCode == 48, modifiers.contains(.control),
            !modifiers.contains(.command), !modifiers.contains(.option) {
@@ -526,10 +569,6 @@ final class WhistleSourceTextView: NSTextView {
         }
         if event.keyCode == 48, !modifiers.contains(.command), !modifiers.contains(.option) {
             onEditorCommand?(modifiers.contains(.shift) ? .outdent : .indent)
-            return
-        }
-        if event.keyCode == 49, modifiers == .control {
-            complete(nil)
             return
         }
         super.keyDown(with: event)
