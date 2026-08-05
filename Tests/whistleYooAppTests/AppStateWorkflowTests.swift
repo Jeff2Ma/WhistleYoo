@@ -4,6 +4,23 @@ import XCTest
 
 @MainActor
 final class AppStateWorkflowTests: XCTestCase {
+    func testMCPClientIdentityNormalizesKnownAgentsAndUntrustedText() {
+        let codeBuddy = MCPClientIdentity(
+            reportedName: "  Copilot\n",
+            version: " 1.0.0 "
+        )
+        let cursor = MCPClientIdentity(reportedName: "cursor-vscode", version: nil)
+        let unknown = MCPClientIdentity(reportedName: "   ", version: "")
+
+        XCTAssertEqual(codeBuddy.reportedName, "Copilot")
+        XCTAssertEqual(codeBuddy.displayName, "CodeBuddy")
+        XCTAssertEqual(codeBuddy.version, "1.0.0")
+        XCTAssertEqual(cursor.displayName, "Cursor")
+        XCTAssertNil(unknown.reportedName)
+        XCTAssertNil(unknown.displayName)
+        XCTAssertNil(unknown.version)
+    }
+
     func testOnboardingCompletesOnlyAfterSettingsPersist() async throws {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)

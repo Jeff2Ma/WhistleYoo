@@ -7,10 +7,12 @@ import whistleYooCore
 @MainActor
 final class MCPToolBackend {
     private let state: AppStateController
+    private let client: MCPClientIdentity
     private var managedFiles = Set<String>()
 
-    init(state: AppStateController) {
+    init(state: AppStateController, client: MCPClientIdentity = .unknown) {
         self.state = state
+        self.client = client
     }
 
     func makeServer() async -> Server {
@@ -50,6 +52,7 @@ final class MCPToolBackend {
                 let text = String(decoding: data, as: UTF8.self)
                 await self.state.recordMCPAudit(
                     tool: parameters.name,
+                    client: self.client,
                     succeeded: true,
                     startedAt: startedAt
                 )
@@ -61,6 +64,7 @@ final class MCPToolBackend {
             } catch {
                 await self.state.recordMCPAudit(
                     tool: parameters.name,
+                    client: self.client,
                     succeeded: false,
                     startedAt: startedAt,
                     message: error.localizedDescription

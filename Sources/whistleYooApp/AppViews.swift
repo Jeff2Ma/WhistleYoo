@@ -546,8 +546,8 @@ struct MainWorkspaceView: View {
     private var sidebarGroups: [SidebarGroup] {
         [
             SidebarGroup(
-                id: "capture",
-                title: Localization.string(.sidebarSectionCapture),
+                id: "whistle",
+                title: Localization.string(.sidebarSectionWhistle),
                 items: [
                     SidebarItem(
                         tab: .console,
@@ -558,30 +558,30 @@ struct MainWorkspaceView: View {
                         tab: .plugins,
                         title: Localization.string(.pluginsWhistlePlugins),
                         symbol: "puzzlepiece.extension"
-                    )
-                ]
-            ),
-            SidebarGroup(
-                id: "configuration",
-                title: Localization.string(.sidebarSectionConfiguration),
-                items: [
+                    ),
                     SidebarItem(
                         tab: .rules,
                         title: Localization.string(.rulesConfiguration),
                         symbol: "doc.text"
-                    ),
-                    SidebarItem(
-                        tab: .mobile,
-                        title: Localization.string(.mobileMobileProxy),
-                        symbol: "iphone.and.arrow.forward"
                     )
                 ]
             ),
             SidebarGroup(
-                id: "general",
-                title: Localization.string(.sidebarSectionGeneral),
+                id: "enhancements",
+                title: Localization.string(.sidebarSectionEnhancements),
                 items: [
-                    SidebarItem(tab: .mcp, title: "MCP", symbol: "server.rack"),
+                    SidebarItem(
+                        tab: .mobile,
+                        title: Localization.string(.mobileMobileProxy),
+                        symbol: "iphone.and.arrow.forward"
+                    ),
+                    SidebarItem(tab: .mcp, title: "MCP", symbol: "server.rack")
+                ]
+            ),
+            SidebarGroup(
+                id: "more",
+                title: Localization.string(.sidebarSectionMore),
+                items: [
                     SidebarItem(
                         tab: .settings,
                         title: Localization.string(.settingsMoreSettings),
@@ -601,9 +601,9 @@ struct MainWorkspaceView: View {
     // the window. A bar this tall covers the 32pt title bar and leaves the toolbar row
     // roughly level with the window buttons, the way OrbStack's unified top area reads.
     private static let topBarHeight: CGFloat = 44
-    // When the sidebar is hidden, the window buttons and the system sidebar toggle
-    // sit over the detail title bar. Keep the page title clear of those controls.
-    private static let titleBarControlsWidth: CGFloat = 208
+    // Keep the title at its expanded-detail position while the sidebar animates.
+    // This also keeps it clear of the window buttons and the sidebar toggle.
+    private static let detailTitleLeading: CGFloat = 226
 
     var body: some View {
         baseWorkspaceSplitView
@@ -639,11 +639,17 @@ struct MainWorkspaceView: View {
             detail
         }
         .navigationSplitViewStyle(.balanced)
+        .overlay(alignment: .topLeading) {
+            Text(detailTitle)
+                .font(.system(size: 13, weight: .semibold))
+                .lineLimit(1)
+                .padding(.leading, Self.detailTitleLeading)
+                .frame(height: Self.topBarHeight)
+                .allowsHitTesting(false)
+        }
+        // Apply the title-bar safe-area behavior to the overlay as well. If this
+        // precedes the overlay, the title is laid out below the custom top bar.
         .ignoresSafeArea(.container, edges: .top)
-    }
-
-    private var isSidebarCollapsed: Bool {
-        selection.columnVisibility == .detailOnly
     }
 
     private var detail: some View {
@@ -661,15 +667,9 @@ struct MainWorkspaceView: View {
 
     private var detailHeader: some View {
         HStack(spacing: 6) {
-            Text(detailTitle)
-                .font(.system(size: 13, weight: .semibold))
-                .lineLimit(1)
             Spacer(minLength: 8)
             detailHeaderActions
         }
-        // When the sidebar is hidden the window buttons and the sidebar toggle move
-        // over the detail column, so the title has to step out of their way.
-        .padding(.leading, isSidebarCollapsed ? Self.titleBarControlsWidth : 16)
         .padding(.trailing, 12)
         .frame(height: Self.topBarHeight)
         .frame(maxWidth: .infinity)
@@ -1495,33 +1495,7 @@ struct MCPSettingsView: View {
                     .padding(8)
                 }
 
-                if !state.mcpAuditEvents.isEmpty {
-                    GroupBox(Localization.string(.mcpRecentActivity)) {
-                        VStack(spacing: 10) {
-                            ForEach(state.mcpAuditEvents.prefix(5)) { event in
-                                HStack(spacing: 8) {
-                                    Image(systemName: event.succeeded
-                                        ? "checkmark.circle.fill"
-                                        : "xmark.circle.fill")
-                                        .foregroundStyle(event.succeeded ? Color.green : Color.red)
-                                    Text(event.tool)
-                                        .font(.system(.caption, design: .monospaced))
-                                    Spacer()
-                                    Text(event.date.formatted(date: .numeric, time: .standard))
-                                        .font(.caption)
-                                        .monospacedDigit()
-                                        .foregroundStyle(.secondary)
-                                    Text("\(event.durationMilliseconds) ms")
-                                        .font(.caption)
-                                        .monospacedDigit()
-                                        .foregroundStyle(.secondary)
-                                }
-                                .help(event.message ?? event.date.formatted())
-                            }
-                        }
-                        .padding(8)
-                    }
-                }
+                recentMCPActivity
             }
             .padding(30)
             .frame(maxWidth: 820, alignment: .leading)
@@ -1540,6 +1514,145 @@ struct MCPSettingsView: View {
         .onChange(of: state.settings.mcp) { _ in
             synchronizeFormWithPersistedSettings()
         }
+    }
+
+    private var recentMCPActivity: some View {
+        let events = Array(state.mcpAuditEvents.prefix(8))
+        return VStack(alignment: .leading, spacing: 10) {
+            Label(
+                Localization.string(.mcpRecentActivity),
+                systemImage: "clock.arrow.circlepath"
+            )
+            .font(.headline)
+
+            VStack(spacing: 0) {
+                activityTableHeader
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.primary.opacity(0.045))
+                Divider()
+
+                if events.isEmpty {
+                    VStack(spacing: 7) {
+                        Image(systemName: "tray")
+                            .font(.title2)
+                            .foregroundStyle(.tertiary)
+                        Text(Localization.string(.mcpNoRecentActivity))
+                            .font(.callout.weight(.medium))
+                        Text(Localization.string(.mcpActivityEmptyDescription))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 104)
+                    .padding(.horizontal, 20)
+                } else {
+                    ForEach(Array(events.enumerated()), id: \.element.id) { index, event in
+                        activityRow(event)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 9)
+                        if index < events.count - 1 {
+                            Divider()
+                                .padding(.leading, 12)
+                        }
+                    }
+                }
+            }
+            .background(
+                Color(nsColor: .textBackgroundColor).opacity(0.42),
+                in: RoundedRectangle(cornerRadius: 8)
+            )
+            .hairlineRoundedBorder(
+                Color.primary.opacity(0.1),
+                cornerRadius: 8
+            )
+        }
+    }
+
+    private var activityTableHeader: some View {
+        HStack(spacing: 12) {
+            Text(Localization.string(.mcpActivityStatus))
+                .frame(width: 78, alignment: .leading)
+            Text(Localization.string(.mcpActivityAgent))
+                .frame(width: 128, alignment: .leading)
+            Text(Localization.string(.mcpActivityTool))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text(Localization.string(.mcpActivityDuration))
+                .frame(width: 64, alignment: .trailing)
+            Text(Localization.string(.mcpActivityTime))
+                .frame(width: 128, alignment: .trailing)
+        }
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(.secondary)
+    }
+
+    private func activityRow(_ event: MCPAuditEvent) -> some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 5) {
+                Image(systemName: event.succeeded
+                    ? "checkmark.circle.fill"
+                    : "xmark.circle.fill")
+                Text(Localization.string(event.succeeded
+                    ? .mcpActivitySucceeded
+                    : .mcpActivityFailed))
+            }
+            .font(.caption.weight(.medium))
+            .foregroundStyle(event.succeeded ? Color.green : Color.red)
+            .frame(width: 78, alignment: .leading)
+
+            Text(clientDisplayLabel(for: event.client))
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .font(.caption)
+                .frame(width: 128, alignment: .leading)
+                .help(clientHelp(for: event.client))
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(event.tool)
+                    .font(.system(.caption, design: .monospaced))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                if let message = event.message {
+                    Text(message)
+                        .font(.caption2)
+                        .foregroundStyle(.red)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .help(event.message ?? event.tool)
+
+            Text("\(event.durationMilliseconds) ms")
+                .font(.caption)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .frame(width: 64, alignment: .trailing)
+
+            Text(event.date.formatted(date: .numeric, time: .standard))
+                .lineLimit(1)
+                .font(.caption2)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .frame(width: 128, alignment: .trailing)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func clientHelp(for client: MCPClientIdentity) -> String {
+        guard let reportedName = client.reportedName else {
+            return Localization.string(.mcpUnknownAgent)
+        }
+        if let version = client.version {
+            return "\(reportedName) \(version)"
+        }
+        return reportedName
+    }
+
+    private func clientDisplayLabel(for client: MCPClientIdentity) -> String {
+        let name = client.displayName ?? Localization.string(.mcpUnknownAgent)
+        guard let version = client.version, !version.isEmpty else { return name }
+        return "\(name) \(version)"
     }
 
     private var parsedPort: Int? {

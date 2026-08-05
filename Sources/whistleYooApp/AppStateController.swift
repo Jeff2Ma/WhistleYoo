@@ -33,9 +33,48 @@ struct MCPAuditEvent: Identifiable {
     let id = UUID()
     let date: Date
     let tool: String
+    let client: MCPClientIdentity
     let succeeded: Bool
     let durationMilliseconds: Int
     let message: String?
+}
+
+struct MCPClientIdentity: Equatable, Sendable {
+    let reportedName: String?
+    let version: String?
+
+    static let unknown = MCPClientIdentity(reportedName: nil, version: nil)
+
+    init(reportedName: String?, version: String?) {
+        self.reportedName = Self.normalized(reportedName, maximumLength: 80)
+        self.version = Self.normalized(version, maximumLength: 40)
+    }
+
+    var displayName: String? {
+        guard let reportedName else { return nil }
+        let normalizedName = reportedName.lowercased()
+        if normalizedName == "copilot"
+            || normalizedName.contains("codebuddy")
+            || normalizedName.contains("coding-copilot") {
+            return "CodeBuddy"
+        }
+        if normalizedName.contains("cursor") { return "Cursor" }
+        if normalizedName.contains("codex") { return "Codex" }
+        if normalizedName.contains("claude") { return "Claude" }
+        if normalizedName.contains("windsurf") { return "Windsurf" }
+        if normalizedName == "zed" || normalizedName.contains("zed editor") { return "Zed" }
+        return reportedName
+    }
+
+    private static func normalized(_ value: String?, maximumLength: Int) -> String? {
+        guard let value else { return nil }
+        let compact = value
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+        guard !compact.isEmpty else { return nil }
+        return String(compact.prefix(maximumLength))
+    }
 }
 
 @MainActor
@@ -653,6 +692,7 @@ final class AppStateController: ObservableObject {
 
     func recordMCPAudit(
         tool: String,
+        client: MCPClientIdentity = .unknown,
         succeeded: Bool,
         startedAt: Date,
         message: String? = nil
@@ -661,6 +701,7 @@ final class AppStateController: ObservableObject {
             MCPAuditEvent(
                 date: Date(),
                 tool: tool,
+                client: client,
                 succeeded: succeeded,
                 durationMilliseconds: max(0, Int(Date().timeIntervalSince(startedAt) * 1_000)),
                 message: message

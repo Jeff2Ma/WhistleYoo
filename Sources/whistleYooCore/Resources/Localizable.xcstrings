@@ -103,6 +103,23 @@
       },
       "comment": "中文：当前版本"
     },
+    "about.local_test_version_does_not_support_checking_for_updates": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local test versions do not support checking for updates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地测试版本，不支持检查版本更新"
+          }
+        }
+      },
+      "comment": "中文：本地测试版本，不支持检查版本更新"
+    },
     "about.official_project": {
       "localizations": {
         "en": {
@@ -2448,6 +2465,176 @@
         }
       },
       "comment": "中文：访问权限"
+    },
+    "mcp.activity_agent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agent"
+          }
+        }
+      },
+      "comment": "中文：Agent"
+    },
+    "mcp.activity_duration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "耗时"
+          }
+        }
+      },
+      "comment": "中文：耗时"
+    },
+    "mcp.activity_empty_description": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MCP tool calls from connected agents will appear here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接的 Agent 调用 MCP 工具后，记录会显示在这里。"
+          }
+        }
+      },
+      "comment": "中文：连接的 Agent 调用 MCP 工具后，记录会显示在这里。"
+    },
+    "mcp.activity_failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "失败"
+          }
+        }
+      },
+      "comment": "中文：失败"
+    },
+    "mcp.activity_status": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态"
+          }
+        }
+      },
+      "comment": "中文：状态"
+    },
+    "mcp.activity_succeeded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Succeeded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成功"
+          }
+        }
+      },
+      "comment": "中文：成功"
+    },
+    "mcp.activity_time": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间"
+          }
+        }
+      },
+      "comment": "中文：时间"
+    },
+    "mcp.activity_tool": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tool"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工具"
+          }
+        }
+      },
+      "comment": "中文：工具"
+    },
+    "mcp.no_recent_activity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No recent MCP activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无 MCP 调用记录"
+          }
+        }
+      },
+      "comment": "中文：暂无 MCP 调用记录"
+    },
+    "mcp.unknown_agent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown agent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知 Agent"
+          }
+        }
+      },
+      "comment": "中文：未知 Agent"
     },
     "mcp.authentication_disabled": {
       "localizations": {
@@ -5532,17 +5719,17 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "More Settings"
+            "value": "Settings"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "更多设置"
+            "value": "设置"
           }
         }
       },
-      "comment": "中文：更多设置"
+      "comment": "中文：设置"
     },
     "settings.network_services_using_the_system_proxy": {
       "localizations": {
@@ -6146,56 +6333,56 @@
       },
       "comment": "中文：可以暂时跳过，但 HTTPS 抓包会失败"
     },
-    "sidebar.section.capture": {
+    "sidebar.section.enhancements": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capture"
+            "value": "Enhanced Features"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "抓包"
+            "value": "增强功能"
           }
         }
       },
-      "comment": "中文：抓包"
+      "comment": "中文：增强功能"
     },
-    "sidebar.section.configuration": {
+    "sidebar.section.more": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Configuration"
+            "value": "More"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "配置"
+            "value": "更多"
           }
         }
       },
-      "comment": "中文：配置"
+      "comment": "中文：更多"
     },
-    "sidebar.section.general": {
+    "sidebar.section.whistle": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "General"
+            "value": "Whistle"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "通用"
+            "value": "Whistle"
           }
         }
       },
-      "comment": "中文：通用"
+      "comment": "中文：Whistle"
     },
     "sidebar.toggle_sidebar": {
       "localizations": {

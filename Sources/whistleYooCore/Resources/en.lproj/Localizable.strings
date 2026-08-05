@@ -14,6 +14,8 @@
 	<string>Contact the Author</string>
 	<key>about.current_version</key>
 	<string>Current Version</string>
+	<key>about.local_test_version_does_not_support_checking_for_updates</key>
+	<string>Local test versions do not support checking for updates</string>
 	<key>about.official_project</key>
 	<string>Official Project</string>
 	<key>about.project_information</key>
@@ -171,6 +173,22 @@ SHA-256: %@</string>
 	<string>Toggle Comment</string>
 	<key>mcp.access</key>
 	<string>Access</string>
+	<key>mcp.activity_agent</key>
+	<string>Agent</string>
+	<key>mcp.activity_duration</key>
+	<string>Duration</string>
+	<key>mcp.activity_empty_description</key>
+	<string>MCP tool calls from connected agents will appear here.</string>
+	<key>mcp.activity_failed</key>
+	<string>Failed</string>
+	<key>mcp.activity_status</key>
+	<string>Status</string>
+	<key>mcp.activity_succeeded</key>
+	<string>Succeeded</string>
+	<key>mcp.activity_time</key>
+	<string>Time</string>
+	<key>mcp.activity_tool</key>
+	<string>Tool</string>
 	<key>mcp.authentication_disabled</key>
 	<string>Authentication is disabled. Any process on this Mac can call the localhost MCP endpoint without a token.</string>
 	<key>mcp.bearer_token_rotated</key>
@@ -195,6 +213,8 @@ SHA-256: %@</string>
 	<string>Let local AI agents call Whistle APIs with Whistle-compatible names.</string>
 	<key>mcp.model_context_protocol</key>
 	<string>Model Context Protocol (MCP)</string>
+	<key>mcp.no_recent_activity</key>
+	<string>No recent MCP activity</string>
 	<key>mcp.previous_runtime_configuration_could_not_be_restored</key>
 	<string>The previous MCP runtime configuration could not be restored.</string>
 	<key>mcp.read_only</key>
@@ -211,6 +231,8 @@ SHA-256: %@</string>
 	<string>MCP server settings applied.</string>
 	<key>mcp.unable_to_start_server_value</key>
 	<string>Unable to start the MCP server: %@</string>
+	<key>mcp.unknown_agent</key>
+	<string>Unknown agent</string>
 	<key>menu.bring_all_to_front</key>
 	<string>Bring All to Front</string>
 	<key>menu.check_for_updates</key>
@@ -632,7 +654,7 @@ SHA-256: %@</string>
 	<key>settings.listen_on_127_0_0_1_only</key>
 	<string>Listen on 127.0.0.1 only</string>
 	<key>settings.more_settings</key>
-	<string>More Settings</string>
+	<string>Settings</string>
 	<key>settings.network_services_using_the_system_proxy</key>
 	<string>Network Services Using the System Proxy</string>
 	<key>settings.no_available_network_services_detected</key>
@@ -699,12 +721,12 @@ SHA-256: %@</string>
 	<string>With a custom location, the app reads this file at launch and atomically writes back after settings or rules are saved.</string>
 	<key>settings.you_can_skip_this_for_now_but_https_capture_will_not_work</key>
 	<string>You can skip this for now, but HTTPS capture will not work</string>
-	<key>sidebar.section.capture</key>
-	<string>Capture</string>
-	<key>sidebar.section.configuration</key>
-	<string>Configuration</string>
-	<key>sidebar.section.general</key>
-	<string>General</string>
+	<key>sidebar.section.enhancements</key>
+	<string>Enhanced Features</string>
+	<key>sidebar.section.more</key>
+	<string>More</string>
+	<key>sidebar.section.whistle</key>
+	<string>Whistle</string>
 	<key>sidebar.toggle_sidebar</key>
 	<string>Hide or Show Sidebar</string>
 	<key>status.a_rule_with_this_name_already_exists</key>

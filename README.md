@@ -160,8 +160,10 @@ extensions stay under `app_*`.
 The HTTP endpoint listens only on `127.0.0.1`. Bearer token authentication is
 enabled by default and can be disabled explicitly in Settings; when disabled,
 the server ignores the `Authorization` header. Sensitive headers are redacted
-and large bodies are truncated by default. See the [MCP guide](docs/mcp.md) for
-transports, access rules, the naming contract, and the complete tool list.
+and large bodies are truncated by default. The same HTTP configuration can be
+used by multiple coding agents concurrently, with an independent MCP session
+for each client. See the [MCP guide](docs/mcp.md) for transports, access rules,
+the naming contract, and the complete tool list.
 
 ## Troubleshooting
 
