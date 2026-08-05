@@ -280,9 +280,9 @@ struct RuleConfigurationView: View {
     var body: some View {
         VStack(spacing: 0) {
             workspaceToolbar
-            Divider()
+            HairlineDivider()
             workspaceSwitcher
-            Divider()
+            HairlineDivider()
             if workspace == .rules {
                 HSplitView {
                     ruleList
@@ -665,7 +665,7 @@ struct RuleConfigurationView: View {
                 .frame(height: 48)
                 .background(Color(nsColor: .controlBackgroundColor).opacity(0.55))
 
-                Divider()
+                HairlineDivider()
 
                 WhistleCodeEditor(
                     text: editorBinding(for: document),
@@ -680,7 +680,7 @@ struct RuleConfigurationView: View {
                 .background(Color(nsColor: .windowBackgroundColor))
                 .clipped()
 
-                Divider()
+                HairlineDivider()
 
                 HStack {
                     Text(document.isDefault
@@ -1318,7 +1318,7 @@ private struct ValuesConfigurationContent: View {
                 .frame(height: 48)
                 .background(Color(nsColor: .controlBackgroundColor).opacity(0.55))
 
-                Divider()
+                HairlineDivider()
 
                 WhistleCodeEditor(
                     text: editorBinding(for: document),
@@ -1333,7 +1333,7 @@ private struct ValuesConfigurationContent: View {
                 .background(Color(nsColor: .windowBackgroundColor))
                 .clipped()
 
-                Divider()
+                HairlineDivider()
 
                 HStack {
                     Text(Localization.string(.valuesReferenceValuesFromRulesWithTheValuesSyntax))

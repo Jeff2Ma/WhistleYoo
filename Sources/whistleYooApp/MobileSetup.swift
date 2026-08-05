@@ -375,13 +375,13 @@ struct MobileSetupView: View {
                 title: Localization.string(.mobileConnectThePhoneToTheSameWiFi),
                 detail: Localization.string(.mobileMakeSureThePhoneAndMacAreOnTheSameLocalNetwork)
             )
-            Divider()
+            HairlineDivider()
             instructionRow(
                 number: 2,
                 title: Localization.string(.mobileSetHttpProxyToManual),
                 detail: Localization.string(.mobileEnterTheProxyServerAndPortShownAbove)
             )
-            Divider()
+            HairlineDivider()
             instructionRow(
                 number: 3,
                 title: Localization.string(.mobileInstallAndTrustTheCertificate),

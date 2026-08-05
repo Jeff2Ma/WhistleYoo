@@ -20,6 +20,16 @@ private struct HairlineRoundedBorderModifier: ViewModifier {
     }
 }
 
+struct HairlineDivider: View {
+    @Environment(\.displayScale) private var displayScale
+
+    var body: some View {
+        Color(nsColor: .separatorColor)
+            .frame(height: 1 / max(displayScale, 1))
+            .accessibilityHidden(true)
+    }
+}
+
 extension View {
     func hairlineRoundedBorder(
         _ color: Color,
@@ -95,7 +105,7 @@ struct StatusPopoverView: View {
                 }
             }
 
-            Divider()
+            HairlineDivider()
 
             HStack(alignment: .center, spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
@@ -162,7 +172,7 @@ struct StatusPopoverView: View {
                 .disabled(state.isTransitioning)
             }
 
-            Divider()
+            HairlineDivider()
 
             HStack {
                 Button(action: openSettings) {
@@ -361,6 +371,7 @@ private struct PopoverButtonStyle: ButtonStyle {
     private struct PopoverButtonBody: View {
         let configuration: Configuration
         let emphasis: Emphasis
+        @Environment(\.displayScale) private var displayScale
         @State private var isHovering = false
 
         var body: some View {
@@ -372,7 +383,10 @@ private struct PopoverButtonStyle: ButtonStyle {
                 .overlay {
                     if isStandard || isOutlined {
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .stroke(borderColor, lineWidth: 1)
+                            .strokeBorder(
+                                borderColor,
+                                lineWidth: 1 / max(displayScale, 1)
+                            )
                     }
                 }
                 .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
@@ -655,7 +669,7 @@ struct MainWorkspaceView: View {
     private var detail: some View {
         VStack(spacing: 0) {
             detailHeader
-            Divider()
+            HairlineDivider()
             mainContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -751,7 +765,7 @@ struct MainWorkspaceView: View {
             }
             .scrollIndicators(.never)
 
-            Divider()
+            HairlineDivider()
 
             sidebarStatusSummary
                 .padding(.horizontal, 8)
@@ -1033,7 +1047,7 @@ struct OnboardingView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-            Divider()
+            HairlineDivider()
             Group {
                 switch step {
                 case .environment: environmentStep
@@ -1043,7 +1057,7 @@ struct OnboardingView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            Divider()
+            HairlineDivider()
             footer
         }
         .frame(width: 620, height: 470)
@@ -1530,7 +1544,7 @@ struct MCPSettingsView: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                     .background(Color.primary.opacity(0.045))
-                Divider()
+                HairlineDivider()
 
                 if events.isEmpty {
                     VStack(spacing: 7) {
@@ -1552,7 +1566,7 @@ struct MCPSettingsView: View {
                             .padding(.horizontal, 12)
                             .padding(.vertical, 9)
                         if index < events.count - 1 {
-                            Divider()
+                            HairlineDivider()
                                 .padding(.leading, 12)
                         }
                     }
@@ -1831,13 +1845,13 @@ struct SettingsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 30) {
                 configurationFileSection
-                Divider()
+                HairlineDivider()
                 generalSection
-                Divider()
+                HairlineDivider()
                 proxySection
-                Divider()
+                HairlineDivider()
                 certificateSection
-                Divider()
+                HairlineDivider()
                 environmentSection
             }
             .padding(30)
@@ -1927,7 +1941,7 @@ struct SettingsView: View {
                 get: { state.showDockIcon },
                 set: { state.setShowDockIcon($0) }
             ))
-            Divider()
+            HairlineDivider()
             Toggle(isOn: Binding(
                 get: { state.settings.softwareDomainWhitelistEnabled },
                 set: { enabled in

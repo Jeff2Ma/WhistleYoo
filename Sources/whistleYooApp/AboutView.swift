@@ -17,9 +17,9 @@ struct AboutView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 30) {
                 header
-                Divider()
+                HairlineDivider()
                 projectSection
-                Divider()
+                HairlineDivider()
                 updateSection
             }
             .padding(30)
@@ -52,14 +52,14 @@ struct AboutView: View {
             GroupBox {
                 VStack(spacing: 0) {
                     informationRow(title: Localization.string(.aboutCurrentVersion), value: displayVersion)
-                    Divider()
+                    HairlineDivider()
                     linkRow(
                         title: Localization.string(.aboutOfficialProject),
                         detail: "github.com/Jeff2Ma/WhistleYoo",
                         symbol: "link",
                         destination: Self.repositoryURL
                     )
-                    Divider()
+                    HairlineDivider()
                     linkRow(
                         title: Localization.string(.aboutContactTheAuthor),
                         detail: Localization.string(.aboutReportAnIssueOrSuggestionInGithubIssues),
