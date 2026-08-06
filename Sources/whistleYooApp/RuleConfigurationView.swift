@@ -223,7 +223,6 @@ struct RuleConfigurationView: View {
     private static let defaultRuleExample = """
     # 初始规则可以让一些日常使用软件在代理下工作
     # command+s to save
-    # Double click to enable/disable rule
 
     # hosts bindings
     # 10.101.73.189  g.alicdn.com

@@ -191,8 +191,12 @@ SHA-256：%@</string>
 	<string>工具</string>
 	<key>mcp.authentication_disabled</key>
 	<string>鉴权已关闭。本机任意进程无需 Token 即可调用 localhost MCP 端点。</string>
+	<key>mcp.basic_settings</key>
+	<string>基础设置</string>
 	<key>mcp.bearer_token_rotated</key>
 	<string>Bearer Token 已更新。</string>
+	<key>mcp.configuration</key>
+	<string>MCP 配置</string>
 	<key>mcp.enable_http_authentication</key>
 	<string>启用 HTTP 鉴权</string>
 	<key>mcp.enable_local_server</key>
@@ -671,6 +675,10 @@ SHA-256：%@</string>
 	<string>重新安装证书…</string>
 	<key>settings.restore_default_location</key>
 	<string>恢复默认路径</string>
+	<key>settings.restore_default_location_confirmation_message</key>
+	<string>配置文件保存位置将切换回默认路径。是否继续？</string>
+	<key>settings.restore_default_location_confirmation_title</key>
+	<string>恢复默认路径？</string>
 	<key>settings.restore_defaults</key>
 	<string>恢复默认</string>
 	<key>settings.root_certificate_not_installed</key>

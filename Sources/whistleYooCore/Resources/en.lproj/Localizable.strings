@@ -191,8 +191,12 @@ SHA-256: %@</string>
 	<string>Tool</string>
 	<key>mcp.authentication_disabled</key>
 	<string>Authentication is disabled. Any process on this Mac can call the localhost MCP endpoint without a token.</string>
+	<key>mcp.basic_settings</key>
+	<string>Basic Settings</string>
 	<key>mcp.bearer_token_rotated</key>
 	<string>Bearer token rotated.</string>
+	<key>mcp.configuration</key>
+	<string>MCP Configuration</string>
 	<key>mcp.enable_http_authentication</key>
 	<string>Enable HTTP authentication</string>
 	<key>mcp.enable_local_server</key>
@@ -671,6 +675,10 @@ SHA-256: %@</string>
 	<string>Reinstall Certificate…</string>
 	<key>settings.restore_default_location</key>
 	<string>Restore Default Location</string>
+	<key>settings.restore_default_location_confirmation_message</key>
+	<string>The configuration file save location will be switched back to the default path. Continue?</string>
+	<key>settings.restore_default_location_confirmation_title</key>
+	<string>Restore Default Location?</string>
 	<key>settings.restore_defaults</key>
 	<string>Restore Defaults</string>
 	<key>settings.root_certificate_not_installed</key>

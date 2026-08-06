@@ -2653,6 +2653,23 @@
       },
       "comment": "中文：鉴权已关闭。本机任意进程无需 Token 即可调用 localhost MCP 端点。"
     },
+    "mcp.basic_settings": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Basic Settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基础设置"
+          }
+        }
+      },
+      "comment": "中文：基础设置"
+    },
     "mcp.bearer_token_rotated": {
       "localizations": {
         "en": {
@@ -2669,6 +2686,23 @@
         }
       },
       "comment": "中文：Bearer Token 已更新。"
+    },
+    "mcp.configuration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MCP Configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MCP 配置"
+          }
+        }
+      },
+      "comment": "中文：MCP 配置"
     },
     "mcp.enable_http_authentication": {
       "localizations": {
@@ -5907,6 +5941,40 @@
         }
       },
       "comment": "中文：恢复默认路径"
+    },
+    "settings.restore_default_location_confirmation_message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The configuration file save location will be switched back to the default path. Continue?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置文件保存位置将切换回默认路径。是否继续？"
+          }
+        }
+      },
+      "comment": "中文：配置文件保存位置将切换回默认路径。是否继续？"
+    },
+    "settings.restore_default_location_confirmation_title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore Default Location?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复默认路径？"
+          }
+        }
+      },
+      "comment": "中文：恢复默认路径？"
     },
     "settings.restore_defaults": {
       "localizations": {

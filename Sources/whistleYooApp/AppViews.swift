@@ -1371,6 +1371,7 @@ struct MCPSettingsView: View {
     @State private var accessMode: MCPAccessMode
     @State private var bearerToken: String?
     @State private var status: String?
+    @State private var configurationStatus: String?
     @State private var isApplying = false
 
     init(state: AppStateController) {
@@ -1399,115 +1400,8 @@ struct MCPSettingsView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                GroupBox {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Toggle(
-                            Localization.string(.mcpEnableLocalServer),
-                            isOn: $mcpEnabled
-                        )
-                        Toggle(
-                            Localization.string(.mcpEnableHttpAuthentication),
-                            isOn: $authenticationEnabled
-                        )
-                        HStack {
-                            Text(Localization.string(.mcpAccess))
-                                .frame(width: 120, alignment: .leading)
-                            Picker(Localization.string(.mcpAccess), selection: $accessMode) {
-                                Text(Localization.string(.mcpReadOnly))
-                                    .tag(MCPAccessMode.readOnly)
-                                Text(Localization.string(.mcpFullAccess))
-                                    .tag(MCPAccessMode.fullAccess)
-                            }
-                            .labelsHidden()
-                            .pickerStyle(.segmented)
-                            .frame(maxWidth: 280)
-                        }
-                        HStack {
-                            Text(Localization.string(.mcpHttpPort))
-                                .frame(width: 120, alignment: .leading)
-                            TextField(Localization.string(.mobilePort), text: $port)
-                                .focused($focusedField, equals: .port)
-                                .textFieldStyle(.roundedBorder)
-                                .frame(width: 130)
-                                .accessibilityLabel(Localization.string(.mcpHttpPort))
-                            Spacer()
-                        }
-
-                        Text(Localization.format(
-                            .mcpHttpEndpointValue,
-                            state.mcpRuntimeState.endpoint?.absoluteString ?? "—"
-                        ))
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                            .textSelection(.enabled)
-                        Text(authenticationEnabled
-                            ? Localization.string(.mcpServerOnlyListensOnLocalhost)
-                            : Localization.string(.mcpAuthenticationDisabled))
-                            .font(.caption)
-                            .foregroundStyle(authenticationEnabled ? Color.secondary : Color.orange)
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text(Localization.string(.mcpHttpConfiguration))
-                                    .font(.headline)
-                                Spacer()
-                                Button(Localization.string(.mobileCopy)) {
-                                    copyHTTPConfiguration()
-                                }
-                                .disabled(state.mcpRuntimeState.endpoint == nil)
-                            }
-                            ScrollView(.horizontal) {
-                                Text(httpConfiguration)
-                                    .font(.system(.caption, design: .monospaced))
-                                    .textSelection(.enabled)
-                                    .fixedSize(horizontal: true, vertical: false)
-                            }
-                            .padding(12)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(
-                                Color(nsColor: .textBackgroundColor),
-                                in: RoundedRectangle(cornerRadius: 7)
-                            )
-                            .hairlineRoundedBorder(
-                                Color.primary.opacity(0.12),
-                                cornerRadius: 7
-                            )
-                        }
-
-                        runtimeStatus
-
-                        if settingsAreDirty {
-                            Label(Localization.string(.rulesUnsaved), systemImage: "circle.fill")
-                                .font(.callout)
-                                .foregroundStyle(.orange)
-                        }
-
-                        if let status {
-                            Label(status, systemImage: "checkmark.circle.fill")
-                                .font(.callout)
-                                .foregroundStyle(.green)
-                        }
-                        HStack {
-                            Button(Localization.string(.mcpRotateToken)) {
-                                isApplying = true
-                                status = nil
-                                Task {
-                                    if await state.rotateMCPToken() {
-                                        bearerToken = try? MCPTokenStore().loadOrCreate()
-                                        status = Localization.string(.mcpBearerTokenRotated)
-                                    }
-                                    isApplying = false
-                                }
-                            }
-                            .disabled(!authenticationEnabled || isApplying)
-                            Spacer()
-                            Button(Localization.string(.rulesApply)) { applySettings() }
-                                .buttonStyle(.borderedProminent)
-                                .disabled(parsedPort == nil || isApplying || !canApplySettings)
-                        }
-                    }
-                    .padding(8)
-                }
+                basicMCPSettings
+                mcpConfigurationSection
 
                 recentMCPActivity
             }
@@ -1527,6 +1421,149 @@ struct MCPSettingsView: View {
         }
         .onChange(of: state.settings.mcp) { _ in
             synchronizeFormWithPersistedSettings()
+        }
+    }
+
+    private var basicMCPSettings: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(
+                Localization.string(.mcpBasicSettings),
+                systemImage: "slider.horizontal.3"
+            )
+            .font(.headline)
+
+            GroupBox {
+                VStack(alignment: .leading, spacing: 12) {
+                    Toggle(
+                        Localization.string(.mcpEnableLocalServer),
+                        isOn: $mcpEnabled
+                    )
+                    Toggle(
+                        Localization.string(.mcpEnableHttpAuthentication),
+                        isOn: $authenticationEnabled
+                    )
+                    HStack {
+                        Text(Localization.string(.mcpAccess))
+                            .frame(width: 120, alignment: .leading)
+                        Picker(Localization.string(.mcpAccess), selection: $accessMode) {
+                            Text(Localization.string(.mcpReadOnly))
+                                .tag(MCPAccessMode.readOnly)
+                            Text(Localization.string(.mcpFullAccess))
+                                .tag(MCPAccessMode.fullAccess)
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.segmented)
+                        .frame(maxWidth: 280)
+                    }
+                    HStack {
+                        Text(Localization.string(.mcpHttpPort))
+                            .frame(width: 120, alignment: .leading)
+                        TextField(Localization.string(.mobilePort), text: $port)
+                            .focused($focusedField, equals: .port)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 130)
+                            .accessibilityLabel(Localization.string(.mcpHttpPort))
+                        Spacer()
+                    }
+
+                    Text(Localization.format(
+                        .mcpHttpEndpointValue,
+                        state.mcpRuntimeState.endpoint?.absoluteString ?? "—"
+                    ))
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                    Text(authenticationEnabled
+                        ? Localization.string(.mcpServerOnlyListensOnLocalhost)
+                        : Localization.string(.mcpAuthenticationDisabled))
+                        .font(.caption)
+                        .foregroundStyle(authenticationEnabled ? Color.secondary : Color.orange)
+
+                    runtimeStatus
+
+                    if settingsAreDirty {
+                        Label(Localization.string(.rulesUnsaved), systemImage: "circle.fill")
+                            .font(.callout)
+                            .foregroundStyle(.orange)
+                    }
+
+                    if let status {
+                        Label(status, systemImage: "checkmark.circle.fill")
+                            .font(.callout)
+                            .foregroundStyle(.green)
+                    }
+                    HStack {
+                        Button(Localization.string(.mcpRotateToken)) {
+                            isApplying = true
+                            status = nil
+                            configurationStatus = nil
+                            Task {
+                                if await state.rotateMCPToken() {
+                                    bearerToken = try? MCPTokenStore().loadOrCreate()
+                                    status = Localization.string(.mcpBearerTokenRotated)
+                                }
+                                isApplying = false
+                            }
+                        }
+                        .disabled(!authenticationEnabled || isApplying)
+                        Spacer()
+                        Button(Localization.string(.rulesApply)) { applySettings() }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(parsedPort == nil || isApplying || !canApplySettings)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(8)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var mcpConfigurationSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(
+                Localization.string(.mcpConfiguration),
+                systemImage: "curlybraces"
+            )
+            .font(.headline)
+
+            GroupBox {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text(Localization.string(.mcpHttpConfiguration))
+                            .font(.subheadline.weight(.medium))
+                        Spacer()
+                        Button(Localization.string(.mobileCopy)) {
+                            copyHTTPConfiguration()
+                        }
+                        .disabled(state.mcpRuntimeState.endpoint == nil)
+                    }
+                    ScrollView(.horizontal) {
+                        Text(httpConfiguration)
+                            .font(.system(.caption, design: .monospaced))
+                            .textSelection(.enabled)
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        Color(nsColor: .textBackgroundColor),
+                        in: RoundedRectangle(cornerRadius: 7)
+                    )
+                    .hairlineRoundedBorder(
+                        Color.primary.opacity(0.12),
+                        cornerRadius: 7
+                    )
+                    if let configurationStatus {
+                        Label(configurationStatus, systemImage: "checkmark.circle.fill")
+                            .font(.callout)
+                            .foregroundStyle(.green)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(8)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -1678,6 +1715,7 @@ struct MCPSettingsView: View {
         guard let port = parsedPort else { return }
         isApplying = true
         status = nil
+        configurationStatus = nil
         Task {
             if await state.updateMCPSettings(
                 enabled: mcpEnabled,
@@ -1705,7 +1743,7 @@ struct MCPSettingsView: View {
 
     private func copyHTTPConfiguration() {
         copyToPasteboard(httpConfiguration)
-        status = Localization.string(.mcpHttpConfigurationCopied)
+        configurationStatus = Localization.string(.mcpHttpConfigurationCopied)
     }
 
     private func copyToPasteboard(_ value: String) {
@@ -1825,6 +1863,7 @@ struct SettingsView: View {
     @State private var isHandlingConfigurationFile = false
     @State private var configurationFileStatus: String?
     @State private var configurationFileStatusIsSuccess = false
+    @State private var isRestoreDefaultLocationConfirmationPresented = false
 
     init(
         state: AppStateController,
@@ -1844,13 +1883,13 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 30) {
-                configurationFileSection
-                HairlineDivider()
                 generalSection
                 HairlineDivider()
                 proxySection
                 HairlineDivider()
                 certificateSection
+                HairlineDivider()
+                configurationFileSection
                 HairlineDivider()
                 environmentSection
             }
@@ -1866,6 +1905,17 @@ struct SettingsView: View {
         .task {
             await state.refreshNetworkServices()
             await state.refreshCertificateStatus()
+        }
+        .alert(
+            Localization.string(.settingsRestoreDefaultLocationConfirmationTitle),
+            isPresented: $isRestoreDefaultLocationConfirmationPresented
+        ) {
+            Button(Localization.string(.rulesCancel), role: .cancel) {}
+            Button(Localization.string(.settingsRestoreDefaultLocation), role: .destructive) {
+                restoreDefaultConfigurationFileLocation()
+            }
+        } message: {
+            Text(Localization.string(.settingsRestoreDefaultLocationConfirmationMessage))
         }
     }
 
@@ -1912,7 +1962,9 @@ struct SettingsView: View {
                         Button(Localization.string(.settingsExportConfiguration), action: exportConfiguration)
                         Button(Localization.string(.settingsChooseCustomSaveLocation), action: chooseConfigurationFileLocation)
                         if state.usesCustomConfigurationFileLocation {
-                            Button(Localization.string(.settingsRestoreDefaultLocation), action: restoreDefaultConfigurationFileLocation)
+                            Button(Localization.string(.settingsRestoreDefaultLocation)) {
+                                isRestoreDefaultLocationConfirmationPresented = true
+                            }
                         }
                         Spacer()
                         if isHandlingConfigurationFile {
@@ -1968,53 +2020,56 @@ struct SettingsView: View {
 
             compatibilityRuntimeStatus
 
-            DisclosureGroup(
-                Localization.format(.settingsEditBuiltInDomainsValue, state.settings.softwareDomainWhitelistDomains.count),
-                isExpanded: $showWhitelistDomains
-            ) {
-                VStack(alignment: .leading, spacing: 8) {
-                    TextEditor(text: $whitelistDomainsText)
-                        .focused($focusedField, equals: .whitelistDomains)
-                        .font(.system(.caption, design: .monospaced))
-                        .frame(minHeight: 150)
-                        .padding(4)
-                        .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 6))
-                        .disabled(isCompatibilityOperationInProgress)
-                    Text(Localization.string(.settingsEnterOneDomainPerLineAndWildcardFormsAreSupportedSavingImmedi))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    HStack {
-                        Button(Localization.string(.settingsRestoreDefaults)) {
-                            whitelistDomainsText = SoftwareDomainWhitelistManager.domains.joined(separator: "\n")
-                        }
-                        .disabled(isCompatibilityOperationInProgress)
-                        Spacer()
-                        if isCompatibilityOperationInProgress {
-                            ProgressView().controlSize(.small)
-                        } else if let whitelistSaveFeedback {
-                            Label(whitelistSaveFeedback, systemImage: "checkmark.circle.fill")
-                                .font(.caption)
-                                .foregroundStyle(.green)
-                        }
-                        Button(Localization.string(.settingsSaveDomains)) {
-                            savingWhitelistDomains = true
-                            whitelistSaveFeedback = nil
-                            let domains = whitelistDomainsText.components(separatedBy: .newlines)
-                            Task {
-                                let saved = await state.updateSoftwareDomainWhitelistDomains(domains)
-                                if saved {
-                                    whitelistDomainsText = state.settings.softwareDomainWhitelistDomains
-                                        .joined(separator: "\n")
-                                    showWhitelistSaveFeedback()
-                                }
-                                savingWhitelistDomains = false
+            GroupBox {
+                DisclosureGroup(
+                    Localization.format(.settingsEditBuiltInDomainsValue, state.settings.softwareDomainWhitelistDomains.count),
+                    isExpanded: $showWhitelistDomains
+                ) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        TextEditor(text: $whitelistDomainsText)
+                            .focused($focusedField, equals: .whitelistDomains)
+                            .font(.system(.caption, design: .monospaced))
+                            .frame(minHeight: 150)
+                            .padding(4)
+                            .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 6))
+                            .disabled(isCompatibilityOperationInProgress)
+                        Text(Localization.string(.settingsEnterOneDomainPerLineAndWildcardFormsAreSupportedSavingImmedi))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        HStack {
+                            Button(Localization.string(.settingsRestoreDefaults)) {
+                                whitelistDomainsText = SoftwareDomainWhitelistManager.domains.joined(separator: "\n")
                             }
+                            .disabled(isCompatibilityOperationInProgress)
+                            Spacer()
+                            if isCompatibilityOperationInProgress {
+                                ProgressView().controlSize(.small)
+                            } else if let whitelistSaveFeedback {
+                                Label(whitelistSaveFeedback, systemImage: "checkmark.circle.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.green)
+                            }
+                            Button(Localization.string(.settingsSaveDomains)) {
+                                savingWhitelistDomains = true
+                                whitelistSaveFeedback = nil
+                                let domains = whitelistDomainsText.components(separatedBy: .newlines)
+                                Task {
+                                    let saved = await state.updateSoftwareDomainWhitelistDomains(domains)
+                                    if saved {
+                                        whitelistDomainsText = state.settings.softwareDomainWhitelistDomains
+                                            .joined(separator: "\n")
+                                        showWhitelistSaveFeedback()
+                                    }
+                                    savingWhitelistDomains = false
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(isCompatibilityOperationInProgress)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(isCompatibilityOperationInProgress)
                     }
+                    .padding(.top, 6)
                 }
-                .padding(.top, 6)
+                .padding(8)
             }
             Text(Localization.string(.settingsWhenTheAppQuitsItRestoresTheSystemProxySettingsChangedByWhis))
                 .font(.callout)
@@ -2184,6 +2239,11 @@ struct SettingsView: View {
                     if case .ready(let info) = state.environmentStatus {
                         pathRow("Node", info.nodeURL.path)
                         pathRow("Whistle", info.whistleURL.path)
+                    } else {
+                        pathRow("Node", "—")
+                            .hidden()
+                        pathRow("Whistle", "—")
+                            .hidden()
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -2456,6 +2516,9 @@ struct SettingsView: View {
                 .frame(width: 60, alignment: .leading)
             Text(value)
                 .font(.system(.caption, design: .monospaced))
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .textSelection(.enabled)
         }
     }
