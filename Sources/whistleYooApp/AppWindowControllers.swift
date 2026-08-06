@@ -7,7 +7,10 @@ import whistleYooCore
 @MainActor
 final class MainWindowController: NSWindowController, NSWindowDelegate {
     private static let defaultContentSize = NSSize(width: 1280, height: 800)
-    private static let minimumWindowSize = NSSize(width: 900, height: 640)
+    private static let minimumWindowSize = NSSize(
+        width: MainWorkspaceLayout.minimumWidth,
+        height: MainWorkspaceLayout.minimumHeight
+    )
     // `.fullSizeContentView` lets the SwiftUI sidebar paint behind the title bar so
     // the window buttons sit inside the sidebar, the way OrbStack and Finder do it.
     private static let windowStyleMask: NSWindow.StyleMask = [

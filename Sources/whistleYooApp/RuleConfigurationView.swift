@@ -253,6 +253,13 @@ enum RulesValuesWorkspace: String, CaseIterable, Identifiable {
     }
 }
 
+private enum RulesValuesLayout {
+    static let listMinimumWidth: CGFloat = 220
+    static let listIdealWidth: CGFloat = 250
+    static let listMaximumWidth: CGFloat = 320
+    static let editorMinimumWidth: CGFloat = 360
+}
+
 struct RuleConfigurationView: View {
     private static let defaultRuleExample = """
     # 初始规则可以让一些日常使用软件在代理下工作
@@ -315,9 +322,13 @@ struct RuleConfigurationView: View {
             if workspace == .rules {
                 HSplitView {
                     ruleList
-                        .frame(minWidth: 230, idealWidth: 255, maxWidth: 320)
+                        .frame(
+                            minWidth: RulesValuesLayout.listMinimumWidth,
+                            idealWidth: RulesValuesLayout.listIdealWidth,
+                            maxWidth: RulesValuesLayout.listMaximumWidth
+                        )
                     editor
-                        .frame(minWidth: 460)
+                        .frame(minWidth: RulesValuesLayout.editorMinimumWidth)
                 }
             } else {
                 ValuesConfigurationContent(
@@ -441,7 +452,8 @@ struct RuleConfigurationView: View {
             }
             .foregroundStyle(isSelected ? Color.accentColor : Color.primary)
             .padding(.horizontal, 11)
-            .frame(width: 210, height: 48)
+            .frame(minWidth: 160, idealWidth: 210, maxWidth: 210)
+            .frame(height: 48)
             .background(
                 isSelected
                     ? Color.accentColor.opacity(0.1)
@@ -729,27 +741,14 @@ struct RuleConfigurationView: View {
 
                 HairlineDivider()
 
-                HStack {
-                    Text(document.isDefault
+                EditorStatusBar(
+                    hint: document.isDefault
                         ? defaultCompatibilityHint
-                        : Localization.string(.rulesEnterOneRulePerLineTheFullWhistleRuleSyntaxIsSupported))
-                    Spacer()
-                    if !filter.isEmpty {
-                        Text(Localization.format(.rulesValueMatches, Int64(editorMatchCount)))
-                        Text("·")
-                    }
-                    Text(Localization.format(.rulesValueLines, Int64(lineCount)))
-                    Text("·")
-                    Text(Localization.format(
-                        .editorLineAndColumn,
-                        Int64(editorPosition.line),
-                        Int64(editorPosition.column)
-                    ))
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 14)
-                .frame(height: 32)
+                        : Localization.string(.rulesEnterOneRulePerLineTheFullWhistleRuleSyntaxIsSupported),
+                    matchCount: filter.isEmpty ? nil : editorMatchCount,
+                    lineCount: lineCount,
+                    position: editorPosition
+                )
             }
         } else {
             VStack(spacing: 12) {
@@ -1070,6 +1069,64 @@ struct RuleConfigurationView: View {
 
 }
 
+private struct EditorStatusBar: View {
+    let hint: String
+    let matchCount: Int?
+    let lineCount: Int
+    let position: WhistleEditorPosition
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 8) {
+                Text(hint)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+                Spacer(minLength: 8)
+                metrics
+            }
+
+            HStack(spacing: 8) {
+                Spacer(minLength: 0)
+                metrics
+            }
+
+            HStack {
+                Spacer(minLength: 0)
+                positionText
+            }
+        }
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 14)
+        .frame(height: 32)
+        .help(hint)
+    }
+
+    private var metrics: some View {
+        HStack(spacing: 6) {
+            if let matchCount {
+                Text(Localization.format(.rulesValueMatches, Int64(matchCount)))
+                Text("·")
+            }
+            Text(Localization.format(.rulesValueLines, Int64(lineCount)))
+            Text("·")
+            positionText
+        }
+        .lineLimit(1)
+        .fixedSize(horizontal: true, vertical: false)
+    }
+
+    private var positionText: some View {
+        Text(Localization.format(
+            .editorLineAndColumn,
+            Int64(position.line),
+            Int64(position.column)
+        ))
+        .lineLimit(1)
+        .fixedSize(horizontal: true, vertical: false)
+    }
+}
+
 private struct ValuesConfigurationContent: View {
     @ObservedObject var state: AppStateController
     @ObservedObject var draft: RuleConfigurationDraft
@@ -1107,9 +1164,13 @@ private struct ValuesConfigurationContent: View {
     var body: some View {
         HSplitView {
             valueList
-                .frame(minWidth: 230, idealWidth: 255, maxWidth: 320)
+                .frame(
+                    minWidth: RulesValuesLayout.listMinimumWidth,
+                    idealWidth: RulesValuesLayout.listIdealWidth,
+                    maxWidth: RulesValuesLayout.listMaximumWidth
+                )
             editor
-                .frame(minWidth: 460)
+                .frame(minWidth: RulesValuesLayout.editorMinimumWidth)
         }
         .alert(Localization.string(.valuesCreateValue), isPresented: $isCreating) {
             TextField(Localization.string(.valuesValueName), text: $createName)
@@ -1396,25 +1457,12 @@ private struct ValuesConfigurationContent: View {
 
                 HairlineDivider()
 
-                HStack {
-                    Text(Localization.string(.valuesReferenceValuesFromRulesWithTheValuesSyntax))
-                    Spacer()
-                    if !filter.isEmpty {
-                        Text(Localization.format(.rulesValueMatches, Int64(editorMatchCount)))
-                        Text("·")
-                    }
-                    Text(Localization.format(.rulesValueLines, Int64(lineCount)))
-                    Text("·")
-                    Text(Localization.format(
-                        .editorLineAndColumn,
-                        Int64(editorPosition.line),
-                        Int64(editorPosition.column)
-                    ))
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 14)
-                .frame(height: 32)
+                EditorStatusBar(
+                    hint: Localization.string(.valuesReferenceValuesFromRulesWithTheValuesSyntax),
+                    matchCount: filter.isEmpty ? nil : editorMatchCount,
+                    lineCount: lineCount,
+                    position: editorPosition
+                )
             }
         } else {
             VStack(spacing: 12) {

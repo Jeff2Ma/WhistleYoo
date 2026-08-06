@@ -473,6 +473,11 @@ enum MainWorkspaceTab: Hashable {
     case about
 }
 
+enum MainWorkspaceLayout {
+    static let minimumWidth: CGFloat = 1000
+    static let minimumHeight: CGFloat = 640
+}
+
 @MainActor
 final class MainWorkspaceSelection: ObservableObject {
     @Published private(set) var selected: MainWorkspaceTab
@@ -622,7 +627,10 @@ struct MainWorkspaceView: View {
 
     var body: some View {
         baseWorkspaceSplitView
-        .frame(minWidth: 900, minHeight: 640)
+        .frame(
+            minWidth: MainWorkspaceLayout.minimumWidth,
+            minHeight: MainWorkspaceLayout.minimumHeight
+        )
         .alert(
             Localization.string(.settingsDiscardUnsavedChanges),
             isPresented: $selection.isDiscardConfirmationPresented
