@@ -114,6 +114,23 @@ final class RuleConfigurationDraft: ObservableObject {
         selectedName = name
     }
 
+    func duplicate(name: String) {
+        guard let target = documents.first(where: { $0.name == name }), !target.isDefault else { return }
+        var index = 1
+        var candidate = "\(name) (副本)"
+        while documents.contains(where: { $0.name == candidate }) {
+            index += 1
+            candidate = "\(name) (副本 \(index))"
+        }
+        let copy = WhistleRuleDocument(name: candidate, value: target.value, isEnabled: true)
+        if let sourceIdx = documents.firstIndex(where: { $0.name == name }) {
+            documents.insert(copy, at: sourceIdx + 1)
+        } else {
+            documents.append(copy)
+        }
+        selectedName = candidate
+    }
+
     func rename(name: String, to newName: String) {
         update(name: name) { document in
             guard !document.isDefault else { return document }
@@ -154,6 +171,23 @@ final class RuleConfigurationDraft: ObservableObject {
     func createValue(name: String) {
         valueDocuments.append(WhistleValueDocument(name: name, value: ""))
         selectedValueName = name
+    }
+
+    func duplicateValue(name: String) {
+        guard let target = valueDocuments.first(where: { $0.name == name }) else { return }
+        var index = 1
+        var candidate = "\(name) (副本)"
+        while valueDocuments.contains(where: { $0.name == candidate }) {
+            index += 1
+            candidate = "\(name) (副本 \(index))"
+        }
+        let copy = WhistleValueDocument(name: candidate, value: target.value)
+        if let sourceIdx = valueDocuments.firstIndex(where: { $0.name == name }) {
+            valueDocuments.insert(copy, at: sourceIdx + 1)
+        } else {
+            valueDocuments.append(copy)
+        }
+        selectedValueName = candidate
     }
 
     func renameValue(name: String, to newName: String) {
@@ -205,7 +239,7 @@ final class RuleConfigurationDraft: ObservableObject {
     }
 }
 
-private enum RulesValuesWorkspace: String, CaseIterable, Identifiable {
+enum RulesValuesWorkspace: String, CaseIterable, Identifiable {
     case rules
     case values
 
@@ -240,16 +274,14 @@ struct RuleConfigurationView: View {
 
     @ObservedObject var state: AppStateController
     @ObservedObject var draft: RuleConfigurationDraft
+    @Binding var workspace: RulesValuesWorkspace
 
-    @State private var workspace = RulesValuesWorkspace.rules
     @State private var filter = ""
     @State private var isCreating = false
     @State private var isDeleting = false
     @State private var isDiscardingForReload = false
     @State private var pendingReloadWorkspace: RulesValuesWorkspace?
     @State private var createName = ""
-    @State private var saveFeedbackWorkspaces: Set<RulesValuesWorkspace> = []
-    @State private var saveFeedbackIDs: [RulesValuesWorkspace: UUID] = [:]
     @State private var editorPosition = WhistleEditorPosition()
 
     private var selectedName: String? {
@@ -278,8 +310,6 @@ struct RuleConfigurationView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            workspaceToolbar
-            HairlineDivider()
             workspaceSwitcher
             HairlineDivider()
             if workspace == .rules {
@@ -354,50 +384,6 @@ struct RuleConfigurationView: View {
         .onReceive(NotificationCenter.default.publisher(for: .refreshRulesWorkspace)) { _ in
             requestReload(workspace)
         }
-    }
-
-    private var workspaceToolbar: some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(Localization.string(.rulesConfiguration))
-                    .font(.title3.weight(.semibold))
-                Text(Localization.string(.rulesCombineAndApplyRuleSetsFromWhistleInListOrder))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            if isDirty {
-                Label(Localization.string(.rulesUnsaved), systemImage: "circle.fill")
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.orange)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.orange.opacity(0.1), in: Capsule())
-            } else if saveFeedbackWorkspaces.contains(workspace) {
-                Label(Localization.string(.rulesSaved), systemImage: "checkmark.circle.fill")
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.green)
-            }
-            Spacer()
-            if currentWorkspaceOperationInProgress {
-                ProgressView()
-                    .controlSize(.small)
-            }
-            Button {
-                requestReload(workspace)
-            } label: { Text(Localization.string(.rulesRefresh)) }
-            .help(workspace == .rules
-                ? Localization.string(.rulesReloadRulesFromWhistle)
-                : Localization.string(.valuesReloadValuesFromWhistle))
-            .disabled(currentWorkspaceOperationInProgress)
-
-            Button(Localization.string(.rulesSave)) { saveCurrentWorkspace() }
-            .buttonStyle(.borderedProminent)
-            .keyboardShortcut("s", modifiers: .command)
-            .disabled(!isDirty || currentWorkspaceOperationInProgress)
-        }
-        .padding(.horizontal, 16)
-        .frame(height: 58)
-        .background(.bar)
     }
 
     private var workspaceSwitcher: some View {
@@ -622,6 +608,55 @@ struct RuleConfigurationView: View {
             isInteractionDisabled: rulesOperationInProgress,
             select: { selectedName = document.name }
         )
+        .contextMenu {
+            if !document.isDefault {
+                Button {
+                    setRuleEnabled(!document.isEnabled, document: document)
+                } label: {
+                    Label(
+                        document.isEnabled ? Localization.string(.rulesNotEnabled) : Localization.string(.rulesEnabled),
+                        systemImage: document.isEnabled ? "power" : "checkmark.circle"
+                    )
+                }
+
+                Button {
+                    draft.duplicate(name: document.name)
+                } label: {
+                    Label(Localization.string(.rulesDuplicateRule), systemImage: "doc.on.doc")
+                }
+
+                Button {
+                    presentRenameAlert(for: document)
+                } label: {
+                    Label(Localization.string(.rulesRenameRule), systemImage: "pencil")
+                }
+
+                Divider()
+
+                Button {
+                    moveSelectedRule(by: -1)
+                } label: {
+                    Label(Localization.string(.rulesMoveUp), systemImage: "arrow.up")
+                }
+                .disabled(!canMoveSelectedRuleUp)
+
+                Button {
+                    moveSelectedRule(by: 1)
+                } label: {
+                    Label(Localization.string(.rulesMoveDown), systemImage: "arrow.down")
+                }
+                .disabled(!canMoveSelectedRuleDown)
+
+                Divider()
+
+                Button(role: .destructive) {
+                    selectedName = document.name
+                    isDeleting = true
+                } label: {
+                    Label(Localization.string(.rulesDeleteRule), systemImage: "trash")
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -648,6 +683,19 @@ struct RuleConfigurationView: View {
                         }
                     }
                     Spacer()
+
+                    if !document.isDefault {
+                        Button {
+                            draft.duplicate(name: document.name)
+                        } label: {
+                            Image(systemName: "doc.on.doc")
+                                .frame(width: 26, height: 26)
+                        }
+                        .buttonStyle(HoverIconButtonStyle())
+                        .help(Localization.string(.rulesDuplicateRule))
+                        .accessibilityLabel(Localization.string(.rulesDuplicateRule))
+                        .disabled(rulesOperationInProgress)
+                    }
 
                     Button(role: .destructive) {
                         isDeleting = true
@@ -840,23 +888,12 @@ struct RuleConfigurationView: View {
         return count
     }
 
-    private var isDirty: Bool {
-        workspace == .rules ? draft.rulesAreDirty : draft.valuesAreDirty
-    }
-
     private var rulesOperationInProgress: Bool {
         state.isLoadingRules || state.isSavingRules
     }
 
     private var valuesOperationInProgress: Bool {
         state.isLoadingValues || state.isSavingValues
-    }
-
-    private var currentWorkspaceOperationInProgress: Bool {
-        switch workspace {
-        case .rules: return rulesOperationInProgress
-        case .values: return valuesOperationInProgress
-        }
     }
 
     private var lineCount: Int {
@@ -942,15 +979,12 @@ struct RuleConfigurationView: View {
         guard draft.rulesAreDirty, !rulesOperationInProgress else { return }
         let updatedRules = draft.snapshot
         let preferredRuleName = selectedName
-        clearSaveFeedback(for: .rules)
-
         Task {
             if await state.saveRulesSnapshot(updatedRules) {
                 draft.replace(
                     with: state.rulesSnapshot,
                     preferredName: preferredRuleName
                 )
-                showSaveFeedback(for: .rules)
             }
         }
     }
@@ -959,15 +993,12 @@ struct RuleConfigurationView: View {
         guard draft.valuesAreDirty, !valuesOperationInProgress else { return }
         let updatedValues = draft.valuesSnapshot
         let preferredValueName = draft.selectedValueName
-        clearSaveFeedback(for: .values)
-
         Task {
             if await state.saveValuesSnapshot(updatedValues) {
                 draft.replaceValues(
                     with: state.valuesSnapshot,
                     preferredName: preferredValueName
                 )
-                showSaveFeedback(for: .values)
             }
         }
     }
@@ -979,7 +1010,6 @@ struct RuleConfigurationView: View {
 
     private func reloadRules() {
         guard !rulesOperationInProgress else { return }
-        clearSaveFeedback(for: .rules)
         Task {
             if await state.loadRules() {
                 draft.replace(with: state.rulesSnapshot, preferredName: selectedName)
@@ -989,7 +1019,6 @@ struct RuleConfigurationView: View {
 
     private func reloadValues() {
         guard !valuesOperationInProgress else { return }
-        clearSaveFeedback(for: .values)
         Task {
             if await state.loadValues() {
                 draft.replaceValues(
@@ -1039,22 +1068,6 @@ struct RuleConfigurationView: View {
         return "Rules \(index)"
     }
 
-    private func clearSaveFeedback(for target: RulesValuesWorkspace) {
-        saveFeedbackWorkspaces.remove(target)
-        saveFeedbackIDs[target] = nil
-    }
-
-    private func showSaveFeedback(for target: RulesValuesWorkspace) {
-        let feedbackID = UUID()
-        saveFeedbackIDs[target] = feedbackID
-        saveFeedbackWorkspaces.insert(target)
-        Task {
-            try? await Task.sleep(for: .seconds(1.5))
-            guard saveFeedbackIDs[target] == feedbackID else { return }
-            saveFeedbackWorkspaces.remove(target)
-            saveFeedbackIDs[target] = nil
-        }
-    }
 }
 
 private struct ValuesConfigurationContent: View {
@@ -1277,6 +1290,44 @@ private struct ValuesConfigurationContent: View {
             isInteractionDisabled: isOperationInProgress,
             select: { selectedName = document.name }
         )
+        .contextMenu {
+            Button {
+                draft.duplicateValue(name: document.name)
+            } label: {
+                Label(Localization.string(.valuesDuplicateValue), systemImage: "doc.on.doc")
+            }
+
+            Button {
+                presentRenameAlert(for: document)
+            } label: {
+                Label(Localization.string(.valuesRenameValue), systemImage: "pencil")
+            }
+
+            Divider()
+
+            Button {
+                moveSelectedValue(by: -1)
+            } label: {
+                Label(Localization.string(.rulesMoveUp), systemImage: "arrow.up")
+            }
+            .disabled(!canMoveSelectedValueUp)
+
+            Button {
+                moveSelectedValue(by: 1)
+            } label: {
+                Label(Localization.string(.rulesMoveDown), systemImage: "arrow.down")
+            }
+            .disabled(!canMoveSelectedValueDown)
+
+            Divider()
+
+            Button(role: .destructive) {
+                selectedName = document.name
+                isDeleting = true
+            } label: {
+                Label(Localization.string(.valuesDeleteValue), systemImage: "trash")
+            }
+        }
     }
 
     @ViewBuilder
@@ -1301,6 +1352,17 @@ private struct ValuesConfigurationContent: View {
                         .disabled(isOperationInProgress)
                     }
                     Spacer()
+
+                    Button {
+                        draft.duplicateValue(name: document.name)
+                    } label: {
+                        Image(systemName: "doc.on.doc")
+                            .frame(width: 26, height: 26)
+                    }
+                    .buttonStyle(HoverIconButtonStyle())
+                    .help(Localization.string(.valuesDuplicateValue))
+                    .accessibilityLabel(Localization.string(.valuesDuplicateValue))
+                    .disabled(isOperationInProgress)
 
                     Button(role: .destructive) {
                         isDeleting = true
@@ -1585,6 +1647,7 @@ private struct RuleListRow: View {
             style: .continuous
         )
         .contentShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+        .opacity(!enabled && !document.isDefault ? 0.65 : 1.0)
         .onHover { isHovering = $0 }
         .animation(.easeOut(duration: 0.1), value: isHovering)
         .animation(.easeOut(duration: 0.1), value: isSelected)

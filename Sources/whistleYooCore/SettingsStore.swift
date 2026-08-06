@@ -163,7 +163,7 @@ public final class SettingsStore: @unchecked Sendable {
 }
 
 /// Portable WhistleYoo configuration containing native preferences plus the
-/// complete Whistle Rules and Values snapshots.
+/// complete Whistle Rules, Values, and plugin-preference snapshots.
 public struct WhistleYooConfigurationFile: Codable, Equatable, Sendable {
     public static let currentFormatVersion = 1
 
@@ -171,17 +171,20 @@ public struct WhistleYooConfigurationFile: Codable, Equatable, Sendable {
     public let settings: PersistedSettings
     public let rules: WhistleRulesSnapshot
     public let values: WhistleValuesSnapshot
+    public let plugins: WhistlePluginsSnapshot?
 
     public init(
         formatVersion: Int = currentFormatVersion,
         settings: PersistedSettings,
         rules: WhistleRulesSnapshot,
-        values: WhistleValuesSnapshot = WhistleValuesSnapshot()
+        values: WhistleValuesSnapshot = WhistleValuesSnapshot(),
+        plugins: WhistlePluginsSnapshot? = nil
     ) {
         self.formatVersion = formatVersion
         self.settings = settings
         self.rules = rules
         self.values = values
+        self.plugins = plugins
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -189,6 +192,7 @@ public struct WhistleYooConfigurationFile: Codable, Equatable, Sendable {
         case settings
         case rules
         case values
+        case plugins
     }
 
     /// Values was added after the initial portable-file release. Treat a
@@ -201,6 +205,9 @@ public struct WhistleYooConfigurationFile: Codable, Equatable, Sendable {
         rules = try container.decode(WhistleRulesSnapshot.self, forKey: .rules)
         values = try container.decodeIfPresent(WhistleValuesSnapshot.self, forKey: .values)
             ?? WhistleValuesSnapshot()
+        // Keep this optional so older files do not unexpectedly change plugin
+        // preferences when first opened by a newer WhistleYoo version.
+        plugins = try container.decodeIfPresent(WhistlePluginsSnapshot.self, forKey: .plugins)
     }
 }
 

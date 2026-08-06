@@ -42,6 +42,28 @@ final class WhistleIntegrationTests: XCTestCase {
             let object = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
             XCTAssertNotNil(object["version"])
 
+            let pluginsManager = WhistlePluginsManager()
+            let originalPlugins = try await pluginsManager.load(baseURL: configuration.uiURL)
+            let toggledPlugins = WhistlePluginsSnapshot(
+                areAllPluginsDisabled: !originalPlugins.areAllPluginsDisabled,
+                plugins: originalPlugins.plugins
+            )
+            try await pluginsManager.applyChanges(
+                from: originalPlugins,
+                to: toggledPlugins,
+                baseURL: configuration.uiURL
+            )
+            let appliedPlugins = try await pluginsManager.load(baseURL: configuration.uiURL)
+            XCTAssertEqual(
+                appliedPlugins.areAllPluginsDisabled,
+                toggledPlugins.areAllPluginsDisabled
+            )
+            try await pluginsManager.applyChanges(
+                from: appliedPlugins,
+                to: originalPlugins,
+                baseURL: configuration.uiURL
+            )
+
             let whitelistManager = SoftwareDomainWhitelistManager()
             try await whitelistManager.sync(baseURL: configuration.uiURL, enabled: true)
             let rulesURL = configuration.uiURL.appendingPathComponent("cgi-bin/rules/list")

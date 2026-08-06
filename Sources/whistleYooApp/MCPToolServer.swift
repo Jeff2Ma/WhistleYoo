@@ -245,21 +245,27 @@ final class MCPToolBackend {
             return try await client.pluginsGetStatus()
         case "plugins_turn_off":
             try await client.pluginsTurnOff()
+            _ = await state.loadPlugins()
             return success()
         case "plugins_turn_on":
             try await client.pluginsTurnOn()
+            _ = await state.loadPlugins()
             return success()
         case "plugins_get_list":
             return try await client.pluginsGetList()
         case "plugins_get":
             return try await client.pluginsGet(try string("name", arguments))
         case "plugins_select":
+            let exists = try await client.pluginsSelect(try string("name", arguments))
+            _ = await state.loadPlugins()
             return .object([
-                "exists": .bool(try await client.pluginsSelect(try string("name", arguments)))
+                "exists": .bool(exists)
             ])
         case "plugins_unselect":
+            let exists = try await client.pluginsUnselect(try string("name", arguments))
+            _ = await state.loadPlugins()
             return .object([
-                "exists": .bool(try await client.pluginsUnselect(try string("name", arguments)))
+                "exists": .bool(exists)
             ])
         default:
             throw MCPError.methodNotFound(name)

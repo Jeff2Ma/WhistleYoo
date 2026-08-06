@@ -281,6 +281,10 @@ SHA-256: %@</string>
 	<string>Window</string>
 	<key>menu.zoom</key>
 	<string>Zoom</string>
+	<key>mobile.android_setup</key>
+	<string>Android Setup</string>
+	<key>mobile.click_to_enlarge_qr</key>
+	<string>Click QR code to enlarge</string>
 	<key>mobile.connect_the_phone_to_the_same_wi_fi</key>
 	<string>Connect the phone to the same Wi-Fi</string>
 	<key>mobile.copied</key>
@@ -295,6 +299,8 @@ SHA-256: %@</string>
 	<string>Current Network</string>
 	<key>mobile.enter_the_proxy_server_and_port_shown_above</key>
 	<string>Enter the proxy server and port shown above</string>
+	<key>mobile.export_certificate_file</key>
+	<string>Export Root Certificate (.crt)</string>
 	<key>mobile.failed_to_start</key>
 	<string>Failed to Start</string>
 	<key>mobile.failed_to_start_the_proxy_engine</key>
@@ -305,6 +311,8 @@ SHA-256: %@</string>
 	<string>Install and trust the certificate</string>
 	<key>mobile.install_https_root_certificate</key>
 	<string>Install HTTPS Root Certificate</string>
+	<key>mobile.ios_setup</key>
+	<string>iOS Setup</string>
 	<key>mobile.local_network</key>
 	<string>Local Network</string>
 	<key>mobile.make_sure_the_phone_and_mac_are_on_the_same_local_network</key>
@@ -345,6 +353,8 @@ SHA-256: %@</string>
 	<string>Server</string>
 	<key>mobile.set_http_proxy_to_manual</key>
 	<string>Set HTTP Proxy to Manual</string>
+	<key>mobile.share_certificate</key>
+	<string>Share / AirDrop Certificate</string>
 	<key>mobile.start_engine_and_prepare_setup</key>
 	<string>Start Engine and Prepare Setup</string>
 	<key>mobile.start_proxy_engine</key>
@@ -501,6 +511,8 @@ SHA-256: %@</string>
 	<string>Done</string>
 	<key>rules.drag_to_change_the_effective_order</key>
 	<string>Drag to change the effective order</string>
+	<key>rules.duplicate_rule</key>
+	<string>Duplicate Rule</string>
 	<key>rules.edit</key>
 	<string>Edit</string>
 	<key>rules.enable_rule_set_value</key>
@@ -847,6 +859,8 @@ SHA-256: %@</string>
 	<string>Create Value</string>
 	<key>values.delete_value</key>
 	<string>Delete Value</string>
+	<key>values.duplicate_value</key>
+	<string>Duplicate Value File</string>
 	<key>values.edit_the_new_value_on_the_right_then_save_your_changes</key>
 	<string>Edit the new Value on the right, then save your changes.</string>
 	<key>values.no_matching_values</key>

@@ -199,72 +199,100 @@ final class MobileSetupViewModel: ObservableObject {
 }
 
 struct MobileSetupView: View {
+    enum SetupPlatform: String, CaseIterable, Identifiable {
+        case ios = "iOS"
+        case android = "Android"
+        var id: Self { self }
+
+        var icon: String {
+            switch self {
+            case .ios: return "apple.logo"
+            case .android: return "phone.fill"
+            }
+        }
+    }
+
     @ObservedObject var model: MobileSetupViewModel
     let isActive: Bool
     @State private var copiedValue: String?
+    @State private var selectedPlatform: SetupPlatform = .ios
+    @State private var isShowingEnlargedQR = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            HStack(spacing: 12) {
-                Image(systemName: "iphone.and.arrow.forward")
-                    .font(.system(size: 24))
-                    .foregroundStyle(.blue)
-                    .frame(width: 42, height: 42)
-                    .background(.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(Localization.string(.mobileMobileProxySetup))
-                        .font(.title2.weight(.semibold))
-                    Text(Localization.string(.mobileTheMobileDeviceAndMacMustBeOnTheSameLocalNetwork))
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-            }
-
-            if model.hasCachedConfiguration {
-                configurationContent
-            } else if let error = model.errorMessage, !model.isLoading {
-                Spacer()
-                VStack(spacing: 14) {
-                    Label(error, systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.red)
-                        .multilineTextAlignment(.center)
-                    Button(Localization.string(.mobileRetry)) { Task { await model.prepare() } }
-                }
-                .frame(maxWidth: .infinity)
-                Spacer()
-            } else if !model.engineReady && !model.isLoading {
-                Spacer()
-                VStack(spacing: 14) {
-                    Image(systemName: "network.slash")
-                        .font(.system(size: 38))
-                        .foregroundStyle(.secondary)
-                    Text(Localization.string(.mobileProxyEngineRequired))
-                        .font(.title3.weight(.semibold))
-                    Text(Localization.string(.mobileStartTheEngineToPrepareTheMobileProxyAddressAndHttpsRootCert))
-                        .foregroundStyle(.secondary)
-                    Button(Localization.string(.mobileStartEngineAndPrepareSetup)) {
-                        Task { await model.startAndPrepare() }
+        GeometryReader { geometry in
+            ScrollView(.vertical) {
+                VStack(alignment: .leading, spacing: 22) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "iphone.and.arrow.forward")
+                            .font(.system(size: 24))
+                            .foregroundStyle(.blue)
+                            .frame(width: 42, height: 42)
+                            .background(.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(Localization.string(.mobileMobileProxySetup))
+                                .font(.title2.weight(.semibold))
+                            Text(Localization.string(.mobileTheMobileDeviceAndMacMustBeOnTheSameLocalNetwork))
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
+
+                    if model.hasCachedConfiguration {
+                        configurationContent
+                    } else if let error = model.errorMessage, !model.isLoading {
+                        Spacer()
+                        VStack(spacing: 14) {
+                            Label(error, systemImage: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.red)
+                                .multilineTextAlignment(.center)
+                            Button(Localization.string(.mobileRetry)) { Task { await model.prepare() } }
+                        }
+                        .frame(maxWidth: .infinity)
+                        Spacer()
+                    } else if !model.engineReady && !model.isLoading {
+                        Spacer()
+                        VStack(spacing: 14) {
+                            Image(systemName: "network.slash")
+                                .font(.system(size: 38))
+                                .foregroundStyle(.secondary)
+                            Text(Localization.string(.mobileProxyEngineRequired))
+                                .font(.title3.weight(.semibold))
+                            Text(Localization.string(.mobileStartTheEngineToPrepareTheMobileProxyAddressAndHttpsRootCert))
+                                .foregroundStyle(.secondary)
+                            Button(Localization.string(.mobileStartEngineAndPrepareSetup)) {
+                                Task { await model.startAndPrepare() }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                        }
+                        .frame(maxWidth: .infinity)
+                        Spacer()
+                    } else if model.isLoading {
+                        Spacer()
+                        ProgressView(Localization.string(.mobilePreparingMobileProxySetup))
+                            .frame(maxWidth: .infinity)
+                        Spacer()
+                    }
                 }
-                .frame(maxWidth: .infinity)
-                Spacer()
-            } else if model.isLoading {
-                Spacer()
-                ProgressView(Localization.string(.mobilePreparingMobileProxySetup))
-                    .frame(maxWidth: .infinity)
-                Spacer()
+                .frame(
+                    minHeight: max(0, geometry.size.height - 64),
+                    alignment: .top
+                )
+                .padding(32)
+                .frame(maxWidth: 820, alignment: .top)
+                .frame(maxWidth: .infinity, alignment: .top)
             }
+            .scrollIndicators(.automatic)
         }
-        .padding(32)
-        .frame(maxWidth: 820, maxHeight: .infinity, alignment: .top)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .task {
             if isActive { await model.prepare() }
         }
         .onDisappear {
             model.stop()
+        }
+        .sheet(isPresented: $isShowingEnlargedQR) {
+            enlargedQRModal
         }
     }
 
@@ -348,17 +376,46 @@ struct MobileSetupView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             if let image = model.qrImage {
-                Image(nsImage: image)
-                    .interpolation(.none)
-                    .resizable()
-                    .frame(width: 190, height: 190)
-                    .padding(10)
-                    .background(Color.white, in: RoundedRectangle(cornerRadius: 8))
-                    .hairlineRoundedBorder(Color(nsColor: .separatorColor).opacity(0.55), cornerRadius: 8)
+                Button {
+                    isShowingEnlargedQR = true
+                } label: {
+                    ZStack(alignment: .bottomTrailing) {
+                        Image(nsImage: image)
+                            .interpolation(.none)
+                            .resizable()
+                            .frame(width: 190, height: 190)
+                            .padding(10)
+                            .background(Color.white, in: RoundedRectangle(cornerRadius: 8))
+                            .hairlineRoundedBorder(Color(nsColor: .separatorColor).opacity(0.55), cornerRadius: 8)
+
+                        Label(Localization.string(.mobileClickToEnlargeQr), systemImage: "arrow.up.left.and.arrow.down.right")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 4)
+                            .background(Color.black.opacity(0.68), in: Capsule())
+                            .padding(8)
+                    }
+                }
+                .buttonStyle(.plain)
+                .help(Localization.string(.mobileClickToEnlargeQr))
             }
 
             if let url = model.certificateURL {
-                copyButton(title: Localization.string(.mobileCopyCertificateUrl), value: url.absoluteString)
+                VStack(spacing: 8) {
+                    copyButton(title: Localization.string(.mobileCopyCertificateUrl), value: url.absoluteString)
+
+                    Button {
+                        shareCertificateFile(url: url)
+                    } label: {
+                        Label(Localization.string(.mobileShareCertificate), systemImage: "square.and.arrow.up")
+                            .frame(maxWidth: .infinity)
+                            .frame(minHeight: 26)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .help(Localization.string(.mobileShareCertificate))
+                }
             }
         }
         .padding(20)
@@ -368,8 +425,19 @@ struct MobileSetupView: View {
 
     private var setupInstructions: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Label(Localization.string(.mobileMobileSetupSteps), systemImage: "list.number")
-                .font(.headline)
+            HStack {
+                Label(Localization.string(.mobileMobileSetupSteps), systemImage: "list.number")
+                    .font(.headline)
+                Spacer()
+                Picker("", selection: $selectedPlatform) {
+                    ForEach(SetupPlatform.allCases) { platform in
+                        Text(platform.rawValue).tag(platform)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .fixedSize()
+            }
+
             instructionRow(
                 number: 1,
                 title: Localization.string(.mobileConnectThePhoneToTheSameWiFi),
@@ -382,28 +450,101 @@ struct MobileSetupView: View {
                 detail: Localization.string(.mobileEnterTheProxyServerAndPortShownAbove)
             )
             HairlineDivider()
-            instructionRow(
-                number: 3,
-                title: Localization.string(.mobileInstallAndTrustTheCertificate),
-                detail: Localization.string(.mobileScanTheQrCodeOnTheRightThenEnableTrustInSystemSettings)
-            )
+
+            if selectedPlatform == .ios {
+                instructionRow(
+                    number: 3,
+                    title: Localization.string(.mobileInstallAndTrustTheCertificate),
+                    detail: "1. 扫码在 Safari 下载描述文件并安装\n2. 前往系统设置 -> 通用 -> 关于本机 -> 证书信任设置 -> 开启全信任"
+                )
+            } else {
+                instructionRow(
+                    number: 3,
+                    title: Localization.string(.mobileInstallAndTrustTheCertificate),
+                    detail: "1. 扫码或在手机浏览器中打开 URL 下载 CA 根证书文件\n2. 前往系统设置 -> 安全 -> 加密与凭据 -> 安装 CA 证书"
+                )
+            }
         }
         .padding(20)
         .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
         .hairlineRoundedBorder(Color(nsColor: .separatorColor).opacity(0.45), cornerRadius: 12)
     }
 
-    private func informationBlock(title: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Text(value)
-                .font(.system(.body, design: .monospaced).weight(.semibold))
-                .textSelection(.enabled)
+    private var enlargedQRModal: some View {
+        VStack(spacing: 20) {
+            HStack {
+                Text(Localization.string(.mobileInstallHttpsRootCertificate))
+                    .font(.title3.weight(.bold))
+                Spacer()
+                Button {
+                    isShowingEnlargedQR = false
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+
+            if let image = model.qrImage {
+                Image(nsImage: image)
+                    .interpolation(.none)
+                    .resizable()
+                    .frame(width: 320, height: 320)
+                    .padding(14)
+                    .background(Color.white, in: RoundedRectangle(cornerRadius: 12))
+                    .hairlineRoundedBorder(Color.primary.opacity(0.12), cornerRadius: 12)
+            }
+
+            if let url = model.certificateURL {
+                Text(url.absoluteString)
+                    .font(.system(.callout, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .textSelection(.enabled)
+
+                HStack(spacing: 12) {
+                    copyButton(title: Localization.string(.mobileCopyCertificateUrl), value: url.absoluteString)
+                    Button {
+                        isShowingEnlargedQR = false
+                    } label: {
+                        Text(Localization.string(.rulesDone))
+                            .frame(minWidth: 80)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                }
+            }
         }
-        .padding(12)
-        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 9))
+        .padding(24)
+        .frame(width: 420)
+        .background(Color(nsColor: .windowBackgroundColor))
+    }
+
+    private func informationBlock(title: String, value: String) -> some View {
+        Button {
+            copy(value)
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(title)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(value)
+                        .font(.system(.body, design: .monospaced).weight(.semibold))
+                        .foregroundStyle(.primary)
+                }
+                Spacer(minLength: 4)
+                Image(systemName: copiedValue == value ? "checkmark" : "doc.on.doc")
+                    .font(.system(size: 12))
+                    .foregroundStyle(copiedValue == value ? Color.green : Color.secondary)
+            }
+            .padding(12)
+            .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 9))
+            .contentShape(RoundedRectangle(cornerRadius: 9))
+        }
+        .buttonStyle(.plain)
+        .help(Localization.string(.mobileCopy))
     }
 
     private func instructionRow(
@@ -423,6 +564,7 @@ struct MobileSetupView: View {
                 Text(detail)
                     .font(.callout)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -446,6 +588,23 @@ struct MobileSetupView: View {
         var suffix = endpoint.isDefaultRoute ? Localization.string(.mobileRecommendedSuffix) : ""
         if endpoint.isVirtual { suffix += Localization.string(.mobileVirtual) }
         return "\(endpoint.displayName) · \(endpoint.address)\(suffix)"
+    }
+
+    private func shareCertificateFile(url: URL) {
+        Task {
+            let tempDir = FileManager.default.temporaryDirectory
+            let certFile = tempDir.appendingPathComponent("whistle_rootCA.crt")
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                try data.write(to: certFile, options: .atomic)
+                let picker = NSSharingServicePicker(items: [certFile])
+                if let window = NSApp.keyWindow {
+                    picker.show(relativeTo: .zero, of: window.contentView ?? NSView(), preferredEdge: .minY)
+                }
+            } catch {
+                copy(url.absoluteString)
+            }
+        }
     }
 
     private func copy(_ value: String) {

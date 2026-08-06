@@ -542,6 +542,7 @@ struct MainWorkspaceView: View {
     @ObservedObject var rulesDraft: RuleConfigurationDraft
     let exportCertificate: () -> Void
     let runOnboarding: () -> Void
+    @State private var rulesWorkspace = RulesValuesWorkspace.rules
 
     private struct SidebarItem: Identifiable {
         let tab: MainWorkspaceTab
@@ -661,6 +662,11 @@ struct MainWorkspaceView: View {
                 .frame(height: Self.topBarHeight)
                 .allowsHitTesting(false)
         }
+        .overlay(alignment: .topTrailing) {
+            detailHeaderActions
+                .padding(.trailing, 12)
+                .frame(height: Self.topBarHeight)
+        }
         // Apply the title-bar safe-area behavior to the overlay as well. If this
         // precedes the overlay, the title is laid out below the custom top bar.
         .ignoresSafeArea(.container, edges: .top)
@@ -680,11 +686,7 @@ struct MainWorkspaceView: View {
     }
 
     private var detailHeader: some View {
-        HStack(spacing: 6) {
-            Spacer(minLength: 8)
-            detailHeaderActions
-        }
-        .padding(.trailing, 12)
+        Color.clear
         .frame(height: Self.topBarHeight)
         .frame(maxWidth: .infinity)
         .background(WindowDragHandle())
@@ -708,19 +710,71 @@ struct MainWorkspaceView: View {
 
     @ViewBuilder
     private var detailHeaderActions: some View {
-        if let workspace = selectedWebWorkspace, state.isEngineRunning, let url = state.uiURL {
-            detailHeaderButton(
-                symbol: "arrow.clockwise",
-                help: Localization.string(.consoleReload)
-            ) {
-                consoleSession.reload()
+        switch selection.selected {
+        case .console, .plugins:
+            if let workspace = selectedWebWorkspace, state.isEngineRunning, let url = state.uiURL {
+                HStack(spacing: 6) {
+                    detailHeaderButton(
+                        symbol: "arrow.clockwise",
+                        help: Localization.string(.consoleReload)
+                    ) {
+                        consoleSession.reload()
+                    }
+                    detailHeaderButton(
+                        symbol: "safari",
+                        help: Localization.string(.consoleOpenInBrowser)
+                    ) {
+                        NSWorkspace.shared.open(consoleSession.pageURL(for: url, workspace: workspace))
+                    }
+                }
+                .fixedSize()
             }
-            detailHeaderButton(
-                symbol: "safari",
-                help: Localization.string(.consoleOpenInBrowser)
-            ) {
-                NSWorkspace.shared.open(consoleSession.pageURL(for: url, workspace: workspace))
+        case .rules:
+            rulesHeaderActions
+        case .mobile, .mcp, .settings, .about:
+            EmptyView()
+        }
+    }
+
+    private var rulesHeaderActions: some View {
+        HStack(spacing: 6) {
+            if rulesWorkspaceOperationInProgress {
+                ProgressView()
+                    .controlSize(.small)
+                    .padding(.trailing, 2)
             }
+            Button(Localization.string(.rulesRefresh)) {
+                NotificationCenter.default.post(name: .refreshRulesWorkspace, object: nil)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help(rulesWorkspace == .rules
+                ? Localization.string(.rulesReloadRulesFromWhistle)
+                : Localization.string(.valuesReloadValuesFromWhistle))
+            .disabled(rulesWorkspaceOperationInProgress)
+
+            Button(Localization.string(.rulesSave)) {
+                NotificationCenter.default.post(name: .saveRulesWorkspace, object: nil)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+            .keyboardShortcut("s", modifiers: .command)
+            .disabled(!rulesWorkspaceIsDirty || rulesWorkspaceOperationInProgress)
+        }
+        .fixedSize()
+    }
+
+    private var rulesWorkspaceIsDirty: Bool {
+        switch rulesWorkspace {
+        case .rules: return rulesDraft.rulesAreDirty
+        case .values: return rulesDraft.valuesAreDirty
+        }
+    }
+
+    private var rulesWorkspaceOperationInProgress: Bool {
+        switch rulesWorkspace {
+        case .rules: return state.isLoadingRules || state.isSavingRules
+        case .values: return state.isLoadingValues || state.isSavingValues
         }
     }
 
@@ -842,7 +896,11 @@ struct MainWorkspaceView: View {
         case .mobile:
             MobileSetupView(model: mobileModel, isActive: true)
         case .rules:
-            RuleConfigurationView(state: state, draft: rulesDraft)
+            RuleConfigurationView(
+                state: state,
+                draft: rulesDraft,
+                workspace: $rulesWorkspace
+            )
         case .mcp:
             MCPSettingsView(state: state)
         case .settings:
