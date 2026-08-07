@@ -6,6 +6,15 @@
         <description>WhistleYoo release updates</description>
         <language>zh-CN</language>
         <item>
+            <title>0.7.0</title>
+            <pubDate>Fri, 07 Aug 2026 08:29:41 +0000</pubDate>
+            <link>https://github.com/Jeff2Ma/WhistleYoo</link>
+            <sparkle:version>7000</sparkle:version>
+            <sparkle:shortVersionString>0.7.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/Jeff2Ma/WhistleYoo/releases/download/v0.7.0/WhistleYoo-0.7.0.dmg" length="25136086" type="application/octet-stream" sparkle:edSignature="mNjwd4xG8POs7RtzQZIp0owPrnSL0K8j7/A9L3yF5HRNBuEMInyHVatOmrfIQ5qcAGzF0xG0ycV+l7/B9PuPAQ=="/>
+        </item>
+        <item>
             <title>0.6.1</title>
             <pubDate>Fri, 31 Jul 2026 15:20:29 +0000</pubDate>
             <link>https://github.com/Jeff2Ma/WhistleYoo</link>
