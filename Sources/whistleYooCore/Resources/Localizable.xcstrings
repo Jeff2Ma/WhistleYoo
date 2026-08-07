@@ -1310,22 +1310,22 @@
       },
       "comment": "中文：Whistle 保存白名单规则失败"
     },
-    "core.whistle_is_too_old_version_2_9_0_or_later_is_required_detected_value": {
+    "core.whistle_is_too_old_version_2_10_7_or_later_is_required_detected_value": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Whistle is too old. Version 2.9.0 or later is required (detected: %@)."
+            "value": "Whistle is too old. Version 2.10.7 or later is required (detected: %@)."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Whistle 版本过低，需要 2.9.0 或更高版本（检测结果：%@）"
+            "value": "Whistle 版本过低，需要 2.10.7 或更高版本（检测结果：%@）"
           }
         }
       },
-      "comment": "中文：Whistle 版本过低，需要 2.9.0 或更高版本（检测结果：%@）"
+      "comment": "中文：Whistle 版本过低，需要 2.10.7 或更高版本（检测结果：%@）"
     },
     "core.whistle_repeatedly_exited_unexpectedly_automatic_restart_has_stopped": {
       "localizations": {

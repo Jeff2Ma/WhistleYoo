@@ -7,7 +7,7 @@
 - macOS 13 或更高版本；
 - Xcode 16；
 - Node.js 18 或更高版本；
-- 全局安装的 Whistle 2.9 或更高版本；
+- 全局安装的 Whistle 2.10.7 或更高版本；
 - 发布更新时需要项目对应的 Sparkle EdDSA 私钥；
 - Developer ID 签名和 Apple 公证尚未接入自动发布流程。
 

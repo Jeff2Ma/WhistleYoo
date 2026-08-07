@@ -26,7 +26,7 @@ final class WhistleEngineControllerTests: XCTestCase {
             npmURL: nil,
             whistleURL: URL(fileURLWithPath: "/usr/local/bin/w2"),
             nodeVersion: SemanticVersion(22, 0, 0),
-            whistleVersion: SemanticVersion(2, 10, 1)
+            whistleVersion: SemanticVersion(2, 10, 7)
         )
         let configuration = EngineConfiguration(
             baseDirectory: root.appendingPathComponent("data"),
@@ -51,7 +51,7 @@ final class WhistleEngineControllerTests: XCTestCase {
 
         try await controller.start()
 
-        XCTAssertEqual(controller.state, .running(version: "2.10.1"))
+        XCTAssertEqual(controller.state, .running(version: "2.10.7"))
         let start = runner.invocations.first { $0.arguments.contains("start") }
         XCTAssertNotNil(start)
         XCTAssertTrue(start!.arguments.contains("0.0.0.0"))
@@ -76,7 +76,7 @@ final class WhistleEngineControllerTests: XCTestCase {
         let environment = EnvironmentInfo(
             nodeURL: URL(fileURLWithPath: "/node"), npmURL: nil,
             whistleURL: URL(fileURLWithPath: "/w2"),
-            nodeVersion: SemanticVersion(22, 0, 0), whistleVersion: SemanticVersion(2, 10, 1)
+            nodeVersion: SemanticVersion(22, 0, 0), whistleVersion: SemanticVersion(2, 10, 7)
         )
         let runner = RecordingProcessRunner { _, _, _ in
             CommandResult(exitCode: 0, standardOutput: "not running", standardError: "")
@@ -107,7 +107,7 @@ final class WhistleEngineControllerTests: XCTestCase {
         let environment = EnvironmentInfo(
             nodeURL: URL(fileURLWithPath: "/node"), npmURL: nil,
             whistleURL: URL(fileURLWithPath: "/w2"),
-            nodeVersion: SemanticVersion(22, 0, 0), whistleVersion: SemanticVersion(2, 10, 1)
+            nodeVersion: SemanticVersion(22, 0, 0), whistleVersion: SemanticVersion(2, 10, 7)
         )
         let runner = RecordingProcessRunner { _, arguments, _ in
             if arguments.first == "stop" { Thread.sleep(forTimeInterval: 0.1) }

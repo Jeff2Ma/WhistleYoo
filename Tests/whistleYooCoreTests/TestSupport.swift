@@ -45,7 +45,7 @@ final class FakeHealthChecker: EngineHealthChecking, @unchecked Sendable {
     func check(baseURL: URL) async -> EngineHealth? { health }
 
     func waitUntilReady(baseURL: URL, timeout: TimeInterval) async -> EngineHealth? {
-        health = EngineHealth(version: "2.10.1", port: 8899)
+        health = EngineHealth(version: "2.10.7", port: 8899)
         return health
     }
 

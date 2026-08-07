@@ -159,8 +159,8 @@ SHA-256：%@</string>
 	<string>Whistle 未能在超时时间内停止</string>
 	<key>core.whistle_failed_to_save_the_allowlist_rules</key>
 	<string>Whistle 保存白名单规则失败</string>
-	<key>core.whistle_is_too_old_version_2_9_0_or_later_is_required_detected_value</key>
-	<string>Whistle 版本过低，需要 2.9.0 或更高版本（检测结果：%@）</string>
+	<key>core.whistle_is_too_old_version_2_10_7_or_later_is_required_detected_value</key>
+	<string>Whistle 版本过低，需要 2.10.7 或更高版本（检测结果：%@）</string>
 	<key>core.whistle_repeatedly_exited_unexpectedly_automatic_restart_has_stopped</key>
 	<string>Whistle 连续异常退出，已停止自动重启</string>
 	<key>core.wi_fi_http_proxy</key>

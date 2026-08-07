@@ -44,7 +44,7 @@ WhistleYoo 是面向 [Whistle](https://github.com/avwo/whistle) 用户的开源 
 | --- | --- |
 | macOS | 13 Ventura 或更高版本 |
 | Node.js | 18 或更高版本 |
-| Whistle | 2.9 或更高版本，需全局安装 |
+| Whistle | 2.10.7 或更高版本，需全局安装 |
 
 MCP 集成使用 Whistle 官方 Local Agent API，因此需要 Whistle 2.10.7 或更高版本。
 
