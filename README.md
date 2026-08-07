@@ -44,7 +44,7 @@ WhistleYoo requires:
 | --- | --- |
 | macOS | 13 Ventura or later |
 | Node.js | 18 or later |
-| Whistle | 2.9 or later, installed globally |
+| Whistle | 2.10.7 or later, installed globally |
 
 MCP integration uses Whistle's official Local Agent API and therefore requires
 Whistle 2.10.7 or later.

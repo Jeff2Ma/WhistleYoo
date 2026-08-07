@@ -16,7 +16,7 @@ final class EnvironmentDetectorTests: XCTestCase {
             if arguments == ["--version"] {
                 return CommandResult(exitCode: 0, standardOutput: "v22.12.0\n", standardError: "")
             }
-            return CommandResult(exitCode: 0, standardOutput: "2.10.1\n", standardError: "")
+            return CommandResult(exitCode: 0, standardOutput: "2.10.7\n", standardError: "")
         }
         let detector = EnvironmentDetector(
             runner: runner,
@@ -30,7 +30,7 @@ final class EnvironmentDetectorTests: XCTestCase {
         XCTAssertEqual(result.npmURL?.lastPathComponent, "npm")
         XCTAssertEqual(result.whistleURL.lastPathComponent, "w2")
         XCTAssertEqual(result.nodeVersion, SemanticVersion(22, 12, 0))
-        XCTAssertEqual(result.whistleVersion, SemanticVersion(2, 10, 1))
+        XCTAssertEqual(result.whistleVersion, SemanticVersion(2, 10, 7))
     }
 
     func testRejectsOldNode() throws {
@@ -57,6 +57,35 @@ final class EnvironmentDetectorTests: XCTestCase {
                 )
             }
             XCTAssertTrue(supportedMessages.contains(message))
+        }
+    }
+
+    func testRejectsWhistleOlderThanPluginsAPIRequirement() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        for name in ["node", "w2"] {
+            let url = directory.appendingPathComponent(name)
+            try Data().write(to: url)
+            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: url.path)
+        }
+        let runner = RecordingProcessRunner { executableURL, _, _ in
+            let version = executableURL.lastPathComponent == "node" ? "v22.12.0" : "2.10.6"
+            return CommandResult(exitCode: 0, standardOutput: version, standardError: "")
+        }
+        let detector = EnvironmentDetector(
+            runner: runner,
+            environment: ["PATH": directory.path],
+            homeDirectory: directory
+        )
+
+        XCTAssertThrowsError(try detector.detect()) { error in
+            guard case .unsupportedVersion(let message) = error as? WhistleYooError else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+            XCTAssertTrue(message.contains("2.10.7"))
+            XCTAssertTrue(message.contains("2.10.6"))
         }
     }
 }

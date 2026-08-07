@@ -2,7 +2,7 @@ import Foundation
 
 public struct EnvironmentDetector {
     public static let minimumNodeVersion = SemanticVersion(18, 0, 0)
-    public static let minimumWhistleVersion = SemanticVersion(2, 9, 0)
+    public static let minimumWhistleVersion = SemanticVersion(2, 10, 7)
 
     private let runner: ProcessRunning
     private let fileManager: FileManager
@@ -53,7 +53,7 @@ public struct EnvironmentDetector {
         }
         guard whistleVersion >= Self.minimumWhistleVersion else {
             throw WhistleYooError.unsupportedVersion(
-                Localization.format(.coreWhistleIsTooOldVersion290OrLaterIsRequiredDetectedValue, whistleDetection.diagnostic)
+                Localization.format(.coreWhistleIsTooOldVersion2107OrLaterIsRequiredDetectedValue, whistleDetection.diagnostic)
             )
         }
 

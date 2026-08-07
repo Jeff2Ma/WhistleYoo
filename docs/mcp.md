@@ -9,9 +9,8 @@ For a step-by-step Chinese setup and usage guide, see
 
 ## Requirements
 
-- WhistleYoo's ordinary app features require Whistle 2.9 or later.
-- MCP tools require Whistle 2.10.7 or later because they use Whistle's official
-  Local Agent API.
+- WhistleYoo requires Whistle 2.10.7 or later. This minimum includes the official
+  Local Agent API used by MCP tools.
 
 Open the **MCP** tab to enable the server, choose an access mode, and copy a
 ready-to-use connection configuration.

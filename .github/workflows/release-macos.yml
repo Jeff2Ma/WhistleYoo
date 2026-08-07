@@ -86,7 +86,7 @@ jobs:
 
       - name: 运行 Whistle 集成测试
         run: |
-          npm install --global whistle@2.10.5
+          npm install --global whistle@2.10.8
           WHISTLEYOO_RUN_INTEGRATION=1 swift test --filter WhistleIntegrationTests
 
   release:

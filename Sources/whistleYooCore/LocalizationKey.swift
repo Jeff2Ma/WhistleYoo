@@ -78,7 +78,7 @@ public enum LocalizationKey: String, CaseIterable, Sendable {
     case coreWhistleDidNotPassItsHealthCheckAfterStarting = "core.whistle_did_not_pass_its_health_check_after_starting"
     case coreWhistleDidNotStopBeforeTheTimeout = "core.whistle_did_not_stop_before_the_timeout"
     case coreWhistleFailedToSaveTheAllowlistRules = "core.whistle_failed_to_save_the_allowlist_rules"
-    case coreWhistleIsTooOldVersion290OrLaterIsRequiredDetectedValue = "core.whistle_is_too_old_version_2_9_0_or_later_is_required_detected_value"
+    case coreWhistleIsTooOldVersion2107OrLaterIsRequiredDetectedValue = "core.whistle_is_too_old_version_2_10_7_or_later_is_required_detected_value"
     case coreWhistleRepeatedlyExitedUnexpectedlyAutomaticRestartHasStopped = "core.whistle_repeatedly_exited_unexpectedly_automatic_restart_has_stopped"
     case coreWiFiHttpProxy = "core.wi_fi_http_proxy"
     case editorLineAndColumn = "editor.line_and_column"

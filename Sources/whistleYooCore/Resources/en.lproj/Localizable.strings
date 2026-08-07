@@ -159,8 +159,8 @@ SHA-256: %@</string>
 	<string>Whistle did not stop before the timeout</string>
 	<key>core.whistle_failed_to_save_the_allowlist_rules</key>
 	<string>Whistle failed to save the allowlist rules</string>
-	<key>core.whistle_is_too_old_version_2_9_0_or_later_is_required_detected_value</key>
-	<string>Whistle is too old. Version 2.9.0 or later is required (detected: %@).</string>
+	<key>core.whistle_is_too_old_version_2_10_7_or_later_is_required_detected_value</key>
+	<string>Whistle is too old. Version 2.10.7 or later is required (detected: %@).</string>
 	<key>core.whistle_repeatedly_exited_unexpectedly_automatic_restart_has_stopped</key>
 	<string>Whistle repeatedly exited unexpectedly; automatic restart has stopped</string>
 	<key>core.wi_fi_http_proxy</key>
