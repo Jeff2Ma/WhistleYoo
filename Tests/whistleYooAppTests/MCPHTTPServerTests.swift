@@ -128,15 +128,25 @@ final class MCPHTTPServerTests: XCTestCase {
                 )
             )
             XCTAssertEqual((initializeResponse as? HTTPURLResponse)?.statusCode, 200)
-            XCTAssertNotNil(try JSONSerialization.jsonObject(with: initializeData))
+            XCTAssertNotNil(try jsonRPCObject(from: initializeData))
+            let sessionID = try XCTUnwrap(
+                (initializeResponse as? HTTPURLResponse)?.value(
+                    forHTTPHeaderField: "MCP-Session-Id"
+                )
+            )
 
             let (toolsData, toolsResponse) = try await URLSession.shared.data(
-                for: request(port: port, token: token, id: 2, method: "tools/list", params: [:])
+                for: request(
+                    port: port,
+                    token: token,
+                    sessionID: sessionID,
+                    id: 2,
+                    method: "tools/list",
+                    params: [:]
+                )
             )
             XCTAssertEqual((toolsResponse as? HTTPURLResponse)?.statusCode, 200)
-            let object = try XCTUnwrap(
-                JSONSerialization.jsonObject(with: toolsData) as? [String: Any]
-            )
+            let object = try jsonRPCObject(from: toolsData)
             let result = try XCTUnwrap(object["result"] as? [String: Any])
             let tools = try XCTUnwrap(result["tools"] as? [[String: Any]])
             let names = Set(tools.compactMap { $0["name"] as? String })
@@ -155,15 +165,14 @@ final class MCPHTTPServerTests: XCTestCase {
                 for: request(
                     port: port,
                     token: token,
+                    sessionID: sessionID,
                     id: 3,
                     method: "tools/call",
                     params: ["name": "app_get_status", "arguments": [:]]
                 )
             )
             XCTAssertEqual((callResponse as? HTTPURLResponse)?.statusCode, 200)
-            let callObject = try XCTUnwrap(
-                JSONSerialization.jsonObject(with: callData) as? [String: Any]
-            )
+            let callObject = try jsonRPCObject(from: callData)
             let callResult = try XCTUnwrap(callObject["result"] as? [String: Any])
             XCTAssertEqual(callResult["isError"] as? Bool, false)
         } catch {
@@ -214,11 +223,17 @@ final class MCPHTTPServerTests: XCTestCase {
                 )
             )
             XCTAssertEqual((withoutHeaderResponse as? HTTPURLResponse)?.statusCode, 200)
-            XCTAssertNotNil(try JSONSerialization.jsonObject(with: withoutHeaderData))
+            XCTAssertNotNil(try jsonRPCObject(from: withoutHeaderData))
+            let sessionID = try XCTUnwrap(
+                (withoutHeaderResponse as? HTTPURLResponse)?.value(
+                    forHTTPHeaderField: "MCP-Session-Id"
+                )
+            )
 
             var arbitraryHeaderRequest = try request(
                 port: port,
                 token: nil,
+                sessionID: sessionID,
                 id: 2,
                 method: "tools/list",
                 params: [:]
@@ -231,12 +246,13 @@ final class MCPHTTPServerTests: XCTestCase {
                 for: arbitraryHeaderRequest
             )
             XCTAssertEqual((arbitraryHeaderResponse as? HTTPURLResponse)?.statusCode, 200)
-            XCTAssertNotNil(try JSONSerialization.jsonObject(with: arbitraryHeaderData))
+            XCTAssertNotNil(try jsonRPCObject(from: arbitraryHeaderData))
 
             let (_, wrongBearerResponse) = try await URLSession.shared.data(
                 for: request(
                     port: port,
                     token: "wrong-token",
+                    sessionID: sessionID,
                     id: 3,
                     method: "tools/list",
                     params: [:]
@@ -247,6 +263,115 @@ final class MCPHTTPServerTests: XCTestCase {
             await coordinator.stop()
             throw error
         }
+        await coordinator.stop()
+    }
+
+    @MainActor
+    func testMultipleHTTPClientsCanConnectAndTerminateIndependently() async throws {
+        let port = 18_905
+        guard PortChecker().isAvailable(port: port, host: "127.0.0.1") else {
+            throw XCTSkip("Port \(port) is in use.")
+        }
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let state = AppStateController(
+            settingsStore: SettingsStore(fileURL: directory.appendingPathComponent("settings.json"))
+        )
+        let coordinator = MCPHTTPServerCoordinator(
+            state: state,
+            tokenStore: MCPTokenStore(fileURL: directory.appendingPathComponent("token"))
+        )
+        let started = await coordinator.apply(MCPSettings(
+            enabled: true,
+            authenticationEnabled: false,
+            port: port
+        ))
+        XCTAssertTrue(started)
+
+        do {
+            let first = try await initializeClient(port: port, name: "first-client", id: 1)
+            let second = try await initializeClient(port: port, name: "second-client", id: 2)
+            XCTAssertNotEqual(first.sessionID, second.sessionID)
+
+            for (index, client) in [first, second].enumerated() {
+                let (data, response) = try await URLSession.shared.data(for: request(
+                    port: port,
+                    token: nil,
+                    sessionID: client.sessionID,
+                    id: 3,
+                    method: "tools/list",
+                    params: [:]
+                ))
+                XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
+                let object = try jsonRPCObject(from: data)
+                let result = try XCTUnwrap(object["result"] as? [String: Any])
+                XCTAssertFalse(try XCTUnwrap(result["tools"] as? [[String: Any]]).isEmpty)
+
+                let (callData, callResponse) = try await URLSession.shared.data(for: request(
+                    port: port,
+                    token: nil,
+                    sessionID: client.sessionID,
+                    id: 10 + index,
+                    method: "tools/call",
+                    params: ["name": "app_get_status", "arguments": [:]]
+                ))
+                XCTAssertEqual((callResponse as? HTTPURLResponse)?.statusCode, 200)
+                XCTAssertNotNil(try jsonRPCObject(from: callData)["result"])
+            }
+
+            XCTAssertEqual(
+                Set(state.mcpAuditEvents.compactMap(\.client.reportedName)),
+                Set(["first-client", "second-client"])
+            )
+            XCTAssertEqual(Set(state.mcpAuditEvents.compactMap(\.client.version)), Set(["1"]))
+
+            var get = URLRequest(url: URL(string: "http://127.0.0.1:\(port)/mcp")!)
+            get.httpMethod = "GET"
+            get.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+            get.setValue(first.sessionID, forHTTPHeaderField: "MCP-Session-Id")
+            let (bytes, getResponse) = try await URLSession.shared.bytes(for: get)
+            XCTAssertEqual((getResponse as? HTTPURLResponse)?.statusCode, 200)
+            XCTAssertEqual(
+                (getResponse as? HTTPURLResponse)?.value(forHTTPHeaderField: "Content-Type"),
+                "text/event-stream"
+            )
+            bytes.task.cancel()
+
+            var delete = URLRequest(url: URL(string: "http://127.0.0.1:\(port)/mcp")!)
+            delete.httpMethod = "DELETE"
+            delete.setValue("application/json, text/event-stream", forHTTPHeaderField: "Accept")
+            delete.setValue(first.sessionID, forHTTPHeaderField: "MCP-Session-Id")
+            let (_, deleteResponse) = try await URLSession.shared.data(for: delete)
+            XCTAssertEqual((deleteResponse as? HTTPURLResponse)?.statusCode, 200)
+
+            let (_, expiredResponse) = try await URLSession.shared.data(for: request(
+                port: port,
+                token: nil,
+                sessionID: first.sessionID,
+                id: 4,
+                method: "tools/list",
+                params: [:]
+            ))
+            XCTAssertEqual((expiredResponse as? HTTPURLResponse)?.statusCode, 404)
+
+            let (remainingData, remainingResponse) = try await URLSession.shared.data(for: request(
+                port: port,
+                token: nil,
+                sessionID: second.sessionID,
+                id: 5,
+                method: "tools/list",
+                params: [:]
+            ))
+            XCTAssertEqual((remainingResponse as? HTTPURLResponse)?.statusCode, 200)
+            XCTAssertNotNil(try jsonRPCObject(from: remainingData)["result"])
+        } catch {
+            await coordinator.stop()
+            throw error
+        }
+
         await coordinator.stop()
     }
 
@@ -329,16 +454,21 @@ final class MCPHTTPServerTests: XCTestCase {
     private func request(
         port: Int,
         token: String?,
+        sessionID: String? = nil,
         id: Int,
         method: String,
         params: [String: Any]
     ) throws -> URLRequest {
         var request = URLRequest(url: URL(string: "http://127.0.0.1:\(port)/mcp")!)
         request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json, text/event-stream", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        if let sessionID {
+            request.setValue(sessionID, forHTTPHeaderField: "MCP-Session-Id")
+            request.setValue("2025-06-18", forHTTPHeaderField: "MCP-Protocol-Version")
         }
         request.httpBody = try JSONSerialization.data(withJSONObject: [
             "jsonrpc": "2.0",
@@ -348,4 +478,53 @@ final class MCPHTTPServerTests: XCTestCase {
         ])
         return request
     }
+
+    private func initializeClient(
+        port: Int,
+        name: String,
+        id: Int
+    ) async throws -> (sessionID: String, object: [String: Any]) {
+        let (data, response) = try await URLSession.shared.data(for: request(
+            port: port,
+            token: nil,
+            id: id,
+            method: "initialize",
+            params: [
+                "protocolVersion": "2025-06-18",
+                "capabilities": [:],
+                "clientInfo": ["name": name, "version": "1"]
+            ]
+        ))
+        let httpResponse = try XCTUnwrap(response as? HTTPURLResponse)
+        XCTAssertEqual(httpResponse.statusCode, 200)
+        return (
+            try XCTUnwrap(httpResponse.value(forHTTPHeaderField: "MCP-Session-Id")),
+            try jsonRPCObject(from: data)
+        )
+    }
+
+    private func jsonRPCObject(from data: Data) throws -> [String: Any] {
+        if let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            return object
+        }
+
+        let text = String(decoding: data, as: UTF8.self)
+        for line in text.split(separator: "\n", omittingEmptySubsequences: false).reversed() {
+            guard line.hasPrefix("data:") else { continue }
+            let payload = line.dropFirst("data:".count)
+                .trimmingCharacters(in: .whitespaces)
+            guard !payload.isEmpty,
+                  let object = try? JSONSerialization.jsonObject(
+                    with: Data(payload.utf8)
+                  ) as? [String: Any] else {
+                continue
+            }
+            return object
+        }
+        throw MCPHTTPTestError.missingJSONRPCResponse
+    }
+}
+
+private enum MCPHTTPTestError: Error {
+    case missingJSONRPCResponse
 }

@@ -20,6 +20,16 @@ private struct HairlineRoundedBorderModifier: ViewModifier {
     }
 }
 
+struct HairlineDivider: View {
+    @Environment(\.displayScale) private var displayScale
+
+    var body: some View {
+        Color(nsColor: .separatorColor)
+            .frame(height: 1 / max(displayScale, 1))
+            .accessibilityHidden(true)
+    }
+}
+
 extension View {
     func hairlineRoundedBorder(
         _ color: Color,
@@ -95,7 +105,7 @@ struct StatusPopoverView: View {
                 }
             }
 
-            Divider()
+            HairlineDivider()
 
             HStack(alignment: .center, spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
@@ -162,7 +172,7 @@ struct StatusPopoverView: View {
                 .disabled(state.isTransitioning)
             }
 
-            Divider()
+            HairlineDivider()
 
             HStack {
                 Button(action: openSettings) {
@@ -361,6 +371,7 @@ private struct PopoverButtonStyle: ButtonStyle {
     private struct PopoverButtonBody: View {
         let configuration: Configuration
         let emphasis: Emphasis
+        @Environment(\.displayScale) private var displayScale
         @State private var isHovering = false
 
         var body: some View {
@@ -372,7 +383,10 @@ private struct PopoverButtonStyle: ButtonStyle {
                 .overlay {
                     if isStandard || isOutlined {
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .stroke(borderColor, lineWidth: 1)
+                            .strokeBorder(
+                                borderColor,
+                                lineWidth: 1 / max(displayScale, 1)
+                            )
                     }
                 }
                 .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
@@ -459,11 +473,17 @@ enum MainWorkspaceTab: Hashable {
     case about
 }
 
+enum MainWorkspaceLayout {
+    static let minimumWidth: CGFloat = 1000
+    static let minimumHeight: CGFloat = 640
+}
+
 @MainActor
 final class MainWorkspaceSelection: ObservableObject {
     @Published private(set) var selected: MainWorkspaceTab
     @Published var isDiscardConfirmationPresented = false
     @Published var isOperationAlertPresented = false
+    @Published var columnVisibility: NavigationSplitViewVisibility = .all
 
     private let hasUnsavedChanges: () -> Bool
     private let hasOperationInProgress: () -> Bool
@@ -480,6 +500,10 @@ final class MainWorkspaceSelection: ObservableObject {
         self.hasUnsavedChanges = hasUnsavedChanges
         self.hasOperationInProgress = hasOperationInProgress
         self.discardUnsavedChanges = discardUnsavedChanges
+    }
+
+    func toggleSidebar() {
+        columnVisibility = columnVisibility == .detailOnly ? .all : .detailOnly
     }
 
     func request(_ tab: MainWorkspaceTab) {
@@ -523,60 +547,90 @@ struct MainWorkspaceView: View {
     @ObservedObject var rulesDraft: RuleConfigurationDraft
     let exportCertificate: () -> Void
     let runOnboarding: () -> Void
+    @State private var rulesWorkspace = RulesValuesWorkspace.rules
+
+    private struct SidebarItem: Identifiable {
+        let tab: MainWorkspaceTab
+        let title: String
+        let symbol: String
+
+        var id: MainWorkspaceTab { tab }
+    }
+
+    private struct SidebarGroup: Identifiable {
+        let id: String
+        let title: String
+        let items: [SidebarItem]
+    }
+
+    private var sidebarGroups: [SidebarGroup] {
+        [
+            SidebarGroup(
+                id: "whistle",
+                title: Localization.string(.sidebarSectionWhistle),
+                items: [
+                    SidebarItem(
+                        tab: .console,
+                        title: Localization.string(.consoleWhistleConsole),
+                        symbol: "network"
+                    ),
+                    SidebarItem(
+                        tab: .plugins,
+                        title: Localization.string(.pluginsWhistlePlugins),
+                        symbol: "puzzlepiece.extension"
+                    ),
+                    SidebarItem(
+                        tab: .rules,
+                        title: Localization.string(.rulesConfiguration),
+                        symbol: "doc.text"
+                    )
+                ]
+            ),
+            SidebarGroup(
+                id: "enhancements",
+                title: Localization.string(.sidebarSectionEnhancements),
+                items: [
+                    SidebarItem(
+                        tab: .mobile,
+                        title: Localization.string(.mobileMobileProxy),
+                        symbol: "iphone.and.arrow.forward"
+                    ),
+                    SidebarItem(tab: .mcp, title: "MCP", symbol: "server.rack")
+                ]
+            ),
+            SidebarGroup(
+                id: "more",
+                title: Localization.string(.sidebarSectionMore),
+                items: [
+                    SidebarItem(
+                        tab: .settings,
+                        title: Localization.string(.settingsMoreSettings),
+                        symbol: "gearshape"
+                    ),
+                    SidebarItem(
+                        tab: .about,
+                        title: Localization.string(.settingsAbout),
+                        symbol: "info.circle"
+                    )
+                ]
+            )
+        ]
+    }
+
+    // The window uses `.fullSizeContentView`, so both columns start at the very top of
+    // the window. A bar this tall covers the 32pt title bar and leaves the toolbar row
+    // roughly level with the window buttons, the way OrbStack's unified top area reads.
+    private static let topBarHeight: CGFloat = 44
+    // Keep the title at its expanded-detail position while the sidebar animates.
+    // This also keeps it clear of the window buttons and the sidebar toggle.
+    private static let detailTitleLeading: CGFloat = 226
 
     var body: some View {
-        HStack(spacing: 0) {
-            VStack(spacing: 10) {
-                sidebarButton(
-                    title: Localization.string(.consoleWhistleConsole),
-                    symbol: "network",
-                    tab: .console
-                )
-                sidebarButton(
-                    title: Localization.string(.pluginsWhistlePlugins),
-                    symbol: "puzzlepiece.extension",
-                    tab: .plugins
-                )
-                sidebarButton(
-                    title: Localization.string(.rulesConfiguration),
-                    symbol: "doc.text",
-                    tab: .rules
-                )
-                sidebarButton(
-                    title: Localization.string(.mobileMobileProxy),
-                    symbol: "iphone.and.arrow.forward",
-                    tab: .mobile
-                )
-                sidebarButton(
-                    title: "MCP",
-                    symbol: "server.rack",
-                    tab: .mcp
-                )
-                sidebarButton(
-                    title: Localization.string(.settingsMoreSettings),
-                    symbol: "gearshape",
-                    tab: .settings
-                )
-                sidebarButton(
-                    title: Localization.string(.settingsAbout),
-                    symbol: "info.circle",
-                    tab: .about
-                )
-                Spacer()
-                sidebarStatusSummary
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 12)
-            .frame(width: 170, alignment: .top)
-            .background(Color(nsColor: .controlBackgroundColor))
-
-            Divider()
-
-            mainContent
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(nsColor: .textBackgroundColor))
-        }
-        .frame(minWidth: 900, minHeight: 640)
+        baseWorkspaceSplitView
+        .frame(
+            minWidth: MainWorkspaceLayout.minimumWidth,
+            minHeight: MainWorkspaceLayout.minimumHeight
+        )
         .alert(
             Localization.string(.settingsDiscardUnsavedChanges),
             isPresented: $selection.isDiscardConfirmationPresented
@@ -600,11 +654,194 @@ struct MainWorkspaceView: View {
         }
     }
 
+    private var baseWorkspaceSplitView: some View {
+        NavigationSplitView(columnVisibility: $selection.columnVisibility) {
+            sidebar
+                .navigationSplitViewColumnWidth(min: 186, ideal: 202, max: 300)
+        } detail: {
+            detail
+        }
+        .navigationSplitViewStyle(.balanced)
+        .overlay(alignment: .topLeading) {
+            Text(detailTitle)
+                .font(.system(size: 13, weight: .semibold))
+                .lineLimit(1)
+                .padding(.leading, Self.detailTitleLeading)
+                .frame(height: Self.topBarHeight)
+                .allowsHitTesting(false)
+        }
+        .overlay(alignment: .topTrailing) {
+            detailHeaderActions
+                .padding(.trailing, 12)
+                .frame(height: Self.topBarHeight)
+        }
+        // Apply the title-bar safe-area behavior to the overlay as well. If this
+        // precedes the overlay, the title is laid out below the custom top bar.
+        .ignoresSafeArea(.container, edges: .top)
+    }
+
+    private var detail: some View {
+        VStack(spacing: 0) {
+            detailHeader
+            HairlineDivider()
+            mainContent
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .background(Color(nsColor: .textBackgroundColor))
+        // Without this the embedded WKWebView is pushed below the transparent title
+        // bar and leaves an empty strip above the Whistle console.
+        .ignoresSafeArea(.container, edges: .top)
+    }
+
+    private var detailHeader: some View {
+        Color.clear
+        .frame(height: Self.topBarHeight)
+        .frame(maxWidth: .infinity)
+        .background(WindowDragHandle())
+        .background(.bar)
+    }
+
+    private var detailTitle: String {
+        sidebarGroups
+            .flatMap(\.items)
+            .first { $0.tab == selection.selected }?
+            .title ?? ""
+    }
+
+    private var selectedWebWorkspace: WhistleConsoleSession.Workspace? {
+        switch selection.selected {
+        case .console: return .network
+        case .plugins: return .plugins
+        default: return nil
+        }
+    }
+
+    @ViewBuilder
+    private var detailHeaderActions: some View {
+        switch selection.selected {
+        case .console, .plugins:
+            if let workspace = selectedWebWorkspace, state.isEngineRunning, let url = state.uiURL {
+                HStack(spacing: 6) {
+                    detailHeaderButton(
+                        symbol: "arrow.clockwise",
+                        help: Localization.string(.consoleReload)
+                    ) {
+                        consoleSession.reload()
+                    }
+                    detailHeaderButton(
+                        symbol: "safari",
+                        help: Localization.string(.consoleOpenInBrowser)
+                    ) {
+                        NSWorkspace.shared.open(consoleSession.pageURL(for: url, workspace: workspace))
+                    }
+                }
+                .fixedSize()
+            }
+        case .rules:
+            rulesHeaderActions
+        case .mobile, .mcp, .settings, .about:
+            EmptyView()
+        }
+    }
+
+    private var rulesHeaderActions: some View {
+        HStack(spacing: 6) {
+            if rulesWorkspaceOperationInProgress {
+                ProgressView()
+                    .controlSize(.small)
+                    .padding(.trailing, 2)
+            }
+            Button(Localization.string(.rulesRefresh)) {
+                NotificationCenter.default.post(name: .refreshRulesWorkspace, object: nil)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help(rulesWorkspace == .rules
+                ? Localization.string(.rulesReloadRulesFromWhistle)
+                : Localization.string(.valuesReloadValuesFromWhistle))
+            .disabled(rulesWorkspaceOperationInProgress)
+
+            Button(Localization.string(.rulesSave)) {
+                NotificationCenter.default.post(name: .saveRulesWorkspace, object: nil)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+            .keyboardShortcut("s", modifiers: .command)
+            .disabled(!rulesWorkspaceIsDirty || rulesWorkspaceOperationInProgress)
+        }
+        .fixedSize()
+    }
+
+    private var rulesWorkspaceIsDirty: Bool {
+        switch rulesWorkspace {
+        case .rules: return rulesDraft.rulesAreDirty
+        case .values: return rulesDraft.valuesAreDirty
+        }
+    }
+
+    private var rulesWorkspaceOperationInProgress: Bool {
+        switch rulesWorkspace {
+        case .rules: return state.isLoadingRules || state.isSavingRules
+        case .values: return state.isLoadingValues || state.isSavingValues
+        }
+    }
+
+    private func detailHeaderButton(
+        symbol: String,
+        help: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 13, weight: .medium))
+                .frame(width: 24, height: 22)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(DetailHeaderButtonStyle())
+        .help(help)
+        .accessibilityLabel(help)
+    }
+
+    private var sidebar: some View {
+        VStack(spacing: 0) {
+            ScrollView(.vertical) {
+                VStack(alignment: .leading, spacing: 16) {
+                    ForEach(sidebarGroups) { group in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(group.title)
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, 9)
+                                .padding(.bottom, 3)
+                            ForEach(group.items) { item in
+                                sidebarButton(item)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 8)
+                // The sidebar column already draws behind the title bar, so the first
+                // group has to clear the window buttons and line up with the detail bar.
+                .padding(.top, Self.topBarHeight + 8)
+                .padding(.bottom, 12)
+            }
+            .scrollIndicators(.never)
+
+            HairlineDivider()
+
+            sidebarStatusSummary
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)
+        }
+        .frame(maxHeight: .infinity, alignment: .top)
+        .ignoresSafeArea(.container, edges: .top)
+    }
+
     private var sidebarStatusSummary: some View {
         Button {
             requestTabSelection(.console)
         } label: {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 7) {
                 HStack(spacing: 6) {
                     Circle()
                         .fill(sidebarEngineStatusColor)
@@ -631,7 +868,7 @@ struct MainWorkspaceView: View {
                 .frame(maxWidth: .infinity)
             }
             .font(.system(size: 10.5, weight: .medium))
-            .padding(9)
+            .padding(8)
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
@@ -667,7 +904,11 @@ struct MainWorkspaceView: View {
         case .mobile:
             MobileSetupView(model: mobileModel, isActive: true)
         case .rules:
-            RuleConfigurationView(state: state, draft: rulesDraft)
+            RuleConfigurationView(
+                state: state,
+                draft: rulesDraft,
+                workspace: $rulesWorkspace
+            )
         case .mcp:
             MCPSettingsView(state: state)
         case .settings:
@@ -681,42 +922,28 @@ struct MainWorkspaceView: View {
         }
     }
 
-    private func sidebarButton(
-        title: String,
-        symbol: String,
-        tab: MainWorkspaceTab
-    ) -> some View {
-        Button {
-            requestTabSelection(tab)
+    private func sidebarButton(_ item: SidebarItem) -> some View {
+        let isSelected = selection.selected == item.tab
+        return Button {
+            requestTabSelection(item.tab)
         } label: {
-            HStack(spacing: 9) {
-                Image(systemName: symbol)
-                    .font(.system(size: 16, weight: .regular))
-                    .frame(width: 20)
-                Text(title)
+            HStack(spacing: 8) {
+                Image(systemName: item.symbol)
+                    .font(.system(size: 13, weight: .medium))
+                    .frame(width: 18)
+                Text(item.title)
                     .lineLimit(1)
                 Spacer(minLength: 0)
             }
-            .frame(maxWidth: .infinity)
-            .font(.system(size: 13, weight: .regular))
-            .foregroundStyle(selection.selected == tab ? Color.accentColor : Color.primary)
-            .padding(.vertical, 8)
-            .padding(.horizontal, 10)
-            .background(
-                selection.selected == tab ? Color.accentColor.opacity(0.14) : Color.clear,
-                in: RoundedRectangle(cornerRadius: 9, style: .continuous)
-            )
-            .hairlineRoundedBorder(
-                selection.selected == tab ? Color.accentColor.opacity(0.18) : Color.clear,
-                cornerRadius: 9,
-                style: .continuous
-            )
+            .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+            .padding(.vertical, 6)
+            .padding(.horizontal, 9)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .frame(maxWidth: .infinity)
-        .accessibilityLabel(title)
-        .accessibilityAddTraits(selection.selected == tab ? .isSelected : [])
+        .buttonStyle(SidebarRowButtonStyle(isSelected: isSelected))
+        .accessibilityLabel(item.title)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private func requestTabSelection(_ tab: MainWorkspaceTab) {
@@ -751,6 +978,82 @@ struct MainWorkspaceView: View {
     }
 }
 
+private struct WindowDragHandle: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        DraggableView()
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    private final class DraggableView: NSView {
+        override var mouseDownCanMoveWindow: Bool { true }
+    }
+}
+
+private struct DetailHeaderButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        DetailHeaderButtonBody(configuration: configuration)
+    }
+
+    private struct DetailHeaderButtonBody: View {
+        let configuration: Configuration
+        @State private var isHovering = false
+
+        var body: some View {
+            configuration.label
+                .foregroundStyle(isHovering ? Color.primary : Color.secondary)
+                .background(
+                    backgroundColor,
+                    in: RoundedRectangle(cornerRadius: 6, style: .continuous)
+                )
+                .contentShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .onHover { isHovering = $0 }
+                .animation(.easeOut(duration: 0.08), value: isHovering)
+                .animation(.easeOut(duration: 0.06), value: configuration.isPressed)
+        }
+
+        private var backgroundColor: Color {
+            if configuration.isPressed { return Color.primary.opacity(0.12) }
+            if isHovering { return Color.primary.opacity(0.07) }
+            return .clear
+        }
+    }
+}
+
+private struct SidebarRowButtonStyle: ButtonStyle {    let isSelected: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        SidebarRowButtonBody(configuration: configuration, isSelected: isSelected)
+    }
+
+    private struct SidebarRowButtonBody: View {
+        let configuration: Configuration
+        let isSelected: Bool
+        @State private var isHovering = false
+
+        var body: some View {
+            configuration.label
+                .foregroundStyle(isSelected ? Color.white : Color.primary)
+                .background(
+                    backgroundColor,
+                    in: RoundedRectangle(cornerRadius: 7, style: .continuous)
+                )
+                .onHover { isHovering = $0 }
+                .animation(.easeOut(duration: 0.1), value: isHovering)
+                .animation(.easeOut(duration: 0.08), value: configuration.isPressed)
+        }
+
+        private var backgroundColor: Color {
+            if isSelected {
+                return Color.accentColor.opacity(configuration.isPressed ? 0.82 : 1)
+            }
+            if configuration.isPressed { return Color.primary.opacity(0.12) }
+            if isHovering { return Color.primary.opacity(0.07) }
+            return .clear
+        }
+    }
+}
+
 private struct SidebarStatusButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         SidebarStatusButtonBody(configuration: configuration)
@@ -764,12 +1067,7 @@ private struct SidebarStatusButtonStyle: ButtonStyle {
             configuration.label
                 .background(
                     backgroundColor,
-                    in: RoundedRectangle(cornerRadius: 9, style: .continuous)
-                )
-                .hairlineRoundedBorder(
-                    Color.primary.opacity(isHovering ? 0.13 : 0.08),
-                    cornerRadius: 9,
-                    style: .continuous
+                    in: RoundedRectangle(cornerRadius: 7, style: .continuous)
                 )
                 .onHover { isHovering = $0 }
                 .animation(.easeOut(duration: 0.08), value: isHovering)
@@ -777,9 +1075,9 @@ private struct SidebarStatusButtonStyle: ButtonStyle {
         }
 
         private var backgroundColor: Color {
-            if configuration.isPressed { return Color.primary.opacity(0.13) }
-            if isHovering { return Color.primary.opacity(0.08) }
-            return Color.primary.opacity(0.04)
+            if configuration.isPressed { return Color.primary.opacity(0.12) }
+            if isHovering { return Color.primary.opacity(0.07) }
+            return .clear
         }
     }
 }
@@ -815,7 +1113,7 @@ struct OnboardingView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-            Divider()
+            HairlineDivider()
             Group {
                 switch step {
                 case .environment: environmentStep
@@ -825,7 +1123,7 @@ struct OnboardingView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            Divider()
+            HairlineDivider()
             footer
         }
         .frame(width: 620, height: 470)
@@ -1139,6 +1437,7 @@ struct MCPSettingsView: View {
     @State private var accessMode: MCPAccessMode
     @State private var bearerToken: String?
     @State private var status: String?
+    @State private var configurationStatus: String?
     @State private var isApplying = false
 
     init(state: AppStateController) {
@@ -1167,143 +1466,10 @@ struct MCPSettingsView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                GroupBox {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Toggle(
-                            Localization.string(.mcpEnableLocalServer),
-                            isOn: $mcpEnabled
-                        )
-                        Toggle(
-                            Localization.string(.mcpEnableHttpAuthentication),
-                            isOn: $authenticationEnabled
-                        )
-                        HStack {
-                            Text(Localization.string(.mcpAccess))
-                                .frame(width: 120, alignment: .leading)
-                            Picker(Localization.string(.mcpAccess), selection: $accessMode) {
-                                Text(Localization.string(.mcpReadOnly))
-                                    .tag(MCPAccessMode.readOnly)
-                                Text(Localization.string(.mcpFullAccess))
-                                    .tag(MCPAccessMode.fullAccess)
-                            }
-                            .labelsHidden()
-                            .pickerStyle(.segmented)
-                            .frame(maxWidth: 280)
-                        }
-                        HStack {
-                            Text(Localization.string(.mcpHttpPort))
-                                .frame(width: 120, alignment: .leading)
-                            TextField(Localization.string(.mobilePort), text: $port)
-                                .focused($focusedField, equals: .port)
-                                .textFieldStyle(.roundedBorder)
-                                .frame(width: 130)
-                                .accessibilityLabel(Localization.string(.mcpHttpPort))
-                            Spacer()
-                        }
+                basicMCPSettings
+                mcpConfigurationSection
 
-                        Text(Localization.format(
-                            .mcpHttpEndpointValue,
-                            state.mcpRuntimeState.endpoint?.absoluteString ?? "—"
-                        ))
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                            .textSelection(.enabled)
-                        Text(authenticationEnabled
-                            ? Localization.string(.mcpServerOnlyListensOnLocalhost)
-                            : Localization.string(.mcpAuthenticationDisabled))
-                            .font(.caption)
-                            .foregroundStyle(authenticationEnabled ? Color.secondary : Color.orange)
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text(Localization.string(.mcpHttpConfiguration))
-                                    .font(.headline)
-                                Spacer()
-                                Button(Localization.string(.mobileCopy)) {
-                                    copyHTTPConfiguration()
-                                }
-                                .disabled(state.mcpRuntimeState.endpoint == nil)
-                            }
-                            ScrollView(.horizontal) {
-                                Text(httpConfiguration)
-                                    .font(.system(.caption, design: .monospaced))
-                                    .textSelection(.enabled)
-                                    .fixedSize(horizontal: true, vertical: false)
-                            }
-                            .padding(12)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(
-                                Color(nsColor: .textBackgroundColor),
-                                in: RoundedRectangle(cornerRadius: 7)
-                            )
-                            .hairlineRoundedBorder(
-                                Color.primary.opacity(0.12),
-                                cornerRadius: 7
-                            )
-                        }
-
-                        runtimeStatus
-
-                        if settingsAreDirty {
-                            Label(Localization.string(.rulesUnsaved), systemImage: "circle.fill")
-                                .font(.callout)
-                                .foregroundStyle(.orange)
-                        }
-
-                        if let status {
-                            Label(status, systemImage: "checkmark.circle.fill")
-                                .font(.callout)
-                                .foregroundStyle(.green)
-                        }
-                        HStack {
-                            Button(Localization.string(.mcpRotateToken)) {
-                                isApplying = true
-                                status = nil
-                                Task {
-                                    if await state.rotateMCPToken() {
-                                        bearerToken = try? MCPTokenStore().loadOrCreate()
-                                        status = Localization.string(.mcpBearerTokenRotated)
-                                    }
-                                    isApplying = false
-                                }
-                            }
-                            .disabled(!authenticationEnabled || isApplying)
-                            Spacer()
-                            Button(Localization.string(.rulesApply)) { applySettings() }
-                                .buttonStyle(.borderedProminent)
-                                .disabled(parsedPort == nil || isApplying || !canApplySettings)
-                        }
-                    }
-                    .padding(8)
-                }
-
-                if !state.mcpAuditEvents.isEmpty {
-                    GroupBox(Localization.string(.mcpRecentActivity)) {
-                        VStack(spacing: 10) {
-                            ForEach(state.mcpAuditEvents.prefix(5)) { event in
-                                HStack(spacing: 8) {
-                                    Image(systemName: event.succeeded
-                                        ? "checkmark.circle.fill"
-                                        : "xmark.circle.fill")
-                                        .foregroundStyle(event.succeeded ? Color.green : Color.red)
-                                    Text(event.tool)
-                                        .font(.system(.caption, design: .monospaced))
-                                    Spacer()
-                                    Text(event.date.formatted(date: .numeric, time: .standard))
-                                        .font(.caption)
-                                        .monospacedDigit()
-                                        .foregroundStyle(.secondary)
-                                    Text("\(event.durationMilliseconds) ms")
-                                        .font(.caption)
-                                        .monospacedDigit()
-                                        .foregroundStyle(.secondary)
-                                }
-                                .help(event.message ?? event.date.formatted())
-                            }
-                        }
-                        .padding(8)
-                    }
-                }
+                recentMCPActivity
             }
             .padding(30)
             .frame(maxWidth: 820, alignment: .leading)
@@ -1324,6 +1490,288 @@ struct MCPSettingsView: View {
         }
     }
 
+    private var basicMCPSettings: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(
+                Localization.string(.mcpBasicSettings),
+                systemImage: "slider.horizontal.3"
+            )
+            .font(.headline)
+
+            GroupBox {
+                VStack(alignment: .leading, spacing: 12) {
+                    Toggle(
+                        Localization.string(.mcpEnableLocalServer),
+                        isOn: $mcpEnabled
+                    )
+                    Toggle(
+                        Localization.string(.mcpEnableHttpAuthentication),
+                        isOn: $authenticationEnabled
+                    )
+                    HStack {
+                        Text(Localization.string(.mcpAccess))
+                            .frame(width: 120, alignment: .leading)
+                        Picker(Localization.string(.mcpAccess), selection: $accessMode) {
+                            Text(Localization.string(.mcpReadOnly))
+                                .tag(MCPAccessMode.readOnly)
+                            Text(Localization.string(.mcpFullAccess))
+                                .tag(MCPAccessMode.fullAccess)
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.segmented)
+                        .frame(maxWidth: 280)
+                    }
+                    HStack {
+                        Text(Localization.string(.mcpHttpPort))
+                            .frame(width: 120, alignment: .leading)
+                        TextField(Localization.string(.mobilePort), text: $port)
+                            .focused($focusedField, equals: .port)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 130)
+                            .accessibilityLabel(Localization.string(.mcpHttpPort))
+                        Spacer()
+                    }
+
+                    Text(Localization.format(
+                        .mcpHttpEndpointValue,
+                        state.mcpRuntimeState.endpoint?.absoluteString ?? "—"
+                    ))
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                    Text(authenticationEnabled
+                        ? Localization.string(.mcpServerOnlyListensOnLocalhost)
+                        : Localization.string(.mcpAuthenticationDisabled))
+                        .font(.caption)
+                        .foregroundStyle(authenticationEnabled ? Color.secondary : Color.orange)
+
+                    runtimeStatus
+
+                    if settingsAreDirty {
+                        Label(Localization.string(.rulesUnsaved), systemImage: "circle.fill")
+                            .font(.callout)
+                            .foregroundStyle(.orange)
+                    }
+
+                    if let status {
+                        Label(status, systemImage: "checkmark.circle.fill")
+                            .font(.callout)
+                            .foregroundStyle(.green)
+                    }
+                    HStack {
+                        Button(Localization.string(.mcpRotateToken)) {
+                            isApplying = true
+                            status = nil
+                            configurationStatus = nil
+                            Task {
+                                if await state.rotateMCPToken() {
+                                    bearerToken = try? MCPTokenStore().loadOrCreate()
+                                    status = Localization.string(.mcpBearerTokenRotated)
+                                }
+                                isApplying = false
+                            }
+                        }
+                        .disabled(!authenticationEnabled || isApplying)
+                        Spacer()
+                        Button(Localization.string(.rulesApply)) { applySettings() }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(parsedPort == nil || isApplying || !canApplySettings)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(8)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var mcpConfigurationSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(
+                Localization.string(.mcpConfiguration),
+                systemImage: "curlybraces"
+            )
+            .font(.headline)
+
+            GroupBox {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text(Localization.string(.mcpHttpConfiguration))
+                            .font(.subheadline.weight(.medium))
+                        Spacer()
+                        Button(Localization.string(.mobileCopy)) {
+                            copyHTTPConfiguration()
+                        }
+                        .disabled(state.mcpRuntimeState.endpoint == nil)
+                    }
+                    ScrollView(.horizontal) {
+                        Text(httpConfiguration)
+                            .font(.system(.caption, design: .monospaced))
+                            .textSelection(.enabled)
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        Color(nsColor: .textBackgroundColor),
+                        in: RoundedRectangle(cornerRadius: 7)
+                    )
+                    .hairlineRoundedBorder(
+                        Color.primary.opacity(0.12),
+                        cornerRadius: 7
+                    )
+                    if let configurationStatus {
+                        Label(configurationStatus, systemImage: "checkmark.circle.fill")
+                            .font(.callout)
+                            .foregroundStyle(.green)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(8)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var recentMCPActivity: some View {
+        let events = Array(state.mcpAuditEvents.prefix(8))
+        return VStack(alignment: .leading, spacing: 10) {
+            Label(
+                Localization.string(.mcpRecentActivity),
+                systemImage: "clock.arrow.circlepath"
+            )
+            .font(.headline)
+
+            VStack(spacing: 0) {
+                activityTableHeader
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.primary.opacity(0.045))
+                HairlineDivider()
+
+                if events.isEmpty {
+                    VStack(spacing: 7) {
+                        Image(systemName: "tray")
+                            .font(.title2)
+                            .foregroundStyle(.tertiary)
+                        Text(Localization.string(.mcpNoRecentActivity))
+                            .font(.callout.weight(.medium))
+                        Text(Localization.string(.mcpActivityEmptyDescription))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 104)
+                    .padding(.horizontal, 20)
+                } else {
+                    ForEach(Array(events.enumerated()), id: \.element.id) { index, event in
+                        activityRow(event)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 9)
+                        if index < events.count - 1 {
+                            HairlineDivider()
+                                .padding(.leading, 12)
+                        }
+                    }
+                }
+            }
+            .background(
+                Color(nsColor: .textBackgroundColor).opacity(0.42),
+                in: RoundedRectangle(cornerRadius: 8)
+            )
+            .hairlineRoundedBorder(
+                Color.primary.opacity(0.1),
+                cornerRadius: 8
+            )
+        }
+    }
+
+    private var activityTableHeader: some View {
+        HStack(spacing: 12) {
+            Text(Localization.string(.mcpActivityStatus))
+                .frame(width: 78, alignment: .leading)
+            Text(Localization.string(.mcpActivityAgent))
+                .frame(width: 128, alignment: .leading)
+            Text(Localization.string(.mcpActivityTool))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text(Localization.string(.mcpActivityDuration))
+                .frame(width: 64, alignment: .trailing)
+            Text(Localization.string(.mcpActivityTime))
+                .frame(width: 128, alignment: .trailing)
+        }
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(.secondary)
+    }
+
+    private func activityRow(_ event: MCPAuditEvent) -> some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 5) {
+                Image(systemName: event.succeeded
+                    ? "checkmark.circle.fill"
+                    : "xmark.circle.fill")
+                Text(Localization.string(event.succeeded
+                    ? .mcpActivitySucceeded
+                    : .mcpActivityFailed))
+            }
+            .font(.caption.weight(.medium))
+            .foregroundStyle(event.succeeded ? Color.green : Color.red)
+            .frame(width: 78, alignment: .leading)
+
+            Text(clientDisplayLabel(for: event.client))
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .font(.caption)
+                .frame(width: 128, alignment: .leading)
+                .help(clientHelp(for: event.client))
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(event.tool)
+                    .font(.system(.caption, design: .monospaced))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                if let message = event.message {
+                    Text(message)
+                        .font(.caption2)
+                        .foregroundStyle(.red)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .help(event.message ?? event.tool)
+
+            Text("\(event.durationMilliseconds) ms")
+                .font(.caption)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .frame(width: 64, alignment: .trailing)
+
+            Text(event.date.formatted(date: .numeric, time: .standard))
+                .lineLimit(1)
+                .font(.caption2)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .frame(width: 128, alignment: .trailing)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func clientHelp(for client: MCPClientIdentity) -> String {
+        guard let reportedName = client.reportedName else {
+            return Localization.string(.mcpUnknownAgent)
+        }
+        if let version = client.version {
+            return "\(reportedName) \(version)"
+        }
+        return reportedName
+    }
+
+    private func clientDisplayLabel(for client: MCPClientIdentity) -> String {
+        let name = client.displayName ?? Localization.string(.mcpUnknownAgent)
+        guard let version = client.version, !version.isEmpty else { return name }
+        return "\(name) \(version)"
+    }
+
     private var parsedPort: Int? {
         guard let port = Int(port), (1...65_535).contains(port) else { return nil }
         return port
@@ -1333,6 +1781,7 @@ struct MCPSettingsView: View {
         guard let port = parsedPort else { return }
         isApplying = true
         status = nil
+        configurationStatus = nil
         Task {
             if await state.updateMCPSettings(
                 enabled: mcpEnabled,
@@ -1360,7 +1809,7 @@ struct MCPSettingsView: View {
 
     private func copyHTTPConfiguration() {
         copyToPasteboard(httpConfiguration)
-        status = Localization.string(.mcpHttpConfigurationCopied)
+        configurationStatus = Localization.string(.mcpHttpConfigurationCopied)
     }
 
     private func copyToPasteboard(_ value: String) {
@@ -1480,6 +1929,7 @@ struct SettingsView: View {
     @State private var isHandlingConfigurationFile = false
     @State private var configurationFileStatus: String?
     @State private var configurationFileStatusIsSuccess = false
+    @State private var isRestoreDefaultLocationConfirmationPresented = false
 
     init(
         state: AppStateController,
@@ -1499,14 +1949,14 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 30) {
-                configurationFileSection
-                Divider()
                 generalSection
-                Divider()
+                HairlineDivider()
                 proxySection
-                Divider()
+                HairlineDivider()
                 certificateSection
-                Divider()
+                HairlineDivider()
+                configurationFileSection
+                HairlineDivider()
                 environmentSection
             }
             .padding(30)
@@ -1521,6 +1971,17 @@ struct SettingsView: View {
         .task {
             await state.refreshNetworkServices()
             await state.refreshCertificateStatus()
+        }
+        .alert(
+            Localization.string(.settingsRestoreDefaultLocationConfirmationTitle),
+            isPresented: $isRestoreDefaultLocationConfirmationPresented
+        ) {
+            Button(Localization.string(.rulesCancel), role: .cancel) {}
+            Button(Localization.string(.settingsRestoreDefaultLocation), role: .destructive) {
+                restoreDefaultConfigurationFileLocation()
+            }
+        } message: {
+            Text(Localization.string(.settingsRestoreDefaultLocationConfirmationMessage))
         }
     }
 
@@ -1567,7 +2028,9 @@ struct SettingsView: View {
                         Button(Localization.string(.settingsExportConfiguration), action: exportConfiguration)
                         Button(Localization.string(.settingsChooseCustomSaveLocation), action: chooseConfigurationFileLocation)
                         if state.usesCustomConfigurationFileLocation {
-                            Button(Localization.string(.settingsRestoreDefaultLocation), action: restoreDefaultConfigurationFileLocation)
+                            Button(Localization.string(.settingsRestoreDefaultLocation)) {
+                                isRestoreDefaultLocationConfirmationPresented = true
+                            }
                         }
                         Spacer()
                         if isHandlingConfigurationFile {
@@ -1596,7 +2059,7 @@ struct SettingsView: View {
                 get: { state.showDockIcon },
                 set: { state.setShowDockIcon($0) }
             ))
-            Divider()
+            HairlineDivider()
             Toggle(isOn: Binding(
                 get: { state.settings.softwareDomainWhitelistEnabled },
                 set: { enabled in
@@ -1623,53 +2086,56 @@ struct SettingsView: View {
 
             compatibilityRuntimeStatus
 
-            DisclosureGroup(
-                Localization.format(.settingsEditBuiltInDomainsValue, state.settings.softwareDomainWhitelistDomains.count),
-                isExpanded: $showWhitelistDomains
-            ) {
-                VStack(alignment: .leading, spacing: 8) {
-                    TextEditor(text: $whitelistDomainsText)
-                        .focused($focusedField, equals: .whitelistDomains)
-                        .font(.system(.caption, design: .monospaced))
-                        .frame(minHeight: 150)
-                        .padding(4)
-                        .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 6))
-                        .disabled(isCompatibilityOperationInProgress)
-                    Text(Localization.string(.settingsEnterOneDomainPerLineAndWildcardFormsAreSupportedSavingImmedi))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    HStack {
-                        Button(Localization.string(.settingsRestoreDefaults)) {
-                            whitelistDomainsText = SoftwareDomainWhitelistManager.domains.joined(separator: "\n")
-                        }
-                        .disabled(isCompatibilityOperationInProgress)
-                        Spacer()
-                        if isCompatibilityOperationInProgress {
-                            ProgressView().controlSize(.small)
-                        } else if let whitelistSaveFeedback {
-                            Label(whitelistSaveFeedback, systemImage: "checkmark.circle.fill")
-                                .font(.caption)
-                                .foregroundStyle(.green)
-                        }
-                        Button(Localization.string(.settingsSaveDomains)) {
-                            savingWhitelistDomains = true
-                            whitelistSaveFeedback = nil
-                            let domains = whitelistDomainsText.components(separatedBy: .newlines)
-                            Task {
-                                let saved = await state.updateSoftwareDomainWhitelistDomains(domains)
-                                if saved {
-                                    whitelistDomainsText = state.settings.softwareDomainWhitelistDomains
-                                        .joined(separator: "\n")
-                                    showWhitelistSaveFeedback()
-                                }
-                                savingWhitelistDomains = false
+            GroupBox {
+                DisclosureGroup(
+                    Localization.format(.settingsEditBuiltInDomainsValue, state.settings.softwareDomainWhitelistDomains.count),
+                    isExpanded: $showWhitelistDomains
+                ) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        TextEditor(text: $whitelistDomainsText)
+                            .focused($focusedField, equals: .whitelistDomains)
+                            .font(.system(.caption, design: .monospaced))
+                            .frame(minHeight: 150)
+                            .padding(4)
+                            .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 6))
+                            .disabled(isCompatibilityOperationInProgress)
+                        Text(Localization.string(.settingsEnterOneDomainPerLineAndWildcardFormsAreSupportedSavingImmedi))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        HStack {
+                            Button(Localization.string(.settingsRestoreDefaults)) {
+                                whitelistDomainsText = SoftwareDomainWhitelistManager.domains.joined(separator: "\n")
                             }
+                            .disabled(isCompatibilityOperationInProgress)
+                            Spacer()
+                            if isCompatibilityOperationInProgress {
+                                ProgressView().controlSize(.small)
+                            } else if let whitelistSaveFeedback {
+                                Label(whitelistSaveFeedback, systemImage: "checkmark.circle.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.green)
+                            }
+                            Button(Localization.string(.settingsSaveDomains)) {
+                                savingWhitelistDomains = true
+                                whitelistSaveFeedback = nil
+                                let domains = whitelistDomainsText.components(separatedBy: .newlines)
+                                Task {
+                                    let saved = await state.updateSoftwareDomainWhitelistDomains(domains)
+                                    if saved {
+                                        whitelistDomainsText = state.settings.softwareDomainWhitelistDomains
+                                            .joined(separator: "\n")
+                                        showWhitelistSaveFeedback()
+                                    }
+                                    savingWhitelistDomains = false
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(isCompatibilityOperationInProgress)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(isCompatibilityOperationInProgress)
                     }
+                    .padding(.top, 6)
                 }
-                .padding(.top, 6)
+                .padding(8)
             }
             Text(Localization.string(.settingsWhenTheAppQuitsItRestoresTheSystemProxySettingsChangedByWhis))
                 .font(.callout)
@@ -1839,6 +2305,11 @@ struct SettingsView: View {
                     if case .ready(let info) = state.environmentStatus {
                         pathRow("Node", info.nodeURL.path)
                         pathRow("Whistle", info.whistleURL.path)
+                    } else {
+                        pathRow("Node", "—")
+                            .hidden()
+                        pathRow("Whistle", "—")
+                            .hidden()
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -2111,6 +2582,9 @@ struct SettingsView: View {
                 .frame(width: 60, alignment: .leading)
             Text(value)
                 .font(.system(.caption, design: .monospaced))
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .textSelection(.enabled)
         }
     }

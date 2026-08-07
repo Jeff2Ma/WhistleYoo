@@ -14,6 +14,8 @@
 	<string>联系作者</string>
 	<key>about.current_version</key>
 	<string>当前版本</string>
+	<key>about.local_test_version_does_not_support_checking_for_updates</key>
+	<string>本地测试版本，不支持检查版本更新</string>
 	<key>about.official_project</key>
 	<string>官方项目</string>
 	<key>about.project_information</key>
@@ -171,10 +173,30 @@ SHA-256：%@</string>
 	<string>切换注释</string>
 	<key>mcp.access</key>
 	<string>访问权限</string>
+	<key>mcp.activity_agent</key>
+	<string>Agent</string>
+	<key>mcp.activity_duration</key>
+	<string>耗时</string>
+	<key>mcp.activity_empty_description</key>
+	<string>连接的 Agent 调用 MCP 工具后，记录会显示在这里。</string>
+	<key>mcp.activity_failed</key>
+	<string>失败</string>
+	<key>mcp.activity_status</key>
+	<string>状态</string>
+	<key>mcp.activity_succeeded</key>
+	<string>成功</string>
+	<key>mcp.activity_time</key>
+	<string>时间</string>
+	<key>mcp.activity_tool</key>
+	<string>工具</string>
 	<key>mcp.authentication_disabled</key>
 	<string>鉴权已关闭。本机任意进程无需 Token 即可调用 localhost MCP 端点。</string>
+	<key>mcp.basic_settings</key>
+	<string>基础设置</string>
 	<key>mcp.bearer_token_rotated</key>
 	<string>Bearer Token 已更新。</string>
+	<key>mcp.configuration</key>
+	<string>MCP 配置</string>
 	<key>mcp.enable_http_authentication</key>
 	<string>启用 HTTP 鉴权</string>
 	<key>mcp.enable_local_server</key>
@@ -195,6 +217,8 @@ SHA-256：%@</string>
 	<string>允许本机 AI Agent 使用与 Whistle 对齐的名称调用 Whistle API。</string>
 	<key>mcp.model_context_protocol</key>
 	<string>模型上下文协议（MCP）</string>
+	<key>mcp.no_recent_activity</key>
+	<string>暂无 MCP 调用记录</string>
 	<key>mcp.previous_runtime_configuration_could_not_be_restored</key>
 	<string>无法恢复之前的 MCP 运行配置。</string>
 	<key>mcp.read_only</key>
@@ -211,6 +235,8 @@ SHA-256：%@</string>
 	<string>MCP 服务设置已应用。</string>
 	<key>mcp.unable_to_start_server_value</key>
 	<string>无法启动 MCP 服务：%@</string>
+	<key>mcp.unknown_agent</key>
+	<string>未知 Agent</string>
 	<key>menu.bring_all_to_front</key>
 	<string>前置全部窗口</string>
 	<key>menu.check_for_updates</key>
@@ -255,6 +281,10 @@ SHA-256：%@</string>
 	<string>窗口</string>
 	<key>menu.zoom</key>
 	<string>缩放</string>
+	<key>mobile.android_setup</key>
+	<string>Android 配置指南</string>
+	<key>mobile.click_to_enlarge_qr</key>
+	<string>点击放大二维码</string>
 	<key>mobile.connect_the_phone_to_the_same_wi_fi</key>
 	<string>手机连接相同 Wi-Fi</string>
 	<key>mobile.copied</key>
@@ -269,6 +299,8 @@ SHA-256：%@</string>
 	<string>当前网络</string>
 	<key>mobile.enter_the_proxy_server_and_port_shown_above</key>
 	<string>服务器和端口填写上方代理信息</string>
+	<key>mobile.export_certificate_file</key>
+	<string>导出根证书文件 (.crt)</string>
 	<key>mobile.failed_to_start</key>
 	<string>启动失败</string>
 	<key>mobile.failed_to_start_the_proxy_engine</key>
@@ -279,6 +311,8 @@ SHA-256：%@</string>
 	<string>安装并信任证书</string>
 	<key>mobile.install_https_root_certificate</key>
 	<string>安装 HTTPS 根证书</string>
+	<key>mobile.ios_setup</key>
+	<string>iOS 配置指南</string>
 	<key>mobile.local_network</key>
 	<string>局域网</string>
 	<key>mobile.make_sure_the_phone_and_mac_are_on_the_same_local_network</key>
@@ -319,6 +353,8 @@ SHA-256：%@</string>
 	<string>服务器</string>
 	<key>mobile.set_http_proxy_to_manual</key>
 	<string>HTTP 代理选择“手动”</string>
+	<key>mobile.share_certificate</key>
+	<string>共享 / AirDrop 证书</string>
 	<key>mobile.start_engine_and_prepare_setup</key>
 	<string>启动引擎并准备配置</string>
 	<key>mobile.start_proxy_engine</key>
@@ -475,6 +511,8 @@ SHA-256：%@</string>
 	<string>完成</string>
 	<key>rules.drag_to_change_the_effective_order</key>
 	<string>拖拽可调整生效顺序</string>
+	<key>rules.duplicate_rule</key>
+	<string>复制规则</string>
 	<key>rules.edit</key>
 	<string>编辑</string>
 	<key>rules.enable_rule_set_value</key>
@@ -632,7 +670,7 @@ SHA-256：%@</string>
 	<key>settings.listen_on_127_0_0_1_only</key>
 	<string>仅监听 127.0.0.1</string>
 	<key>settings.more_settings</key>
-	<string>更多设置</string>
+	<string>设置</string>
 	<key>settings.network_services_using_the_system_proxy</key>
 	<string>应用系统代理的网络服务</string>
 	<key>settings.no_available_network_services_detected</key>
@@ -649,6 +687,10 @@ SHA-256：%@</string>
 	<string>重新安装证书…</string>
 	<key>settings.restore_default_location</key>
 	<string>恢复默认路径</string>
+	<key>settings.restore_default_location_confirmation_message</key>
+	<string>配置文件保存位置将切换回默认路径。是否继续？</string>
+	<key>settings.restore_default_location_confirmation_title</key>
+	<string>恢复默认路径？</string>
 	<key>settings.restore_defaults</key>
 	<string>恢复默认</string>
 	<key>settings.root_certificate_not_installed</key>
@@ -699,6 +741,14 @@ SHA-256：%@</string>
 	<string>使用自定义路径后，应用启动时会从该文件读取配置，设置或规则保存后也会自动原子写回。</string>
 	<key>settings.you_can_skip_this_for_now_but_https_capture_will_not_work</key>
 	<string>可以暂时跳过，但 HTTPS 抓包会失败</string>
+	<key>sidebar.section.enhancements</key>
+	<string>增强功能</string>
+	<key>sidebar.section.more</key>
+	<string>更多</string>
+	<key>sidebar.section.whistle</key>
+	<string>Whistle</string>
+	<key>sidebar.toggle_sidebar</key>
+	<string>隐藏或显示边栏</string>
 	<key>status.a_rule_with_this_name_already_exists</key>
 	<string>已存在同名规则</string>
 	<key>status.another_proxy_configuration_exists_whistleyoo_has_not_taken_control</key>
@@ -809,6 +859,8 @@ SHA-256：%@</string>
 	<string>新建 Value</string>
 	<key>values.delete_value</key>
 	<string>删除 Value</string>
+	<key>values.duplicate_value</key>
+	<string>复制 Values 文件</string>
 	<key>values.edit_the_new_value_on_the_right_then_save_your_changes</key>
 	<string>在右侧编辑新的 Value，完成后保存更改。</string>
 	<key>values.no_matching_values</key>

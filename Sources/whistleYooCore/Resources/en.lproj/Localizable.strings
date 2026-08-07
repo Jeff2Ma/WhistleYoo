@@ -14,6 +14,8 @@
 	<string>Contact the Author</string>
 	<key>about.current_version</key>
 	<string>Current Version</string>
+	<key>about.local_test_version_does_not_support_checking_for_updates</key>
+	<string>Local test versions do not support checking for updates</string>
 	<key>about.official_project</key>
 	<string>Official Project</string>
 	<key>about.project_information</key>
@@ -171,10 +173,30 @@ SHA-256: %@</string>
 	<string>Toggle Comment</string>
 	<key>mcp.access</key>
 	<string>Access</string>
+	<key>mcp.activity_agent</key>
+	<string>Agent</string>
+	<key>mcp.activity_duration</key>
+	<string>Duration</string>
+	<key>mcp.activity_empty_description</key>
+	<string>MCP tool calls from connected agents will appear here.</string>
+	<key>mcp.activity_failed</key>
+	<string>Failed</string>
+	<key>mcp.activity_status</key>
+	<string>Status</string>
+	<key>mcp.activity_succeeded</key>
+	<string>Succeeded</string>
+	<key>mcp.activity_time</key>
+	<string>Time</string>
+	<key>mcp.activity_tool</key>
+	<string>Tool</string>
 	<key>mcp.authentication_disabled</key>
 	<string>Authentication is disabled. Any process on this Mac can call the localhost MCP endpoint without a token.</string>
+	<key>mcp.basic_settings</key>
+	<string>Basic Settings</string>
 	<key>mcp.bearer_token_rotated</key>
 	<string>Bearer token rotated.</string>
+	<key>mcp.configuration</key>
+	<string>MCP Configuration</string>
 	<key>mcp.enable_http_authentication</key>
 	<string>Enable HTTP authentication</string>
 	<key>mcp.enable_local_server</key>
@@ -195,6 +217,8 @@ SHA-256: %@</string>
 	<string>Let local AI agents call Whistle APIs with Whistle-compatible names.</string>
 	<key>mcp.model_context_protocol</key>
 	<string>Model Context Protocol (MCP)</string>
+	<key>mcp.no_recent_activity</key>
+	<string>No recent MCP activity</string>
 	<key>mcp.previous_runtime_configuration_could_not_be_restored</key>
 	<string>The previous MCP runtime configuration could not be restored.</string>
 	<key>mcp.read_only</key>
@@ -211,6 +235,8 @@ SHA-256: %@</string>
 	<string>MCP server settings applied.</string>
 	<key>mcp.unable_to_start_server_value</key>
 	<string>Unable to start the MCP server: %@</string>
+	<key>mcp.unknown_agent</key>
+	<string>Unknown agent</string>
 	<key>menu.bring_all_to_front</key>
 	<string>Bring All to Front</string>
 	<key>menu.check_for_updates</key>
@@ -255,6 +281,10 @@ SHA-256: %@</string>
 	<string>Window</string>
 	<key>menu.zoom</key>
 	<string>Zoom</string>
+	<key>mobile.android_setup</key>
+	<string>Android Setup</string>
+	<key>mobile.click_to_enlarge_qr</key>
+	<string>Click QR code to enlarge</string>
 	<key>mobile.connect_the_phone_to_the_same_wi_fi</key>
 	<string>Connect the phone to the same Wi-Fi</string>
 	<key>mobile.copied</key>
@@ -269,6 +299,8 @@ SHA-256: %@</string>
 	<string>Current Network</string>
 	<key>mobile.enter_the_proxy_server_and_port_shown_above</key>
 	<string>Enter the proxy server and port shown above</string>
+	<key>mobile.export_certificate_file</key>
+	<string>Export Root Certificate (.crt)</string>
 	<key>mobile.failed_to_start</key>
 	<string>Failed to Start</string>
 	<key>mobile.failed_to_start_the_proxy_engine</key>
@@ -279,6 +311,8 @@ SHA-256: %@</string>
 	<string>Install and trust the certificate</string>
 	<key>mobile.install_https_root_certificate</key>
 	<string>Install HTTPS Root Certificate</string>
+	<key>mobile.ios_setup</key>
+	<string>iOS Setup</string>
 	<key>mobile.local_network</key>
 	<string>Local Network</string>
 	<key>mobile.make_sure_the_phone_and_mac_are_on_the_same_local_network</key>
@@ -319,6 +353,8 @@ SHA-256: %@</string>
 	<string>Server</string>
 	<key>mobile.set_http_proxy_to_manual</key>
 	<string>Set HTTP Proxy to Manual</string>
+	<key>mobile.share_certificate</key>
+	<string>Share / AirDrop Certificate</string>
 	<key>mobile.start_engine_and_prepare_setup</key>
 	<string>Start Engine and Prepare Setup</string>
 	<key>mobile.start_proxy_engine</key>
@@ -475,6 +511,8 @@ SHA-256: %@</string>
 	<string>Done</string>
 	<key>rules.drag_to_change_the_effective_order</key>
 	<string>Drag to change the effective order</string>
+	<key>rules.duplicate_rule</key>
+	<string>Duplicate Rule</string>
 	<key>rules.edit</key>
 	<string>Edit</string>
 	<key>rules.enable_rule_set_value</key>
@@ -632,7 +670,7 @@ SHA-256: %@</string>
 	<key>settings.listen_on_127_0_0_1_only</key>
 	<string>Listen on 127.0.0.1 only</string>
 	<key>settings.more_settings</key>
-	<string>More Settings</string>
+	<string>Settings</string>
 	<key>settings.network_services_using_the_system_proxy</key>
 	<string>Network Services Using the System Proxy</string>
 	<key>settings.no_available_network_services_detected</key>
@@ -649,6 +687,10 @@ SHA-256: %@</string>
 	<string>Reinstall Certificate…</string>
 	<key>settings.restore_default_location</key>
 	<string>Restore Default Location</string>
+	<key>settings.restore_default_location_confirmation_message</key>
+	<string>The configuration file save location will be switched back to the default path. Continue?</string>
+	<key>settings.restore_default_location_confirmation_title</key>
+	<string>Restore Default Location?</string>
 	<key>settings.restore_defaults</key>
 	<string>Restore Defaults</string>
 	<key>settings.root_certificate_not_installed</key>
@@ -699,6 +741,14 @@ SHA-256: %@</string>
 	<string>With a custom location, the app reads this file at launch and atomically writes back after settings or rules are saved.</string>
 	<key>settings.you_can_skip_this_for_now_but_https_capture_will_not_work</key>
 	<string>You can skip this for now, but HTTPS capture will not work</string>
+	<key>sidebar.section.enhancements</key>
+	<string>Enhanced Features</string>
+	<key>sidebar.section.more</key>
+	<string>More</string>
+	<key>sidebar.section.whistle</key>
+	<string>Whistle</string>
+	<key>sidebar.toggle_sidebar</key>
+	<string>Hide or Show Sidebar</string>
 	<key>status.a_rule_with_this_name_already_exists</key>
 	<string>A rule with this name already exists</string>
 	<key>status.another_proxy_configuration_exists_whistleyoo_has_not_taken_control</key>
@@ -809,6 +859,8 @@ SHA-256: %@</string>
 	<string>Create Value</string>
 	<key>values.delete_value</key>
 	<string>Delete Value</string>
+	<key>values.duplicate_value</key>
+	<string>Duplicate Value File</string>
 	<key>values.edit_the_new_value_on_the_right_then_save_your_changes</key>
 	<string>Edit the new Value on the right, then save your changes.</string>
 	<key>values.no_matching_values</key>

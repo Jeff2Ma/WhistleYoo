@@ -26,6 +26,10 @@ Agent API，因此需要 Whistle 2.10.7 或更高版本。
 MCP 标签页会默认展示当前 HTTP MCP JSON。端口或鉴权开关变化时，展示内容会
 实时更新；点击配置右上角的 **复制** 按钮即可复制完整内容。
 
+同一份配置可以同时添加到多个 Coding Agent。WhistleYoo 会为每个客户端建立
+独立的 MCP 会话；某个客户端重连或主动断开，不会中断其他客户端的调用。所有
+客户端仍共享 WhistleYoo 中设置的访问权限和 Bearer Token。
+
 ### HTTP（开启鉴权）
 
 HTTP 鉴权默认开启。页面展示的配置会包含当前 Token：

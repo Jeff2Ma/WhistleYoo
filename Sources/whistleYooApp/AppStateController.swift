@@ -33,9 +33,48 @@ struct MCPAuditEvent: Identifiable {
     let id = UUID()
     let date: Date
     let tool: String
+    let client: MCPClientIdentity
     let succeeded: Bool
     let durationMilliseconds: Int
     let message: String?
+}
+
+struct MCPClientIdentity: Equatable, Sendable {
+    let reportedName: String?
+    let version: String?
+
+    static let unknown = MCPClientIdentity(reportedName: nil, version: nil)
+
+    init(reportedName: String?, version: String?) {
+        self.reportedName = Self.normalized(reportedName, maximumLength: 80)
+        self.version = Self.normalized(version, maximumLength: 40)
+    }
+
+    var displayName: String? {
+        guard let reportedName else { return nil }
+        let normalizedName = reportedName.lowercased()
+        if normalizedName == "copilot"
+            || normalizedName.contains("codebuddy")
+            || normalizedName.contains("coding-copilot") {
+            return "CodeBuddy"
+        }
+        if normalizedName.contains("cursor") { return "Cursor" }
+        if normalizedName.contains("codex") { return "Codex" }
+        if normalizedName.contains("claude") { return "Claude" }
+        if normalizedName.contains("windsurf") { return "Windsurf" }
+        if normalizedName == "zed" || normalizedName.contains("zed editor") { return "Zed" }
+        return reportedName
+    }
+
+    private static func normalized(_ value: String?, maximumLength: Int) -> String? {
+        guard let value else { return nil }
+        let compact = value
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+        guard !compact.isEmpty else { return nil }
+        return String(compact.prefix(maximumLength))
+    }
 }
 
 @MainActor
@@ -87,6 +126,7 @@ final class AppStateController: ObservableObject {
     private let softwareWhitelistManager: SoftwareDomainWhitelistManager
     private let rulesManager: WhistleRulesManager
     private let valuesManager: WhistleValuesManager
+    private let pluginsManager: WhistlePluginsManager
     private let interfaceManager: NetworkInterfaceManager
     private let portChecker: PortAvailabilityChecking
     private let configurationStore: WhistleYooConfigurationStore
@@ -98,7 +138,13 @@ final class AppStateController: ObservableObject {
     private var configurationSyncTask: Task<Void, Never>?
     private var pendingStartupRules: WhistleRulesSnapshot?
     private var pendingStartupValues: WhistleValuesSnapshot?
+    private var pendingStartupPlugins: WhistlePluginsSnapshot?
     private var hasLoadedValuesSnapshot = false
+    private var pluginsSnapshot = WhistlePluginsSnapshot()
+    private var hasLoadedPluginsSnapshot = false
+    private var installedPluginNames = Set<String>()
+    private var isLoadingPlugins = false
+    private var isRefreshingPortableSnapshots = false
     private static let configurationLocationKey = "WhistleYooConfigurationFilePath"
 
     init(
@@ -108,6 +154,7 @@ final class AppStateController: ObservableObject {
         softwareWhitelistManager: SoftwareDomainWhitelistManager = SoftwareDomainWhitelistManager(),
         rulesManager: WhistleRulesManager = WhistleRulesManager(),
         valuesManager: WhistleValuesManager = WhistleValuesManager(),
+        pluginsManager: WhistlePluginsManager = WhistlePluginsManager(),
         interfaceManager: NetworkInterfaceManager = NetworkInterfaceManager(),
         portChecker: PortAvailabilityChecking = PortChecker(),
         configurationStore: WhistleYooConfigurationStore = WhistleYooConfigurationStore(),
@@ -120,6 +167,7 @@ final class AppStateController: ObservableObject {
         self.softwareWhitelistManager = softwareWhitelistManager
         self.rulesManager = rulesManager
         self.valuesManager = valuesManager
+        self.pluginsManager = pluginsManager
         self.interfaceManager = interfaceManager
         self.portChecker = portChecker
         self.configurationStore = configurationStore
@@ -280,6 +328,7 @@ final class AppStateController: ObservableObject {
                 settings = configuration.settings
                 pendingStartupRules = configuration.rules
                 pendingStartupValues = configuration.values
+                pendingStartupPlugins = configuration.plugins
                 try settingsStore.save(settings)
             } else {
                 settings = try settingsStore.load()
@@ -653,6 +702,7 @@ final class AppStateController: ObservableObject {
 
     func recordMCPAudit(
         tool: String,
+        client: MCPClientIdentity = .unknown,
         succeeded: Bool,
         startedAt: Date,
         message: String? = nil
@@ -661,6 +711,7 @@ final class AppStateController: ObservableObject {
             MCPAuditEvent(
                 date: Date(),
                 tool: tool,
+                client: client,
                 succeeded: succeeded,
                 durationMilliseconds: max(0, Int(Date().timeIntervalSince(startedAt) * 1_000)),
                 message: message
@@ -709,10 +760,14 @@ final class AppStateController: ObservableObject {
             if !hasLoadedValuesSnapshot {
                 guard await loadValues() else { return false }
             }
+            if !hasLoadedPluginsSnapshot {
+                guard await loadPlugins() else { return false }
+            }
             let configuration = WhistleYooConfigurationFile(
                 settings: settings,
                 rules: rulesSnapshot,
-                values: valuesSnapshot
+                values: valuesSnapshot,
+                plugins: pluginsSnapshot
             )
             try configurationStore.save(configuration, to: url.standardizedFileURL)
             return true
@@ -747,7 +802,9 @@ final class AppStateController: ObservableObject {
     func importConfiguration(from url: URL) async -> Bool {
         guard !isImportingConfiguration, !isTransitioning,
               !isLoadingRules, !isSavingRules,
-              !isLoadingValues, !isSavingValues else {
+              !isLoadingValues, !isSavingValues,
+              !isLoadingPlugins,
+              !isRefreshingPortableSnapshots else {
             report(WhistleYooError.commandFailed(Localization.string(.statusWaitForTheCurrentOperationToFinishBeforeImportingAConfiguratio)))
             return false
         }
@@ -766,10 +823,13 @@ final class AppStateController: ObservableObject {
         let originalLaunchAtLogin = launchAtLoginEnabled
         let originalPendingStartupRules = pendingStartupRules
         let originalPendingStartupValues = pendingStartupValues
+        let originalPendingStartupPlugins = pendingStartupPlugins
         var originalRules: WhistleRulesSnapshot?
         var originalValues: WhistleValuesSnapshot?
+        var originalPlugins: WhistlePluginsSnapshot?
         pendingStartupRules = nil
         pendingStartupValues = nil
+        pendingStartupPlugins = nil
         isImportingConfiguration = true
 
         do {
@@ -785,6 +845,14 @@ final class AppStateController: ObservableObject {
                 }
             }
             originalValues = valuesSnapshot
+            if !hasLoadedPluginsSnapshot {
+                guard await loadPlugins() else {
+                    throw WhistleYooError.commandFailed(
+                        Localization.string(.pluginsFailedToLoadWhistlePlugins)
+                    )
+                }
+            }
+            originalPlugins = pluginsSnapshot
 
             var suspendedMCPSettings = originalSettings.mcp
             suspendedMCPSettings.enabled = false
@@ -804,6 +872,11 @@ final class AppStateController: ObservableObject {
             try requireSoftwareDomainWhitelistSynchronization()
             try await applyImportedRulesThrowing(imported.rules)
             try await applyImportedValuesThrowing(imported.values)
+            if let importedPlugins = imported.plugins {
+                try await applyImportedPluginsThrowing(importedPlugins)
+            } else if let baseURL = uiURL {
+                try await reloadPlugins(baseURL: baseURL)
+            }
             guard await applyMCPRuntimeSettings(settings.mcp) else {
                 throw WhistleYooError.commandFailed(
                     lastErrorMessage
@@ -848,6 +921,9 @@ final class AppStateController: ObservableObject {
                     if let originalValues {
                         try await applyImportedValuesThrowing(originalValues)
                     }
+                    if let originalPlugins {
+                        try await applyImportedPluginsThrowing(originalPlugins)
+                    }
                     guard await applyMCPRuntimeSettings(originalSettings.mcp) else {
                         throw WhistleYooError.commandFailed(
                             Localization.string(.mcpPreviousRuntimeConfigurationCouldNotBeRestored)
@@ -862,6 +938,7 @@ final class AppStateController: ObservableObject {
                 } catch {
                     pendingStartupRules = originalPendingStartupRules
                     pendingStartupValues = originalPendingStartupValues
+                    pendingStartupPlugins = originalPendingStartupPlugins
                     isImportingConfiguration = false
                     report(WhistleYooError.commandFailed(Localization.format(
                         .statusConfigurationImportFailedValueRestoringThePreviousConfigurationA,
@@ -873,6 +950,7 @@ final class AppStateController: ObservableObject {
             }
             pendingStartupRules = originalPendingStartupRules
             pendingStartupValues = originalPendingStartupValues
+            pendingStartupPlugins = originalPendingStartupPlugins
             isImportingConfiguration = false
             report(importError)
             return false
@@ -1089,6 +1167,7 @@ final class AppStateController: ObservableObject {
         do {
             valuesSnapshot = try await valuesManager.load(baseURL: baseURL)
             hasLoadedValuesSnapshot = true
+            await synchronizeConfigurationFile()
             return true
         } catch {
             report(error)
@@ -1110,6 +1189,22 @@ final class AppStateController: ObservableObject {
             )
             valuesSnapshot = try await valuesManager.load(baseURL: baseURL)
             hasLoadedValuesSnapshot = true
+            await synchronizeConfigurationFile()
+            return true
+        } catch {
+            report(error)
+            return false
+        }
+    }
+
+    @discardableResult
+    func loadPlugins() async -> Bool {
+        guard !isLoadingPlugins else { return false }
+        isLoadingPlugins = true
+        defer { isLoadingPlugins = false }
+        guard await startEngine(), let baseURL = uiURL else { return false }
+        do {
+            try await reloadPlugins(baseURL: baseURL)
             await synchronizeConfigurationFile()
             return true
         } catch {
@@ -1274,6 +1369,7 @@ final class AppStateController: ObservableObject {
         defer { isPerformingEngineOperation = false }
         configurationSyncTask?.cancel()
         configurationSyncTask = nil
+        await refreshPortableWhistleSnapshots()
         await synchronizeConfigurationFile()
         let services = proxyCleanupServices
         let proxyPort = settings.engine.proxyPort
@@ -1333,7 +1429,13 @@ final class AppStateController: ObservableObject {
            await applyImportedValues(pendingStartupValues) {
             self.pendingStartupValues = nil
         }
-        if pendingStartupRules == nil, pendingStartupValues == nil {
+        if let pendingStartupPlugins,
+           await applyImportedPlugins(pendingStartupPlugins) {
+            self.pendingStartupPlugins = nil
+        }
+        if pendingStartupRules == nil,
+           pendingStartupValues == nil,
+           pendingStartupPlugins == nil {
             if !hasCompleteRulesSnapshot {
                 do {
                     try await reloadRules(baseURL: engine.uiURL)
@@ -1342,7 +1444,19 @@ final class AppStateController: ObservableObject {
                 }
             }
             if !hasLoadedValuesSnapshot {
-                _ = await loadValues()
+                do {
+                    valuesSnapshot = try await valuesManager.load(baseURL: engine.uiURL)
+                    hasLoadedValuesSnapshot = true
+                } catch {
+                    report(error)
+                }
+            }
+            if !hasLoadedPluginsSnapshot {
+                do {
+                    try await reloadPlugins(baseURL: engine.uiURL)
+                } catch {
+                    report(error)
+                }
             }
             await synchronizeConfigurationFile()
         }
@@ -1375,6 +1489,7 @@ final class AppStateController: ObservableObject {
                 guard let self, !Task.isCancelled else { return }
                 await self.engine?.checkAndRecover()
                 await self.refreshSystemProxyStatus()
+                await self.refreshPortableWhistleSnapshots()
                 if !self.isEngineRunning,
                    (self.systemProxyStatus == .enabledByThisApp
                     || self.systemProxyStatus == .partiallyEnabled) {
@@ -1386,6 +1501,100 @@ final class AppStateController: ObservableObject {
 
     private func reloadRules(baseURL: URL) async throws {
         rulesSnapshot = snapshotForEditing(try await rulesManager.load(baseURL: baseURL))
+    }
+
+    private func reloadPlugins(baseURL: URL) async throws {
+        var installed = try await pluginsManager.load(baseURL: baseURL)
+        installed = try await applyingRetainedPluginPreferences(
+            to: installed,
+            baseURL: baseURL
+        )
+        if hasLoadedPluginsSnapshot {
+            pluginsSnapshot = pluginsSnapshot.mergingInstalled(installed)
+        } else if let persisted = try? configurationStore.load(from: configurationFileURL).plugins {
+            try await pluginsManager.applyChanges(
+                from: installed,
+                to: persisted,
+                baseURL: baseURL
+            )
+            installed = try await pluginsManager.load(baseURL: baseURL)
+            pluginsSnapshot = persisted.mergingInstalled(installed)
+        } else {
+            pluginsSnapshot = installed
+        }
+        installedPluginNames = Set(installed.plugins.map(\.name))
+        hasLoadedPluginsSnapshot = true
+    }
+
+    private func applyingRetainedPluginPreferences(
+        to installed: WhistlePluginsSnapshot,
+        baseURL: URL
+    ) async throws -> WhistlePluginsSnapshot {
+        guard hasLoadedPluginsSnapshot else { return installed }
+        let desired = pluginsSnapshot.applyingRetainedPreferences(
+            to: installed,
+            previouslyInstalledNames: installedPluginNames
+        )
+        guard desired != installed else { return installed }
+        try await pluginsManager.applyChanges(from: installed, to: desired, baseURL: baseURL)
+        return try await pluginsManager.load(baseURL: baseURL)
+    }
+
+    /// Picks up changes made by Whistle's Web UI or the MCP API. Native editor
+    /// saves already synchronize immediately; this is the fallback for writes
+    /// that bypass AppStateController.
+    private func refreshPortableWhistleSnapshots() async {
+        guard isEngineRunning,
+              !isImportingConfiguration,
+              !isLoadingValues,
+              !isSavingValues,
+              !isLoadingPlugins,
+              !isRefreshingPortableSnapshots,
+              let baseURL = uiURL else { return }
+        isRefreshingPortableSnapshots = true
+        defer { isRefreshingPortableSnapshots = false }
+
+        var changed = false
+        if let updatedValues = try? await valuesManager.load(baseURL: baseURL),
+           !isImportingConfiguration,
+           !hasLoadedValuesSnapshot || updatedValues != valuesSnapshot {
+            valuesSnapshot = updatedValues
+            hasLoadedValuesSnapshot = true
+            changed = true
+        }
+        if !isImportingConfiguration,
+           var installedPlugins = try? await pluginsManager.load(baseURL: baseURL),
+           !isImportingConfiguration {
+            let currentNames = Set(installedPlugins.plugins.map(\.name))
+            let newlyAvailableNames = currentNames.subtracting(installedPluginNames)
+            do {
+                installedPlugins = try await applyingRetainedPluginPreferences(
+                    to: installedPlugins,
+                    baseURL: baseURL
+                )
+            } catch {
+                // Retain the portable preference and retry on the next monitor
+                // pass instead of replacing it with a plugin's default state.
+                installedPlugins = WhistlePluginsSnapshot(
+                    areAllPluginsDisabled: installedPlugins.areAllPluginsDisabled,
+                    plugins: installedPlugins.plugins.filter {
+                        !newlyAvailableNames.contains($0.name)
+                    }
+                )
+            }
+            let updatedPlugins = hasLoadedPluginsSnapshot
+                ? pluginsSnapshot.mergingInstalled(installedPlugins)
+                : installedPlugins
+            if !hasLoadedPluginsSnapshot || updatedPlugins != pluginsSnapshot {
+                pluginsSnapshot = updatedPlugins
+                hasLoadedPluginsSnapshot = true
+                changed = true
+            }
+            installedPluginNames = Set(installedPlugins.plugins.map(\.name))
+        }
+        if changed {
+            await synchronizeConfigurationFile()
+        }
     }
 
     private var hasCompleteRulesSnapshot: Bool {
@@ -1458,6 +1667,32 @@ final class AppStateController: ObservableObject {
         hasLoadedValuesSnapshot = true
     }
 
+    private func applyImportedPlugins(_ imported: WhistlePluginsSnapshot) async -> Bool {
+        do {
+            try await applyImportedPluginsThrowing(imported)
+            return true
+        } catch {
+            report(error)
+            return false
+        }
+    }
+
+    private func applyImportedPluginsThrowing(_ imported: WhistlePluginsSnapshot) async throws {
+        guard let baseURL = uiURL else {
+            throw WhistleYooError.commandFailed(
+                Localization.string(.pluginsStartTheProxyEngineToUseWhistlePlugins)
+            )
+        }
+        let installed = try await pluginsManager.load(baseURL: baseURL)
+        try await pluginsManager.applyChanges(from: installed, to: imported, baseURL: baseURL)
+        let applied = try await pluginsManager.load(baseURL: baseURL)
+        // Keep preferences for plugins that are absent on this Mac. They are
+        // inert locally but remain available to another Mac sharing the file.
+        pluginsSnapshot = imported.mergingInstalled(applied)
+        installedPluginNames = Set(applied.plugins.map(\.name))
+        hasLoadedPluginsSnapshot = true
+    }
+
     private func persistSettings() throws {
         try settingsStore.save(settings)
         scheduleConfigurationSynchronization()
@@ -1479,7 +1714,8 @@ final class AppStateController: ObservableObject {
         // until after `launch()` has returned.
         guard !isImportingConfiguration,
               pendingStartupRules == nil,
-              pendingStartupValues == nil else { return }
+              pendingStartupValues == nil,
+              pendingStartupPlugins == nil else { return }
         configurationSyncTask?.cancel()
         configurationSyncTask = Task { [weak self] in
             await Task.yield()
@@ -1506,9 +1742,22 @@ final class AppStateController: ObservableObject {
         } else {
             return
         }
+        let plugins: WhistlePluginsSnapshot?
+        if hasLoadedPluginsSnapshot {
+            plugins = pluginsSnapshot
+        } else if let existing = try? configurationStore.load(from: configurationFileURL) {
+            plugins = existing.plugins
+        } else {
+            return
+        }
         do {
             try configurationStore.save(
-                WhistleYooConfigurationFile(settings: settings, rules: rules, values: values),
+                WhistleYooConfigurationFile(
+                    settings: settings,
+                    rules: rules,
+                    values: values,
+                    plugins: plugins
+                ),
                 to: configurationFileURL
             )
         } catch {

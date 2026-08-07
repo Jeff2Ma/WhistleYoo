@@ -31,7 +31,7 @@ WhistleYoo is an open-source macOS companion for [Whistle](https://github.com/av
 - **The full Whistle console**: Inspect requests and use familiar Whistle tools such as Inspectors, Timeline, Replay, and Composer without leaving the app.
 - **Native rule management**: Search, create, enable, disable, and reorder Whistle rule sets with support for the complete Whistle rule syntax.
 - **Guided mobile setup**: Copy the local proxy details and download the HTTPS root certificate with a QR code.
-- **Isolated and portable**: Keep Whistle's default storage untouched and save settings plus rules in one JSON configuration file.
+- **Isolated and portable**: Keep Whistle's default storage untouched and save settings, Rules, Values, and plugin preferences in one JSON configuration file.
 - **English and Chinese UI with in-app updates**: Follow the macOS language and check for new releases through Sparkle.
 
 ## Download and Requirements
@@ -146,7 +146,7 @@ The default configuration file is:
 ~/Library/Application Support/com.devework.whistleyoo/WhistleYoo.json
 ```
 
-This JSON file contains both app settings and the complete rules snapshot. You can move it to iCloud Drive or another synchronized directory from Settings to reuse the configuration across Macs. Because it may contain local paths, domains, and complete rules, do not upload it to a public location without reviewing it first.
+This JSON file contains app settings, complete Rules and Values snapshots, and plugin enablement preferences. You can move it to iCloud Drive or another synchronized directory from Settings to reuse the configuration across Macs. Plugin packages are not installed automatically: preferences for plugins missing on a Mac are skipped there and retained in the file for other Macs. Because the file may contain local paths, domains, rules, and Value contents, do not upload it to a public location without reviewing it first.
 
 ## AI Agent Integration (MCP)
 
@@ -160,8 +160,10 @@ extensions stay under `app_*`.
 The HTTP endpoint listens only on `127.0.0.1`. Bearer token authentication is
 enabled by default and can be disabled explicitly in Settings; when disabled,
 the server ignores the `Authorization` header. Sensitive headers are redacted
-and large bodies are truncated by default. See the [MCP guide](docs/mcp.md) for
-transports, access rules, the naming contract, and the complete tool list.
+and large bodies are truncated by default. The same HTTP configuration can be
+used by multiple coding agents concurrently, with an independent MCP session
+for each client. See the [MCP guide](docs/mcp.md) for transports, access rules,
+the naming contract, and the complete tool list.
 
 ## Troubleshooting
 

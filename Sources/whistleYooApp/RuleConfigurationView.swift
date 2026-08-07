@@ -114,6 +114,23 @@ final class RuleConfigurationDraft: ObservableObject {
         selectedName = name
     }
 
+    func duplicate(name: String) {
+        guard let target = documents.first(where: { $0.name == name }), !target.isDefault else { return }
+        var index = 1
+        var candidate = "\(name) (副本)"
+        while documents.contains(where: { $0.name == candidate }) {
+            index += 1
+            candidate = "\(name) (副本 \(index))"
+        }
+        let copy = WhistleRuleDocument(name: candidate, value: target.value, isEnabled: true)
+        if let sourceIdx = documents.firstIndex(where: { $0.name == name }) {
+            documents.insert(copy, at: sourceIdx + 1)
+        } else {
+            documents.append(copy)
+        }
+        selectedName = candidate
+    }
+
     func rename(name: String, to newName: String) {
         update(name: name) { document in
             guard !document.isDefault else { return document }
@@ -154,6 +171,23 @@ final class RuleConfigurationDraft: ObservableObject {
     func createValue(name: String) {
         valueDocuments.append(WhistleValueDocument(name: name, value: ""))
         selectedValueName = name
+    }
+
+    func duplicateValue(name: String) {
+        guard let target = valueDocuments.first(where: { $0.name == name }) else { return }
+        var index = 1
+        var candidate = "\(name) (副本)"
+        while valueDocuments.contains(where: { $0.name == candidate }) {
+            index += 1
+            candidate = "\(name) (副本 \(index))"
+        }
+        let copy = WhistleValueDocument(name: candidate, value: target.value)
+        if let sourceIdx = valueDocuments.firstIndex(where: { $0.name == name }) {
+            valueDocuments.insert(copy, at: sourceIdx + 1)
+        } else {
+            valueDocuments.append(copy)
+        }
+        selectedValueName = candidate
     }
 
     func renameValue(name: String, to newName: String) {
@@ -205,7 +239,7 @@ final class RuleConfigurationDraft: ObservableObject {
     }
 }
 
-private enum RulesValuesWorkspace: String, CaseIterable, Identifiable {
+enum RulesValuesWorkspace: String, CaseIterable, Identifiable {
     case rules
     case values
 
@@ -219,11 +253,17 @@ private enum RulesValuesWorkspace: String, CaseIterable, Identifiable {
     }
 }
 
+private enum RulesValuesLayout {
+    static let listMinimumWidth: CGFloat = 220
+    static let listIdealWidth: CGFloat = 250
+    static let listMaximumWidth: CGFloat = 320
+    static let editorMinimumWidth: CGFloat = 360
+}
+
 struct RuleConfigurationView: View {
     private static let defaultRuleExample = """
     # 初始规则可以让一些日常使用软件在代理下工作
     # command+s to save
-    # Double click to enable/disable rule
 
     # hosts bindings
     # 10.101.73.189  g.alicdn.com
@@ -241,16 +281,14 @@ struct RuleConfigurationView: View {
 
     @ObservedObject var state: AppStateController
     @ObservedObject var draft: RuleConfigurationDraft
+    @Binding var workspace: RulesValuesWorkspace
 
-    @State private var workspace = RulesValuesWorkspace.rules
     @State private var filter = ""
     @State private var isCreating = false
     @State private var isDeleting = false
     @State private var isDiscardingForReload = false
     @State private var pendingReloadWorkspace: RulesValuesWorkspace?
     @State private var createName = ""
-    @State private var saveFeedbackWorkspaces: Set<RulesValuesWorkspace> = []
-    @State private var saveFeedbackIDs: [RulesValuesWorkspace: UUID] = [:]
     @State private var editorPosition = WhistleEditorPosition()
 
     private var selectedName: String? {
@@ -259,11 +297,7 @@ struct RuleConfigurationView: View {
     }
 
     private var editorValue: String {
-        get { selectedDocument?.value ?? "" }
-        nonmutating set {
-            guard let selectedName else { return }
-            draft.updateValue(newValue, name: selectedName)
-        }
+        selectedDocument?.value ?? ""
     }
 
     private var editorEnabled: Bool {
@@ -283,16 +317,18 @@ struct RuleConfigurationView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            workspaceToolbar
-            Divider()
             workspaceSwitcher
-            Divider()
+            HairlineDivider()
             if workspace == .rules {
                 HSplitView {
                     ruleList
-                        .frame(minWidth: 230, idealWidth: 255, maxWidth: 320)
+                        .frame(
+                            minWidth: RulesValuesLayout.listMinimumWidth,
+                            idealWidth: RulesValuesLayout.listIdealWidth,
+                            maxWidth: RulesValuesLayout.listMaximumWidth
+                        )
                     editor
-                        .frame(minWidth: 460)
+                        .frame(minWidth: RulesValuesLayout.editorMinimumWidth)
                 }
             } else {
                 ValuesConfigurationContent(
@@ -361,50 +397,6 @@ struct RuleConfigurationView: View {
         }
     }
 
-    private var workspaceToolbar: some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(Localization.string(.rulesConfiguration))
-                    .font(.title3.weight(.semibold))
-                Text(Localization.string(.rulesCombineAndApplyRuleSetsFromWhistleInListOrder))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            if isDirty {
-                Label(Localization.string(.rulesUnsaved), systemImage: "circle.fill")
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.orange)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.orange.opacity(0.1), in: Capsule())
-            } else if saveFeedbackWorkspaces.contains(workspace) {
-                Label(Localization.string(.rulesSaved), systemImage: "checkmark.circle.fill")
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.green)
-            }
-            Spacer()
-            if currentWorkspaceOperationInProgress {
-                ProgressView()
-                    .controlSize(.small)
-            }
-            Button {
-                requestReload(workspace)
-            } label: { Text(Localization.string(.rulesRefresh)) }
-            .help(workspace == .rules
-                ? Localization.string(.rulesReloadRulesFromWhistle)
-                : Localization.string(.valuesReloadValuesFromWhistle))
-            .disabled(currentWorkspaceOperationInProgress)
-
-            Button(Localization.string(.rulesSave)) { saveCurrentWorkspace() }
-            .buttonStyle(.borderedProminent)
-            .keyboardShortcut("s", modifiers: .command)
-            .disabled(!isDirty || currentWorkspaceOperationInProgress)
-        }
-        .padding(.horizontal, 16)
-        .frame(height: 58)
-        .background(.bar)
-    }
-
     private var workspaceSwitcher: some View {
         HStack(spacing: 10) {
             workspaceButton(.rules, symbol: "doc.text")
@@ -460,7 +452,8 @@ struct RuleConfigurationView: View {
             }
             .foregroundStyle(isSelected ? Color.accentColor : Color.primary)
             .padding(.horizontal, 11)
-            .frame(width: 210, height: 48)
+            .frame(minWidth: 160, idealWidth: 210, maxWidth: 210)
+            .frame(height: 48)
             .background(
                 isSelected
                     ? Color.accentColor.opacity(0.1)
@@ -627,6 +620,55 @@ struct RuleConfigurationView: View {
             isInteractionDisabled: rulesOperationInProgress,
             select: { selectedName = document.name }
         )
+        .contextMenu {
+            if !document.isDefault {
+                Button {
+                    setRuleEnabled(!document.isEnabled, document: document)
+                } label: {
+                    Label(
+                        document.isEnabled ? Localization.string(.rulesNotEnabled) : Localization.string(.rulesEnabled),
+                        systemImage: document.isEnabled ? "power" : "checkmark.circle"
+                    )
+                }
+
+                Button {
+                    draft.duplicate(name: document.name)
+                } label: {
+                    Label(Localization.string(.rulesDuplicateRule), systemImage: "doc.on.doc")
+                }
+
+                Button {
+                    presentRenameAlert(for: document)
+                } label: {
+                    Label(Localization.string(.rulesRenameRule), systemImage: "pencil")
+                }
+
+                Divider()
+
+                Button {
+                    moveSelectedRule(by: -1)
+                } label: {
+                    Label(Localization.string(.rulesMoveUp), systemImage: "arrow.up")
+                }
+                .disabled(!canMoveSelectedRuleUp)
+
+                Button {
+                    moveSelectedRule(by: 1)
+                } label: {
+                    Label(Localization.string(.rulesMoveDown), systemImage: "arrow.down")
+                }
+                .disabled(!canMoveSelectedRuleDown)
+
+                Divider()
+
+                Button(role: .destructive) {
+                    selectedName = document.name
+                    isDeleting = true
+                } label: {
+                    Label(Localization.string(.rulesDeleteRule), systemImage: "trash")
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -654,6 +696,19 @@ struct RuleConfigurationView: View {
                     }
                     Spacer()
 
+                    if !document.isDefault {
+                        Button {
+                            draft.duplicate(name: document.name)
+                        } label: {
+                            Image(systemName: "doc.on.doc")
+                                .frame(width: 26, height: 26)
+                        }
+                        .buttonStyle(HoverIconButtonStyle())
+                        .help(Localization.string(.rulesDuplicateRule))
+                        .accessibilityLabel(Localization.string(.rulesDuplicateRule))
+                        .disabled(rulesOperationInProgress)
+                    }
+
                     Button(role: .destructive) {
                         isDeleting = true
                     } label: {
@@ -669,13 +724,10 @@ struct RuleConfigurationView: View {
                 .frame(height: 48)
                 .background(Color(nsColor: .controlBackgroundColor).opacity(0.55))
 
-                Divider()
+                HairlineDivider()
 
                 WhistleCodeEditor(
-                    text: Binding(
-                        get: { displayedEditorValue },
-                        set: { editorValue = $0 }
-                    ),
+                    text: editorBinding(for: document),
                     documentID: "rules:\(document.name)",
                     language: .rules,
                     isEditable: !document.isDefault && !rulesOperationInProgress,
@@ -687,29 +739,16 @@ struct RuleConfigurationView: View {
                 .background(Color(nsColor: .windowBackgroundColor))
                 .clipped()
 
-                Divider()
+                HairlineDivider()
 
-                HStack {
-                    Text(document.isDefault
+                EditorStatusBar(
+                    hint: document.isDefault
                         ? defaultCompatibilityHint
-                        : Localization.string(.rulesEnterOneRulePerLineTheFullWhistleRuleSyntaxIsSupported))
-                    Spacer()
-                    if !filter.isEmpty {
-                        Text(Localization.format(.rulesValueMatches, Int64(editorMatchCount)))
-                        Text("·")
-                    }
-                    Text(Localization.format(.rulesValueLines, Int64(lineCount)))
-                    Text("·")
-                    Text(Localization.format(
-                        .editorLineAndColumn,
-                        Int64(editorPosition.line),
-                        Int64(editorPosition.column)
-                    ))
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 14)
-                .frame(height: 32)
+                        : Localization.string(.rulesEnterOneRulePerLineTheFullWhistleRuleSyntaxIsSupported),
+                    matchCount: filter.isEmpty ? nil : editorMatchCount,
+                    lineCount: lineCount,
+                    position: editorPosition
+                )
             }
         } else {
             VStack(spacing: 12) {
@@ -738,6 +777,17 @@ struct RuleConfigurationView: View {
 
     private var selectedDocument: WhistleRuleDocument? {
         draft.documents.first { $0.name == selectedName }
+    }
+
+    private func editorBinding(for document: WhistleRuleDocument) -> Binding<String> {
+        Binding(
+            get: {
+                let current = draft.documents.first { $0.name == document.name } ?? document
+                guard current.isDefault, current.value.isEmpty else { return current.value }
+                return Self.defaultRuleExample
+            },
+            set: { draft.updateValue($0, name: document.name) }
+        )
     }
 
     private var selectedMovableRuleIndex: Int? {
@@ -837,23 +887,12 @@ struct RuleConfigurationView: View {
         return count
     }
 
-    private var isDirty: Bool {
-        workspace == .rules ? draft.rulesAreDirty : draft.valuesAreDirty
-    }
-
     private var rulesOperationInProgress: Bool {
         state.isLoadingRules || state.isSavingRules
     }
 
     private var valuesOperationInProgress: Bool {
         state.isLoadingValues || state.isSavingValues
-    }
-
-    private var currentWorkspaceOperationInProgress: Bool {
-        switch workspace {
-        case .rules: return rulesOperationInProgress
-        case .values: return valuesOperationInProgress
-        }
     }
 
     private var lineCount: Int {
@@ -939,15 +978,12 @@ struct RuleConfigurationView: View {
         guard draft.rulesAreDirty, !rulesOperationInProgress else { return }
         let updatedRules = draft.snapshot
         let preferredRuleName = selectedName
-        clearSaveFeedback(for: .rules)
-
         Task {
             if await state.saveRulesSnapshot(updatedRules) {
                 draft.replace(
                     with: state.rulesSnapshot,
                     preferredName: preferredRuleName
                 )
-                showSaveFeedback(for: .rules)
             }
         }
     }
@@ -956,15 +992,12 @@ struct RuleConfigurationView: View {
         guard draft.valuesAreDirty, !valuesOperationInProgress else { return }
         let updatedValues = draft.valuesSnapshot
         let preferredValueName = draft.selectedValueName
-        clearSaveFeedback(for: .values)
-
         Task {
             if await state.saveValuesSnapshot(updatedValues) {
                 draft.replaceValues(
                     with: state.valuesSnapshot,
                     preferredName: preferredValueName
                 )
-                showSaveFeedback(for: .values)
             }
         }
     }
@@ -976,7 +1009,6 @@ struct RuleConfigurationView: View {
 
     private func reloadRules() {
         guard !rulesOperationInProgress else { return }
-        clearSaveFeedback(for: .rules)
         Task {
             if await state.loadRules() {
                 draft.replace(with: state.rulesSnapshot, preferredName: selectedName)
@@ -986,7 +1018,6 @@ struct RuleConfigurationView: View {
 
     private func reloadValues() {
         guard !valuesOperationInProgress else { return }
-        clearSaveFeedback(for: .values)
         Task {
             if await state.loadValues() {
                 draft.replaceValues(
@@ -1036,21 +1067,63 @@ struct RuleConfigurationView: View {
         return "Rules \(index)"
     }
 
-    private func clearSaveFeedback(for target: RulesValuesWorkspace) {
-        saveFeedbackWorkspaces.remove(target)
-        saveFeedbackIDs[target] = nil
+}
+
+private struct EditorStatusBar: View {
+    let hint: String
+    let matchCount: Int?
+    let lineCount: Int
+    let position: WhistleEditorPosition
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 8) {
+                Text(hint)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+                Spacer(minLength: 8)
+                metrics
+            }
+
+            HStack(spacing: 8) {
+                Spacer(minLength: 0)
+                metrics
+            }
+
+            HStack {
+                Spacer(minLength: 0)
+                positionText
+            }
+        }
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 14)
+        .frame(height: 32)
+        .help(hint)
     }
 
-    private func showSaveFeedback(for target: RulesValuesWorkspace) {
-        let feedbackID = UUID()
-        saveFeedbackIDs[target] = feedbackID
-        saveFeedbackWorkspaces.insert(target)
-        Task {
-            try? await Task.sleep(for: .seconds(1.5))
-            guard saveFeedbackIDs[target] == feedbackID else { return }
-            saveFeedbackWorkspaces.remove(target)
-            saveFeedbackIDs[target] = nil
+    private var metrics: some View {
+        HStack(spacing: 6) {
+            if let matchCount {
+                Text(Localization.format(.rulesValueMatches, Int64(matchCount)))
+                Text("·")
+            }
+            Text(Localization.format(.rulesValueLines, Int64(lineCount)))
+            Text("·")
+            positionText
         }
+        .lineLimit(1)
+        .fixedSize(horizontal: true, vertical: false)
+    }
+
+    private var positionText: some View {
+        Text(Localization.format(
+            .editorLineAndColumn,
+            Int64(position.line),
+            Int64(position.column)
+        ))
+        .lineLimit(1)
+        .fixedSize(horizontal: true, vertical: false)
     }
 }
 
@@ -1076,19 +1149,28 @@ private struct ValuesConfigurationContent: View {
     }
 
     private var editorValue: String {
-        get { selectedDocument?.value ?? "" }
-        nonmutating set {
-            guard let selectedName else { return }
-            draft.updateValueDocument(newValue, name: selectedName)
-        }
+        selectedDocument?.value ?? ""
+    }
+
+    private func editorBinding(for document: WhistleValueDocument) -> Binding<String> {
+        Binding(
+            get: {
+                draft.valueDocuments.first { $0.name == document.name }?.value ?? document.value
+            },
+            set: { draft.updateValueDocument($0, name: document.name) }
+        )
     }
 
     var body: some View {
         HSplitView {
             valueList
-                .frame(minWidth: 230, idealWidth: 255, maxWidth: 320)
+                .frame(
+                    minWidth: RulesValuesLayout.listMinimumWidth,
+                    idealWidth: RulesValuesLayout.listIdealWidth,
+                    maxWidth: RulesValuesLayout.listMaximumWidth
+                )
             editor
-                .frame(minWidth: 460)
+                .frame(minWidth: RulesValuesLayout.editorMinimumWidth)
         }
         .alert(Localization.string(.valuesCreateValue), isPresented: $isCreating) {
             TextField(Localization.string(.valuesValueName), text: $createName)
@@ -1269,6 +1351,44 @@ private struct ValuesConfigurationContent: View {
             isInteractionDisabled: isOperationInProgress,
             select: { selectedName = document.name }
         )
+        .contextMenu {
+            Button {
+                draft.duplicateValue(name: document.name)
+            } label: {
+                Label(Localization.string(.valuesDuplicateValue), systemImage: "doc.on.doc")
+            }
+
+            Button {
+                presentRenameAlert(for: document)
+            } label: {
+                Label(Localization.string(.valuesRenameValue), systemImage: "pencil")
+            }
+
+            Divider()
+
+            Button {
+                moveSelectedValue(by: -1)
+            } label: {
+                Label(Localization.string(.rulesMoveUp), systemImage: "arrow.up")
+            }
+            .disabled(!canMoveSelectedValueUp)
+
+            Button {
+                moveSelectedValue(by: 1)
+            } label: {
+                Label(Localization.string(.rulesMoveDown), systemImage: "arrow.down")
+            }
+            .disabled(!canMoveSelectedValueDown)
+
+            Divider()
+
+            Button(role: .destructive) {
+                selectedName = document.name
+                isDeleting = true
+            } label: {
+                Label(Localization.string(.valuesDeleteValue), systemImage: "trash")
+            }
+        }
     }
 
     @ViewBuilder
@@ -1294,6 +1414,17 @@ private struct ValuesConfigurationContent: View {
                     }
                     Spacer()
 
+                    Button {
+                        draft.duplicateValue(name: document.name)
+                    } label: {
+                        Image(systemName: "doc.on.doc")
+                            .frame(width: 26, height: 26)
+                    }
+                    .buttonStyle(HoverIconButtonStyle())
+                    .help(Localization.string(.valuesDuplicateValue))
+                    .accessibilityLabel(Localization.string(.valuesDuplicateValue))
+                    .disabled(isOperationInProgress)
+
                     Button(role: .destructive) {
                         isDeleting = true
                     } label: {
@@ -1309,13 +1440,10 @@ private struct ValuesConfigurationContent: View {
                 .frame(height: 48)
                 .background(Color(nsColor: .controlBackgroundColor).opacity(0.55))
 
-                Divider()
+                HairlineDivider()
 
                 WhistleCodeEditor(
-                    text: Binding(
-                        get: { editorValue },
-                        set: { editorValue = $0 }
-                    ),
+                    text: editorBinding(for: document),
                     documentID: "values:\(document.name)",
                     language: .value(documentName: document.name),
                     isEditable: !isOperationInProgress,
@@ -1327,27 +1455,14 @@ private struct ValuesConfigurationContent: View {
                 .background(Color(nsColor: .windowBackgroundColor))
                 .clipped()
 
-                Divider()
+                HairlineDivider()
 
-                HStack {
-                    Text(Localization.string(.valuesReferenceValuesFromRulesWithTheValuesSyntax))
-                    Spacer()
-                    if !filter.isEmpty {
-                        Text(Localization.format(.rulesValueMatches, Int64(editorMatchCount)))
-                        Text("·")
-                    }
-                    Text(Localization.format(.rulesValueLines, Int64(lineCount)))
-                    Text("·")
-                    Text(Localization.format(
-                        .editorLineAndColumn,
-                        Int64(editorPosition.line),
-                        Int64(editorPosition.column)
-                    ))
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 14)
-                .frame(height: 32)
+                EditorStatusBar(
+                    hint: Localization.string(.valuesReferenceValuesFromRulesWithTheValuesSyntax),
+                    matchCount: filter.isEmpty ? nil : editorMatchCount,
+                    lineCount: lineCount,
+                    position: editorPosition
+                )
             }
         } else {
             VStack(spacing: 12) {
@@ -1580,6 +1695,7 @@ private struct RuleListRow: View {
             style: .continuous
         )
         .contentShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+        .opacity(!enabled && !document.isDefault ? 0.65 : 1.0)
         .onHover { isHovering = $0 }
         .animation(.easeOut(duration: 0.1), value: isHovering)
         .animation(.easeOut(duration: 0.1), value: isSelected)

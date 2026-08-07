@@ -41,6 +41,11 @@ The MCP tab displays a ready-to-paste JSON configuration keyed by
 is enabled it includes the current Bearer token; use the Copy button beside the
 configuration to copy it.
 
+The same configuration can be used by multiple coding agents at the same time.
+WhistleYoo creates an independent MCP session for each client, so reconnecting
+or disconnecting one client does not interrupt the others. All clients share
+the access mode and Bearer token configured in WhistleYoo.
+
 ## Access modes
 
 - **Read Only** allows inspection tools and safe app status/start operations.

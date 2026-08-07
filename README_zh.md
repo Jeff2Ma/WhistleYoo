@@ -31,7 +31,7 @@ WhistleYoo 是面向 [Whistle](https://github.com/avwo/whistle) 用户的开源 
 - **完整 Whistle 面板**：在应用内查看请求、Inspectors、Timeline、Composer 等 Whistle 功能。
 - **原生规则管理**：搜索、创建、启停和排序 Whistle 规则集，支持完整 Whistle 规则语法。
 - **手机抓包向导**：直接复制局域网代理信息，通过二维码下载 HTTPS 根证书。
-- **独立且可迁移**：不占用 Whistle 的默认 storage；设置和规则可以保存为一份 JSON 配置。
+- **独立且可迁移**：不占用 Whistle 的默认 storage；设置、Rules、Values 和插件偏好可以保存为一份 JSON 配置。
 - **中英文界面与应用内更新**：跟随系统语言，并可通过 Sparkle 检查新版本。
 
 ## 下载与要求
@@ -145,7 +145,7 @@ WhistleYoo 会自动查找 Homebrew、NVM、FNM、Volta 以及常见本地安装
 ~/Library/Application Support/com.devework.whistleyoo/WhistleYoo.json
 ```
 
-该 JSON 同时包含应用设置和完整规则快照。你可以在设置中改到 iCloud Drive 或其他同步目录，在多台 Mac 间复用配置；配置中可能包含本地路径、域名和完整规则，请不要直接上传到公开位置。
+该 JSON 同时包含应用设置、完整的 Rules 与 Values 快照，以及插件启用状态。你可以在设置中改到 iCloud Drive 或其他同步目录，在多台 Mac 间复用配置。插件包不会被自动安装：某台 Mac 上缺失的插件会被安全跳过，其状态仍保留在文件中供其他 Mac 使用。配置中可能包含本地路径、域名、规则和 Value 内容，请不要直接上传到公开位置。
 
 ## AI Agent 集成（MCP）
 
@@ -157,7 +157,8 @@ WhistleYoo 内置了默认关闭的本机 MCP 服务。进入独立的“MCP”�
 
 HTTP 服务仅监听 `127.0.0.1`。Bearer Token 鉴权默认开启，也可以在设置中明确
 关闭；关闭后服务端会忽略 `Authorization` 请求头。敏感请求头默认会脱敏，过大
-的正文默认会截断。完整的传输方式、权限规则、命名约定和工具清单请参阅
+的正文默认会截断。同一 HTTP 配置可供多个 Coding Agent 同时使用，各客户端的
+MCP 会话彼此独立。完整的传输方式、权限规则、命名约定和工具清单请参阅
 [MCP 使用指南](docs/mcp-usage.zh-CN.md)；完整接口清单见
 [MCP 接口说明](docs/mcp.md)。
 

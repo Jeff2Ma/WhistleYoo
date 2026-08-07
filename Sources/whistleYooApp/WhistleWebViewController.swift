@@ -50,6 +50,11 @@ final class WhistleConsoleSession: NSObject, ObservableObject, WKNavigationDeleg
     .w-left-menu {
         display: none !important;
     }
+
+    .w-filter-input {
+        color: var(--b-img) !important;
+        background-color: var(--c-cobalt) !important;
+    }
     """
 
     private static var customStyleUserScript: WKUserScript {

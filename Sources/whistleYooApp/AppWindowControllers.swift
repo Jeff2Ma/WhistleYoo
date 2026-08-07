@@ -7,20 +7,17 @@ import whistleYooCore
 @MainActor
 final class MainWindowController: NSWindowController, NSWindowDelegate {
     private static let defaultContentSize = NSSize(width: 1280, height: 800)
-    private static let minimumWindowSize = NSSize(width: 900, height: 640)
+    private static let minimumWindowSize = NSSize(
+        width: MainWorkspaceLayout.minimumWidth,
+        height: MainWorkspaceLayout.minimumHeight
+    )
+    // `.fullSizeContentView` lets the SwiftUI sidebar paint behind the title bar so
+    // the window buttons sit inside the sidebar, the way OrbStack and Finder do it.
     private static let windowStyleMask: NSWindow.StyleMask = [
-        .titled, .closable, .miniaturizable, .resizable
+        .titled, .closable, .miniaturizable, .resizable, .fullSizeContentView
     ]
     private static let contentWidthDefaultsKey = "MainWorkspaceWindowContentWidth"
     private static let contentHeightDefaultsKey = "MainWorkspaceWindowContentHeight"
-    private static let hostingSizeMigrationDefaultsKey = "MainWorkspaceWindowHostingSizeMigrationV1"
-
-    private static var minimumContentSize: NSSize {
-        NSWindow.contentRect(
-            forFrameRect: NSRect(origin: .zero, size: minimumWindowSize),
-            styleMask: windowStyleMask
-        ).size
-    }
 
     private let selection: MainWorkspaceSelection
     private let mobileModel: MobileSetupViewModel
@@ -34,7 +31,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         runOnboarding: @escaping () -> Void
     ) {
         let rulesDraft = RuleConfigurationDraft()
-        selection = MainWorkspaceSelection(
+        let workspaceSelection = MainWorkspaceSelection(
             selected: initialTab,
             hasUnsavedChanges: { rulesDraft.isDirty },
             hasOperationInProgress: {
@@ -44,12 +41,13 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             },
             discardUnsavedChanges: { rulesDraft.discardChanges() }
         )
+        selection = workspaceSelection
         mobileModel = MobileSetupViewModel(state: state)
         self.rulesDraft = rulesDraft
         let rootView = MainWorkspaceView(
             state: state,
             consoleSession: consoleSession,
-            selection: selection,
+            selection: workspaceSelection,
             mobileModel: mobileModel,
             rulesDraft: rulesDraft,
             exportCertificate: exportCertificate,
@@ -63,6 +61,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             defer: false
         )
         window.title = "WhistleYoo"
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
         window.minSize = Self.minimumWindowSize
         window.isReleasedWhenClosed = false
         window.contentViewController = NSHostingController(rootView: rootView)
@@ -133,10 +133,12 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private func persistContentSize(of window: NSWindow) {
-        let size = window.contentLayoutRect.size
+        // With `.fullSizeContentView` the content rect matches the frame rect, so the
+        // frame size is the value that `setContentSize(_:)` expects on the next launch.
+        let size = window.frame.size
         guard size.width.isFinite, size.height.isFinite,
-              size.width >= Self.minimumContentSize.width,
-              size.height >= Self.minimumContentSize.height else { return }
+              size.width >= Self.minimumWindowSize.width,
+              size.height >= Self.minimumWindowSize.height else { return }
         UserDefaults.standard.set(size.width, forKey: Self.contentWidthDefaultsKey)
         UserDefaults.standard.set(size.height, forKey: Self.contentHeightDefaultsKey)
     }
@@ -144,25 +146,11 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
     private static func restoredContentSize(defaults: UserDefaults = .standard) -> NSSize {
         let width = defaults.double(forKey: contentWidthDefaultsKey)
         let height = defaults.double(forKey: contentHeightDefaultsKey)
-
-        // Earlier builds let NSHostingController collapse every restored window
-        // to the minimum frame size and then persisted that value. Recover that
-        // exact poisoned value once; future intentional minimum-size windows are
-        // preserved because the migration marker has already been written.
-        if !defaults.bool(forKey: hostingSizeMigrationDefaultsKey) {
-            defaults.set(true, forKey: hostingSizeMigrationDefaultsKey)
-            let minimumContentSize = Self.minimumContentSize
-            if abs(width - Double(minimumContentSize.width)) < 0.5,
-               abs(height - Double(minimumContentSize.height)) < 0.5 {
-                defaults.set(defaultContentSize.width, forKey: contentWidthDefaultsKey)
-                defaults.set(defaultContentSize.height, forKey: contentHeightDefaultsKey)
-                return defaultContentSize
-            }
-        }
-
+        // Values written by earlier builds excluded the title bar height, so anything
+        // below the minimum window size is discarded in favour of the default size.
         guard width.isFinite, height.isFinite,
-              width >= minimumContentSize.width,
-              height >= minimumContentSize.height else {
+              width >= minimumWindowSize.width,
+              height >= minimumWindowSize.height else {
             return defaultContentSize
         }
         return NSSize(width: width, height: height)

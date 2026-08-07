@@ -7,10 +7,12 @@ import whistleYooCore
 @MainActor
 final class MCPToolBackend {
     private let state: AppStateController
+    private let client: MCPClientIdentity
     private var managedFiles = Set<String>()
 
-    init(state: AppStateController) {
+    init(state: AppStateController, client: MCPClientIdentity = .unknown) {
         self.state = state
+        self.client = client
     }
 
     func makeServer() async -> Server {
@@ -50,6 +52,7 @@ final class MCPToolBackend {
                 let text = String(decoding: data, as: UTF8.self)
                 await self.state.recordMCPAudit(
                     tool: parameters.name,
+                    client: self.client,
                     succeeded: true,
                     startedAt: startedAt
                 )
@@ -61,6 +64,7 @@ final class MCPToolBackend {
             } catch {
                 await self.state.recordMCPAudit(
                     tool: parameters.name,
+                    client: self.client,
                     succeeded: false,
                     startedAt: startedAt,
                     message: error.localizedDescription
@@ -241,21 +245,27 @@ final class MCPToolBackend {
             return try await client.pluginsGetStatus()
         case "plugins_turn_off":
             try await client.pluginsTurnOff()
+            _ = await state.loadPlugins()
             return success()
         case "plugins_turn_on":
             try await client.pluginsTurnOn()
+            _ = await state.loadPlugins()
             return success()
         case "plugins_get_list":
             return try await client.pluginsGetList()
         case "plugins_get":
             return try await client.pluginsGet(try string("name", arguments))
         case "plugins_select":
+            let exists = try await client.pluginsSelect(try string("name", arguments))
+            _ = await state.loadPlugins()
             return .object([
-                "exists": .bool(try await client.pluginsSelect(try string("name", arguments)))
+                "exists": .bool(exists)
             ])
         case "plugins_unselect":
+            let exists = try await client.pluginsUnselect(try string("name", arguments))
+            _ = await state.loadPlugins()
             return .object([
-                "exists": .bool(try await client.pluginsUnselect(try string("name", arguments)))
+                "exists": .bool(exists)
             ])
         default:
             throw MCPError.methodNotFound(name)

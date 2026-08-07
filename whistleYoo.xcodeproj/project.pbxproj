@@ -40,6 +40,7 @@
 		1134 /* WhistleAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0139 /* WhistleAPIClient.swift */; };
 		1135 /* MCPToolServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0140 /* MCPToolServer.swift */; };
 		1136 /* MCPHTTPServerCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0141 /* MCPHTTPServerCoordinator.swift */; };
+		1142 /* WhistlePluginsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0143 /* WhistlePluginsManager.swift */; };
 		1137 /* MCP in Frameworks */ = {isa = PBXBuildFile; productRef = 6004 /* MCP */; };
 		1138 /* NIOCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6006 /* NIOCore */; };
 		1139 /* NIOPosix in Frameworks */ = {isa = PBXBuildFile; productRef = 6007 /* NIOPosix */; };
@@ -87,6 +88,7 @@
 		0140 /* MCPToolServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPToolServer.swift; sourceTree = "<group>"; };
 		0141 /* MCPHTTPServerCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPHTTPServerCoordinator.swift; sourceTree = "<group>"; };
 		0142 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
+		0143 /* WhistlePluginsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhistlePluginsManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -121,7 +123,7 @@
 		};
 		0005 /* whistleYooCore */ = {
 			isa = PBXGroup;
-			children = (0101, 0102, 0103, 0104, 0105, 0106, 0107, 0108, 0109, 0110, 0111, 0123, 0125, 0136, 0128 /* Localizable.xcstrings */, 0135, 0138, 0139, 0118);
+			children = (0101, 0102, 0103, 0104, 0105, 0106, 0107, 0108, 0109, 0110, 0111, 0123, 0125, 0136, 0128 /* Localizable.xcstrings */, 0135, 0138, 0139, 0143, 0118);
 			path = whistleYooCore;
 			sourceTree = "<group>";
 		};
@@ -190,7 +192,7 @@
 		2001 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
-			files = (1101, 1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1121, 1123, 1131, 1130, 1133, 1134, 1112, 1117, 1118, 1119, 1120, 1113, 1126, 1128, 1129, 1132, 1135, 1136, 1114, 1116);
+			files = (1101, 1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1121, 1123, 1131, 1130, 1133, 1134, 1142, 1112, 1117, 1118, 1119, 1120, 1113, 1126, 1128, 1129, 1132, 1135, 1136, 1114, 1116);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
@@ -241,7 +243,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/whistleYooApp/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MARKETING_VERSION = 0.0.3;
+				MARKETING_VERSION = 0.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.devework.whistleyoo;
 				PRODUCT_NAME = WhistleYoo;
 				SUPPORTED_PLATFORMS = macosx;
@@ -260,7 +262,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/whistleYooApp/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MARKETING_VERSION = 0.0.3;
+				MARKETING_VERSION = 0.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.devework.whistleyoo;
 				PRODUCT_NAME = WhistleYoo;
 				SUPPORTED_PLATFORMS = macosx;

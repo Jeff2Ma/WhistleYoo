@@ -106,6 +106,99 @@ final class WhistleCodeEditorCoordinatorTests: XCTestCase {
         XCTAssertEqual(second, "second edited")
     }
 
+    func testMarkedTextIsNotPublishedOrOverwrittenBeforeIMECommit() {
+        var text = "prefix "
+        var writeCount = 0
+        let editor = makeEditor()
+        let documentID = "test:ime:\(UUID())"
+        let binding = Binding(
+            get: { text },
+            set: {
+                text = $0
+                writeCount += 1
+            }
+        )
+
+        update(
+            editor,
+            binding: binding,
+            documentID: documentID,
+            text: text,
+            isEditable: true
+        )
+        editor.textView.setSelectedRange(NSRange(location: 7, length: 0))
+        editor.textView.setMarkedText(
+            "zhong",
+            selectedRange: NSRange(location: 5, length: 0),
+            replacementRange: NSRange(location: NSNotFound, length: 0)
+        )
+        editor.coordinator.textDidChange(
+            Notification(name: NSText.didChangeNotification, object: editor.textView)
+        )
+
+        XCTAssertTrue(editor.textView.hasMarkedText())
+        XCTAssertEqual(editor.textView.string, "prefix zhong")
+        XCTAssertEqual(text, "prefix ")
+        XCTAssertEqual(writeCount, 0)
+
+        // A SwiftUI refresh may still arrive with the last committed value. It
+        // must not replace the input method's marked range.
+        update(
+            editor,
+            binding: binding,
+            documentID: documentID,
+            text: text,
+            isEditable: true
+        )
+
+        XCTAssertTrue(editor.textView.hasMarkedText())
+        XCTAssertEqual(editor.textView.string, "prefix zhong")
+        XCTAssertEqual(writeCount, 0)
+
+        editor.textView.insertText(
+            "中",
+            replacementRange: editor.textView.markedRange()
+        )
+
+        XCTAssertFalse(editor.textView.hasMarkedText())
+        XCTAssertEqual(editor.textView.string, "prefix 中")
+        XCTAssertEqual(text, "prefix 中")
+        XCTAssertEqual(writeCount, 1)
+    }
+
+    func testSwitchingDocumentsCommitsMarkedTextToThePreviousBinding() {
+        var first = "first "
+        var second = "second"
+        let editor = makeEditor()
+
+        update(
+            editor,
+            binding: Binding(get: { first }, set: { first = $0 }),
+            documentID: "test:ime-switch:first:\(UUID())",
+            text: first,
+            isEditable: true
+        )
+        editor.textView.setSelectedRange(NSRange(location: 6, length: 0))
+        editor.textView.setMarkedText(
+            "中文",
+            selectedRange: NSRange(location: 2, length: 0),
+            replacementRange: NSRange(location: NSNotFound, length: 0)
+        )
+
+        update(
+            editor,
+            binding: Binding(get: { second }, set: { second = $0 }),
+            documentID: "test:ime-switch:second:\(UUID())",
+            text: second,
+            isEditable: true
+        )
+
+        XCTAssertEqual(first, "first 中文")
+        XCTAssertEqual(second, "second")
+        XCTAssertEqual(editor.textView.string, "second")
+        XCTAssertFalse(editor.textView.hasMarkedText())
+    }
+
     func testSwitchingDocumentsRestoresSelectionForTheCorrectDocument() {
         var first = "first document"
         var second = "second document"
